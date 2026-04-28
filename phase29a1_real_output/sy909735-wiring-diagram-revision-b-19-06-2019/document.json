@@ -1,0 +1,47 @@
+{
+  "source_file": "SY909735_Wiring diagram_Revision B_19_06_2019.pdf",
+  "engine": "markitdown",
+  "pages_count": 3,
+  "text_pages_count": 3,
+  "rendered_pages_count": 3,
+  "pages": [
+    {
+      "page_number": 1,
+      "source_page": 1,
+      "locator": "Page 1",
+      "semantic_title": "Cover Sheet",
+      "image_path": "assets/page_001.png",
+      "text": "Page\nPg\nCML 125\nEd. by\nOriginal\nENG-186350\nSY909735\nDate\nDate\nReplaced by\ncover sheet\n1\nModification\n0\n7\n6\nAppr\nCreated for\n8\n9\n3\n227\n2\n4\n1\n2\nName\n5\nDate of issue\nEstée Lauder Companies Innovation Institute\n19.06.2019\n20.08.2018\nF\nE\nD\nC\nB\nA\ndrawing number\nOrder number\nWohlers\nCustomer\nPlant designation\nDrawing number\nControl panels \nCreated on:\nLast change at:\nMounting site \nCommission\nMake Control Panel\nTyp\nDegree of protection  \n20.08.2018\n:\n:\n:\n:\n:\n:\n:\n:\n:\nEstée Lauder Companies Innovation Institute\nCML 125\nShanghai, China\nENG-186350\nRittal\nTS8\nIP55\n2\nSY909735\nfrom:\nfrom:\nWohlers\nSupply \nSupply lead \nControl voltage \nModel \nNumber of pages:\n227\n:\n:\n:\n:\n3~400V/50Hz\n4x150mm²\n24VDC\n2018\nsymex GmbH & Co. KG\nLengstraße 10\n27572 Bremerhaven\nTel.: +49 (0) 471 / 98401-0\nFax.: +49 (0) 471 / 98401-40\nwww.symex.de\ninfo@symex.de\nWohlers\n19.06.2019\n",
+      "text_char_count": 851,
+      "width": 2384,
+      "height": 1688
+    },
+    {
+      "page_number": 2,
+      "source_page": 2,
+      "locator": "Page 2",
+      "semantic_title": "Table of Contents",
+      "image_path": "assets/page_002.png",
+      "text": "Page\nPg\nCML 125\nEd. by\n1\nOriginal\nENG-186350\nSY909735\nDate\nDate\nReplaced by\nTable of contents\n1\nModification\n0\n7\n6\nAppr\nCreated for\n8\n9\n3\n227\n2.1\n4\n2\n2\nName\n5\nDate of issue\nEstée Lauder Companies Innovation Institute\n19.06.2019\n20.08.2018\nF\nE\nD\nC\nB\nA\ndrawing number\nOrder number\nWohlers\nEdited by\nPage type\nTable of contents\nDate\nPage description\nPage\n/1\ncover sheet\nCover Page\n20.08.2018\n/2\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/2.1\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/2.2\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/2.3\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/2.4\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/2.5\nWohlers\nTable of contents\nTable of contents\n21.02.2019\n/3\nRevision overview\nRevision overview\n19.06.2019\n/3.1\nRevision overview\nRevision overview\n19.06.2019\n/3.2\nRevision overview\nRevision overview\n19.06.2019\n/3.3\nRevision overview\nRevision overview\n19.06.2019\n/3.4\nRevision overview\nRevision overview\n19.06.2019\n/4\nGeneral project informations\nCover Page\n20.08.2018\n/5\nAnft\nterminal designations and wire colours\nCover Page\n20.08.2018\n/6\nAnft\ncable numbering\nCover Page\n20.08.2018\n/7\nAnft\nEarthing- and shield connection information\nCover Page\n20.08.2018\n/10\nWohlers\nLayout enclosure +N01\npanel layout\n27.08.2018\n/11\nWohlers\nEnclosure legend +N01\nEnclosure legend\n21.02.2019\n/11.1\nWohlers\nEnclosure legend +N01\nEnclosure legend\n21.02.2019\n/11.2\nWohlers\nEnclosure legend +N01\nEnclosure legend\n21.02.2019\n/12\nWohlers\nLayout enclosure +N02\npanel layout\n28.08.2018\n/13\nWohlers\nEnclosure legend +N02\nEnclosure legend\n04.09.2018\n/14\nWohlers\nActuatorpanel Layout enclosure +PN\npanel layout\n28.08.2018\n/15\nWohlers\nEnclosure legend +PN\nEnclosure legend\n04.09.2018\n/16\nWohlers\noverview Bus connection\nSchematic single-line\n28.08.2018\n+N01/1\nWohlers\nPower supply\nSchematic multi-line\n20.08.2018\n+N01/2\nWohlers\nCabinet lightning/socket\nSchematic multi-line\n20.08.2018\n+N01/3\nWohlers\nCabinet ventilation\nSchematic multi-line\n20.08.2018\n+N01/7\nWohlers\nControl voltage supply 230VAC\nSchematic multi-line\n21.08.2018\n+N01/8\nWohlers\nPower supply 24VDC\nSchematic multi-line\n20.08.2018\n+N01/9\nWohlers\nPower supply 24VDC distribution\nSchematic multi-line\n20.08.2018\n+N01/10\nWohlers\nPower supply 24VDC distribution\nSchematic multi-line\n20.08.2018\n+N01/11\nWohlers\nPower supply 24VDC distribution 0V\nSchematic multi-line\n20.08.2018\n+N01/12\nWohlers\nAutomatic cut out power supplys\nSchematic multi-line\n20.08.2018\n+N01/13\nWohlers\nPower supply 24VDC at Enclosure +N02\nSchematic multi-line\n20.08.2018\n+N01/15\nWohlers\nPower distributor valve terminals\nSchematic multi-line\n20.08.2018\n+N01/17\nWohlers\nVessel lightning\nSchematic multi-line\n20.08.2018\n+N01/18\nWohlers\nVessel lightning\nSchematic multi-line\n20.08.2018\nWohlers\nWohlers\nAnft\nWohlers\nWohlers\nWohlers\nAnft\n",
+      "text_char_count": 2828,
+      "width": 2384,
+      "height": 1688
+    },
+    {
+      "page_number": 3,
+      "source_page": 3,
+      "locator": "Page 3",
+      "semantic_title": "Table of Contents",
+      "image_path": "assets/page_003.png",
+      "text": "Page\nPg\nCML 125\nEd. by\n2\nOriginal\nENG-186350\nSY909735\nDate\nDate\nReplaced by\nTable of contents\n1\nModification\n0\n7\n6\nAppr\nCreated for\n8\n9\n3\n227\n2.2\n4\n2.1\n2\nName\n5\nDate of issue\nEstée Lauder Companies Innovation Institute\n19.06.2019\n20.08.2018\nF\nE\nD\nC\nB\nA\ndrawing number\nOrder number\nWohlers\nEdited by\nPage type\nTable of contents\nDate\nPage description\nPage\n+N01/20\nWohlers\nGeneral control\nSchematic multi-line\n20.08.2018\n+N01/21\nWohlers\nGeneral control\nSchematic multi-line\n20.08.2018\n+N01/22\nWohlers\nGeneral control\nSchematic multi-line\n20.08.2018\n+N01/25\nWohlers\nEmergency stop\nSchematic multi-line\n21.08.2018\n+N01/26\nWohlers\nEmergency stop\nSchematic multi-line\n21.08.2018\n+N01/30\nWohlers\nCML Manhole control\nSchematic multi-line\n21.08.2018\n+N01/40\nWohlers\nCML Lid safety switch\nSchematic multi-line\n21.08.2018\n+N01/41\nWohlers\nCML lid lift two hand control\nSchematic multi-line\n21.08.2018\n+N01/42\nWohlers\nCML Lid limit switch\nSchematic multi-line\n21.08.2018\n+N01/43\nWohlers\nCML Lid limit switch\nSchematic multi-line\n21.08.2018\n+N01/44\nWohlers\nCML lid spindle nut mech. wear / Blockade safeguard sensor\nSchematic multi-line\n21.08.2018\n+N01/45\nWohlers\nCML lid Clamping ring control\nSchematic multi-line\n21.08.2018\n+N01/100\nWohlers\nCML Co-Twister mains contactor\nSchematic multi-line\n21.08.2018\n+N01/103\nAnft\nCML Co-Twister PTC\nSchematic multi-line\n21.08.2018\n+N01/104\nWohlers\nCML Co-Twister messages to PLC\nSchematic multi-line\n21.08.2018\n+N01/111\nWohlers\nCML Scraper / anchor agitator 1M1501 Control\nSchematic multi-line\n21.08.2018\n+N01/121\nWohlers\nCML Central agitator 1M1502 control\nSchematic multi-line\n21.08.2018\n+N01/131\nWohlers\nCML lid 1M4009 Frequency inverter\nSchematic multi-line\n21.08.2018\n+N01/132\nWohlers\nCML lid lift 1M4009 control\nSchematic multi-line\n21.08.2018\n+N01/133\nWohlers\nCML lid lift 1M4009 control\nSchematic multi-line\n21.08.2018\n+N01/140\nWohlers\nVacuum pump 1M5002 power\nSchematic multi-line\n22.08.2018\n+N01/141\nWohlers\nVacuum pump 1M5002 control\nSchematic multi-line\n22.08.2018\n+N01/150\nWohlers\nCML Power supply heating/cooling\nSchematic multi-line\n22.08.2018\n+N01/160\nWohlers\nCML Power supply external chiller\nSchematic multi-line\n22.08.2018\n+N01/170\nWohlers\nCML Cooling water pump 1M2098 power\nSchematic multi-line\n22.08.2018\n+N01/171\nWohlers\nCML Kühlwasserspumpe 1M2098 Steuerung\nSchematic multi-line\n22.08.2018\n+N01/180\nWohlers\nCML Co-Twister sealing liquid pump 1M2509\nSchematic multi-line\n22.08.2018\n+N01/200\nWohlers\nCML Electrical heat tracing\nSchematic multi-line\n22.08.2018\n+N01/201\nWohlers\nCML Electrical heat tracing\nSchematic multi-line\n22.08.2018\n+N01/202\nWohlers\nElectrical heat tracing Control\nSchematic multi-line\n22.08.2018\n+N01/210\nWohlers\nCML Wiper motor 1M1308\nSchematic multi-line\n08.10.2018\n+N01/300\nWohlers\nActuation analog input 4-20mA\nSchematic multi-line\n22.08.2018\n+N01/302\nWohlers\nActuation analog input PT100\nSchematic multi-line\n22.08.2018\n+N01/303\nWohlers\nActuation analog input PT100\nSchematic multi-line\n22.08.2018\n+N01/305\nWohlers\nactuation analog inputs heating/cooling unit\nSchematic multi-line\n22.08.2018\n+N01/306\nWohlers\nactuation digital outputs heating/cooling unit\nSchematic multi-line\n22.08.2018\n+N01/307\nWohlers\nactuation digital inputs heating/cooling unit\nSchematic multi-line\n22.08.2018\n+N01/310\nWohlers\nActuation digital input valve feedback\nSchematic multi-line\n22.08.2018\n",
+      "text_char_count": 3345,
+      "width": 2384,
+      "height": 1688
+    }
+  ],
+  "elements": [],
+  "document_kind": "technical_drawing_pdf",
+  "quality_status": "low_structure",
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false
+}

@@ -1,0 +1,22 @@
+{
+  "source_file": "Operation manual EN.pdf",
+  "source_path": "C:\\Users\\hcai\\Downloads\\Operation manual EN.pdf",
+  "checksum": "sha256:16e9971d8cc1a4405910c1d059eaf6572659c2a1deb9664e1caa867bf678a46c",
+  "file_type": "pdf",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "low_structure",
+  "document_kind": "manual_pdf",
+  "asset_count": 3,
+  "ai_used": false,
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "converted_at": "2026-04-28T03:47:57+00:00",
+  "status": "success",
+  "warnings": [
+    "low_structure: no headings detected",
+    "no headings detected"
+  ],
+  "errors": []
+}

@@ -1,0 +1,100 @@
+{
+  "organization": [
+    "Symex"
+  ],
+  "line": [],
+  "document_type": [
+    "release rationale"
+  ],
+  "manual_topic": [],
+  "drawing_number": [],
+  "project_number": [
+    "PN 77563"
+  ],
+  "order_number": [],
+  "commission_number": [],
+  "equipment": [
+    "M4E",
+    "Symex"
+  ],
+  "manufacturer": [],
+  "equipment_name": [],
+  "symex_number": [],
+  "customer": [],
+  "year_built": [],
+  "issue": [],
+  "revision": [],
+  "document_title": [
+    "PPPB Release Rationale - 43DS - LS + ANTI-FATIGUE + YTH RNFR FST PWRFL EYE SERUM"
+  ],
+  "prepared_by": [
+    "Wenmei QIU"
+  ],
+  "product_name": [
+    "ANTI-FATIGUE + YTH RNFR FST PWRFL EYE SERUM"
+  ],
+  "pathfinder_mass_code": [
+    "43DS-00-M01U"
+  ],
+  "parent_mass_code": [
+    "NA"
+  ],
+  "scientist_formulator": [
+    "DONG CHAO"
+  ],
+  "source_factory_ship_date": [
+    "08 Feb 2027"
+  ],
+  "manufacturing_location": [
+    "OEVEL"
+  ],
+  "filling_location": [
+    "OEVEL"
+  ],
+  "product_category": [
+    "Skincare"
+  ],
+  "product_form": [
+    "Serum"
+  ],
+  "formula_system": [
+    "W/Si"
+  ],
+  "process_description": [
+    "O-PF-100-GEN-M4E/SWEEP REV0"
+  ],
+  "subject_release_due_date": [
+    "17 Oct 2025"
+  ],
+  "specialty_equipment": [
+    "M4E"
+  ],
+  "engineer_review_by": [
+    "Luna Lu"
+  ],
+  "release_phase": [
+    "PPPBC release"
+  ],
+  "annual_volume": [
+    "200 kilograms"
+  ],
+  "emulsifiers": [
+    "KF-6105",
+    "KSG-210 DF"
+  ],
+  "process_parameters": [
+    "M4E Venturi 35L/min for 5mins"
+  ],
+  "viscosity_adjustment": [
+    "33% to 37% at 50kg TC324870"
+  ],
+  "recommendation": [
+    "proceed to PPPB"
+  ],
+  "embedded_images_count": [
+    "5"
+  ],
+  "mass_code": [
+    "43DS-00-M01U"
+  ]
+}

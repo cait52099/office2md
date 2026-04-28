@@ -1,0 +1,24 @@
+{
+  "documents": [
+    {
+      "title": "43ds-ls-daily-rescue-eye-serum-20260417",
+      "document": "43ds-ls-daily-rescue-eye-serum-20260417/document.md",
+      "source_file": "43DS-LS Daily Rescue Eye Serum 20260417.pptx",
+      "document_kind": "process_development_presentation",
+      "quality_status": "ok",
+      "tags": [
+        "pptx",
+        "project-presentation",
+        "formula-development",
+        "process-development",
+        "scale-up",
+        "m4e",
+        "symex",
+        "viscosity",
+        "w-o-formula"
+      ],
+      "chunks_count": 53,
+      "assets_count": 0
+    }
+  ]
+}

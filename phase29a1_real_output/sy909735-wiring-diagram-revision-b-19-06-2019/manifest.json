@@ -1,0 +1,22 @@
+{
+  "source_file": "SY909735_Wiring diagram_Revision B_19_06_2019.pdf",
+  "source_path": "C:\\Users\\hcai\\Downloads\\SY909735_Wiring diagram_Revision B_19_06_2019.pdf",
+  "checksum": "sha256:cd33806e072f2f5ff10447d18109bb8040b2b9fa6c726a7926481d668fa091a7",
+  "file_type": "pdf",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "low_structure",
+  "document_kind": "technical_drawing_pdf",
+  "asset_count": 3,
+  "ai_used": false,
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "converted_at": "2026-04-28T03:48:43+00:00",
+  "status": "success",
+  "warnings": [
+    "low_structure: no headings detected",
+    "no headings detected"
+  ],
+  "errors": []
+}

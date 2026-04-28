@@ -1,0 +1,22 @@
+{
+  "title": "README",
+  "summary": "",
+  "key_metadata": {
+    "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\tests\\fixtures\\README.md",
+    "checksum": "sha256:b28dcb9316bf794da6193e3d86676fabf4762ae1bdc3e5e915942dbf0bf6b550",
+    "converter": "markitdown"
+  },
+  "tags": [
+    "md"
+  ],
+  "document_kind": "document",
+  "quality_status": "ok",
+  "chunks_count": 1,
+  "assets_count": 0,
+  "pages_count": 0,
+  "pages_with_text_count": 0,
+  "text_chunks_count": 1,
+  "image_chunks_count": 0,
+  "page_chunks_count": 0,
+  "source_file": "README.md"
+}

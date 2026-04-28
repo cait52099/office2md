@@ -1,0 +1,36 @@
+engine:
+  default: auto
+  pdf_primary: docling
+  office_primary: markitdown
+  complex_pdf: marker
+
+output:
+  markdown: true
+  raw_markdown: true
+  json: true
+  chunks: true
+  assets: true
+  page_breaks: true
+
+chunking:
+  max_chars: 1600
+  overlap_chars: 150
+
+ocr:
+  enabled: auto
+  force: false
+  languages:
+    - eng
+    - chi_sim
+    - jpn
+
+llm:
+  enabled: false
+  provider: openai_compatible
+  model: gpt-4.1-mini
+  use_for:
+    - image_caption
+    - table_cleanup
+    - heading_repair
+    - summary
+

@@ -1,0 +1,82 @@
+{
+  "title": "43DS MPDP",
+  "summary": "",
+  "key_metadata": {
+    "source_path": "C:\\Users\\hcai\\Downloads\\43DS MPDP.xlsx",
+    "checksum": "sha256:cc53a1f70bffd97b2bc803ed0c7c175ce167d3158a8a6f7783c30aeb79514001",
+    "converter": "markitdown",
+    "document_type": "MPDP / scale-up plan",
+    "sheet_names": [
+      "MPDP-OWL"
+    ],
+    "table_count": 1,
+    "scaleup_phase": [
+      "PFA",
+      "Pilot",
+      "Practice",
+      "Pre-Production",
+      "Production"
+    ],
+    "batch_type": [
+      "Lab bench",
+      "Pilot",
+      "PPPB",
+      "PPB",
+      "FPB"
+    ],
+    "tasks": [
+      "Stability",
+      "Approval",
+      "Test Fill"
+    ],
+    "release_gates": [
+      "Before Practice Release",
+      "Before Pre-Production Release",
+      "Before Production Release"
+    ]
+  },
+  "tags": [
+    "xlsx",
+    "mpdp",
+    "scale-up-plan",
+    "pilot",
+    "practice",
+    "pre-production",
+    "production",
+    "stability"
+  ],
+  "document_kind": "mpdp_table_xlsx",
+  "quality_status": "ok",
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "chunks_count": 6,
+  "assets_count": 0,
+  "pages_count": 0,
+  "text_pages_count": 0,
+  "pages_with_text_count": 0,
+  "rendered_pages_count": 0,
+  "text_chunks_count": 6,
+  "image_chunks_count": 0,
+  "page_chunks_count": 0,
+  "image_only_chunks_count": 0,
+  "searchable_page_chunks_count": 0,
+  "section_chunks_count": 0,
+  "section_chunks_with_body_count": 0,
+  "section_outline": [],
+  "slide_chunks_count": 0,
+  "table_chunks_count": 1,
+  "topic_chunks_count": 0,
+  "batch_study_chunks_count": 0,
+  "visual_heavy_slides_count": 0,
+  "drawing_index_count": 0,
+  "drawing_index": [],
+  "embedded_images_count": 0,
+  "embedded_image_detected": false,
+  "missing_assets_count": 0,
+  "source_file": "43DS MPDP.xlsx",
+  "document_type": "MPDP / scale-up plan",
+  "sheet_names": [
+    "MPDP-OWL"
+  ],
+  "table_count": 1
+}

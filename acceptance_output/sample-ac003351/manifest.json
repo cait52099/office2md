@@ -1,0 +1,16 @@
+{
+  "source_file": "sample.pdf",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\acceptance_input\\sample.pdf",
+  "checksum": "sha256:ac003351d23a5f1c45c4ba0ab6036f4fb7e02ba52baf865e0887206b86fb9e0b",
+  "file_type": "pdf",
+  "engine": "markitdown",
+  "fallback_used": true,
+  "ocr_used": false,
+  "converted_at": "2026-04-24T02:21:37+00:00",
+  "status": "success",
+  "warnings": [
+    "docling failed; fell back to markitdown: LocalEntryNotFoundError: Got: ConnectError: [WinError 10054]",
+    "no headings detected"
+  ],
+  "errors": []
+}

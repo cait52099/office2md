@@ -1,0 +1,13 @@
+{
+  "source_file": "sample.txt",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\acceptance_input\\sample.txt",
+  "checksum": "sha256:67ed27147f5528543a47100000449818a856cf51003b4774d0ce7b02267228f7",
+  "file_type": "txt",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "converted_at": "2026-04-24T02:21:37+00:00",
+  "status": "success",
+  "warnings": [],
+  "errors": []
+}

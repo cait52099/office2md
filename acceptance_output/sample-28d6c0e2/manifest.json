@@ -1,0 +1,13 @@
+{
+  "source_file": "sample.html",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\acceptance_input\\sample.html",
+  "checksum": "sha256:28d6c0e228561f28a85c32ffe3e8b02b334a2ca648053f11cb9f7979f88a566a",
+  "file_type": "html",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "converted_at": "2026-04-24T02:20:58+00:00",
+  "status": "success",
+  "warnings": [],
+  "errors": []
+}

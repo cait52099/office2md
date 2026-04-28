@@ -1,0 +1,13 @@
+{
+  "source_file": "sample.xlsx",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\acceptance_input\\sample.xlsx",
+  "checksum": "sha256:ea308c6508844d7f73aae638fb042c553575a20b3dfe44f8856b8d714f475c07",
+  "file_type": "xlsx",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "converted_at": "2026-04-24T02:21:38+00:00",
+  "status": "success",
+  "warnings": [],
+  "errors": []
+}

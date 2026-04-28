@@ -1,0 +1,16 @@
+{
+  "source_file": "wiring_diagram.pdf",
+  "engine": "markitdown",
+  "pages": [
+    {
+      "page_number": 1,
+      "source_page": 1,
+      "locator": "Page 1",
+      "semantic_title": null,
+      "image_path": "assets/page_001.png",
+      "width": 1224,
+      "height": 1584
+    }
+  ],
+  "elements": []
+}

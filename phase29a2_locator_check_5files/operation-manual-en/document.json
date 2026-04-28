@@ -1,0 +1,911 @@
+{
+  "source_file": "Operation manual EN.pdf",
+  "engine": "markitdown",
+  "pages_count": 99,
+  "text_pages_count": 99,
+  "rendered_pages_count": 3,
+  "pages": [
+    {
+      "page_number": 1,
+      "source_page": 1,
+      "locator": "Page 1",
+      "semantic_title": "Title Page",
+      "image_path": "assets/page_001.png",
+      "text": "symex GmbH & Co. KG \nLengstr. 10 \n27572 Bremerhaven, GERMANY \nPhone: +49 (0) 471  9 84 01 - 0  \n \n \n \n \n \n \nFax: \n+49 (0) 471  9 84 01 - 40 \nInternet: http://www.symex.de  \nEmail: info@symex.de \nRev. 1.1 \n \nsymex GmbH & Co. KG             \n \n \nOperating Manual \nfor \n \nProduction Mixer System \n \nCML 125 \n \n \n \n \n \nMachine No./Order no. \nSY909735 \n2019 \n \n \n \n \n \n",
+      "text_char_count": 364,
+      "width": 1191,
+      "height": 1685
+    },
+    {
+      "page_number": 2,
+      "source_page": 2,
+      "locator": "Page 2",
+      "semantic_title": null,
+      "image_path": "assets/page_002.png",
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 2\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 116,
+      "width": 1191,
+      "height": 1685
+    },
+    {
+      "page_number": 3,
+      "source_page": 3,
+      "locator": "Page 3",
+      "semantic_title": null,
+      "image_path": "assets/page_003.png",
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 3\n \n \n \n \n \n \n \n \n \nTemplate: \nBA-Vorlage-SY90XXXX_E.docx \nVersion:  \n12/1217 \nOriginal language: \nEnglish \n \n \n \nATTENTION \n \n \n \n \nBefore commissioning, it is imperative to read and \nobserve the operation manual and the safety instruc-\ntions! \nMachine may only be operated by trained, instructed \nstaff! \nIf external devices are used, the operating instruc-\ntions of the respective manufacturers must be ob-\nserved! \n \n \n \n",
+      "text_char_count": 483,
+      "width": 1191,
+      "height": 1685
+    },
+    {
+      "page_number": 4,
+      "source_page": 4,
+      "locator": "Page 4",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 4\nThis Technical Documentation  \nsupersedes all previous documents. \n \nsymex GmbH & Co. KG reserves the right \nto further develop its own products \nand thereby changing the technical data \nand their handling. \n \nProtection Notice ISO 16016: \nSharing as well as duplicating this document, \nutilising and publishing its content is prohibited \nunless specifically permitted. \nViolations are liable to damages. \nAll rights for the event of patent, utility model \nor industrial design registration are reserved. \n \nOur Service will be glad to assist you \nif you still experience problems \n with the mixing system in spite \n of this documentation. \nsymex GmbH & Co. KG \nLengstraße 10 \n27572 Bremerhaven \nPhone +49 (0)  4 71 98 40 01-0 \nFax +49 (0)  4 71 98 40 01-40 \n \n \nTechnical changes reserved.    © symex GmbH & Co. KG \n",
+      "text_char_count": 878
+    },
+    {
+      "page_number": 5,
+      "source_page": 5,
+      "locator": "Page 5",
+      "semantic_title": "Table of Contents",
+      "image_path": null,
+      "text": "symex GmbH & Co. KG \n \nTABLE OF CONTENTS \nRev. 1.1 \nOrder No. SY909735 \n 5\n1 Table of Contents \n \n1 \nTABLE OF CONTENTS ............................................................................................................................. 5 \n2 \nPREAMBLE ................................................................................................................................................ 7 \n3 \nGUARANTEE AND LIABILITY .................................................................................................................. 8 \n4 \nGENERAL SAFETY REMINDERS ............................................................................................................. 9 \n4.1 \nDUE DILIGENCE OF THE USER ............................................................................................................................ 9 \n4.2 \nEXPLANATION OF THE SAFETY SIGNS ............................................................................................................... 10 \n4.3 \nFUNDAMENTAL SAFETY MEASURES FOR NORMAL OPERATION ........................................................................ 14 \n4.4 \nFUNDAMENTAL SAFETY MEASURES FOR MAINTENANCE AND REPAIR .............................................................. 15 \n4.4.1 \nWorking on the electrical equipment .......................................................................................... 17 \n4.4.2 \nWork on hydraulic and pneumatic equipment ............................................................................ 18 \n4.5 \nOBSERVE ENVIRONMENTAL REGULATIONS ...................................................................................................... 18 \n4.6 \nBASIC SAFETY MEASURES ................................................................................................................................ 19 \n4.7 \nDEMANDS ON THE OPERATORS ........................................................................................................................ 22 \n4.8 \nSPECIAL TYPES OF HAZARDS EMANATING FROM THE MACHINE/SYSTEM ........................................................ 25 \n5 \nSERVICE................................................................................................................................................... 33 \n6 \nTRANSPORT / SETUP / CONNECTION ................................................................................................. 34 \n6.1 \nPERMISSIBLE DEVICES AND MEANS FOR TRANSPORT ...................................................................................... 35 \n6.2 \nREMOVE TRANSPORTATION LOCKS (IF ANY) .................................................................................................... 36 \n6.3 \nCUSTOMER'S PIPEWORK, QUALITY OF OPERATING FLUIDS .............................................................................. 37 \n6.4 \nELECTRICAL INSTALLATION .............................................................................................................................. 37 \n6.5 \nCHECK THE ROTATION DIRECTION OF THE MOTORS ........................................................................................ 38 \n7 \nGENERAL SYSTEM DESCRIPTION ....................................................................................................... 39 \n7.1 \nGENERAL CONFIGURATION ............................................................................................................................... 39 \n7.1.1 \nLid lifting device for type CML systems ...................................................................................... 40 \n7.1.2 \nLid lock (clamping belt) for type CML systems ........................................................................... 42 \n7.1.3 \nHinged lid device PM .................................................................................................................. 43 \n7.1.4 \nInduction systems ....................................................................................................................... 46 \n7.1.4.1 \nSuitable induction hoses ......................................................................................................................................... 47 \n7.1.4.2 \nPrecautions against electrostatic charges ................................................................................................................ 48 \n7.1.5 \nVessel pressure gauge and safety valve .................................................................................... 49 \n7.1.6 \nAgitators ...................................................................................................................................... 49 \n7.1.6.1 \nPrinciple symex coaxial agitator............................................................................................................................. 49 \n7.1.6.2 \nPrinciple symex anchor/scraper agitator ................................................................................................................. 50 \n7.1.6.3 \nScraper ................................................................................................................................................................... 51 \n7.1.7 \nSpecial mixers and special mixing tools ..................................................................................... 52 \n7.1.8 \nHomogenizer .............................................................................................................................. 53 \n7.1.8.1 \nsymex homogenizer principle: Induction case and rotor-stator homogenizer ......................................................... 53 \n7.1.8.2 \nsymex homogenizer principle: Induction case and Co-Twister coaxial homogenizer ............................................ 53 \n7.1.9 \nSealing liquid tank for the homogenizer and agitator drives ...................................................... 57 \n7.1.10 \nSealing liquid system for homogenizers ..................................................................................... 58 \n7.1.10.1 \nConnections ....................................................................................................................................................... 58 \n7.1.10.2 \nFilling, ventilation, pressurization ...................................................................................................................... 60 \n7.1.10.3 \nMonitoring of sealing liquid circulation ............................................................................................................. 62 \n7.1.10.4 \nReplacing the sealing liquid / cleaning the system ............................................................................................. 63 \n7.1.11 \nPressurized enclosure “Ex p” for water-cooled motors in explosive area ........................ 65 \n7.1.11.1 \nPressurized enclosure - pneumatic connection to the motor .............................................................................. 66 \n7.1.11.2 \nControl unit Ex zone 2 ....................................................................................................................................... 66 \n7.1.11.3 \nControl unit Ex zone 1 ....................................................................................................................................... 68 \n7.1.12 \nTemperature control units (heating/cooling) ............................................................................... 69 \n7.1.12.1 \nMixing/homogenising vessel with double jacket for heating and cooling ......................................................... 69 \n7.1.12.2 \nHeating and cooling via secondary circuit ......................................................................................................... 70 \n7.1.12.3 \nDirect heating and cooling ................................................................................................................................. 71 \n7.1.13 \nTemperature measurement and indication ................................................................................. 73 \n7.1.14 \nCIP cleaning system ................................................................................................................... 74 \n7.1.15 \nVacuum setup ............................................................................................................................. 76 \n",
+      "text_char_count": 8314
+    },
+    {
+      "page_number": 6,
+      "source_page": 6,
+      "locator": "Page 6",
+      "semantic_title": "Table of Contents",
+      "image_path": null,
+      "text": "symex GmbH & Co. KG \n \nTABLE OF CONTENTS \nRev. 1.1 \nOrder No. SY909735 \n 6\n7.1.16 \nOperation panel OP .................................................................................................................... 77 \n7.1.17 \nGeneral valve position ................................................................................................................ 78 \n7.1.18 \nOEM devices: vacuum pump, valves, hydraulic, pneumatic equipment, etc. ............................ 79 \n8 \nFUNCTIONAL DESCRIPTION ................................................................................................................. 80 \n9 \nSPECIFIC DATA OF THE SYSTEM/MACHINE....................................................................................... 80 \n9.1 \nINTENDED USE .................................................................................................................................................. 80 \n9.2 \nEXPLOSION-PRO MACHINES ............................................................................................................................. 83 \n9.3 \nOVERVIEW PLAN / DIMENSIONS ....................................................................................................................... 84 \n9.4 \nSPECIFICATIONS ............................................................................................................................................... 85 \n9.4.1 \nGeneral ....................................................................................................................................... 85 \n9.4.1.1 \nApplied regulations ................................................................................................................................................ 85 \n9.4.1.2 \nElectric connections ............................................................................................................................................... 86 \n9.4.1.3 \nMaterials and finishing ........................................................................................................................................... 86 \n9.4.2 \nMain components of the mixing system ..................................................................................... 87 \n9.4.2.1 \nsymex Mixer type CML125 ................................................................................................................................... 87 \n \nVESSEL .................................................................................................................................................................. 87 \n \nLID-LIFTING DEVICE:  SEE CHAPTER 7.1.1 ............................................................................................................. 87 \n \nANCHOR/SCRAPER AGITATOR (SEE CHAPTER 7.1.6) .............................................................................................. 87 \n \nCO-AXIAL AGITATOR (SEE CHAPTER 7.1.6) ........................................................................................................... 87 \n \nR/S HOMOGENIZER (SEE CHAPTER 7.1.8) .............................................................................................................. 88 \n \nCO-TWISTER HOMOGENIZER (SEE CHAPTER 7.1.8) ................................................................................................ 88 \n \nSEALING LIQUID SYSTEM:  SEE CHAPTERS 7.1.8 AND 7.1.9 .................................................................................... 88 \n \nTEMPERATURE CONTROL UNIT:  SEE CHAPTER 7.1.12 ........................................................................................... 88 \n9.4.2.2 \nEntire system .......................................................................................................................................................... 89 \n \nWORK PLATFORM .................................................................................................................................................. 89 \n \nVACCUM SYSTEM: SEE CHAPTER 7.1.15 ................................................................................................................ 89 \n \nPRODUCT PUMP ..................................................................................................................................................... 89 \n \nCIP SYSTEM: SEE CHAPTER 7.1.14 ........................................................................................................................ 89 \n \nCONTROL CABINET ................................................................................................................................................ 89 \n \nWEIGHING SYSTEM ................................................................................................................................................ 89 \n10 STARTING THE MACHINE ...................................................................................................................... 90 \n10.1 \nSAFETY PRINCIPLES ..................................................................................................................................... 90 \n10.2 \nCOMMISSIONING ........................................................................................................................................... 90 \n10.3 \nTRIAL RUN ..................................................................................................................................................... 91 \n10.3.1 \nTrial run  of the mixing and homogenising vessel ...................................................................... 92 \n11 MAINTENANCE, REPAIR, SPARE PARTS, ASSISTANCE IN CASE OF FAILURES .......................... 93 \n11.1 \nGENERAL INFORMATION ............................................................................................................................... 93 \n11.1.1 \nMaintenance, repair .................................................................................................................... 93 \n11.1.2 \nSpare parts (symex) ................................................................................................................... 94 \n11.1.3 \nAssistance in case of failures ..................................................................................................... 95 \n11.1.4 \nChecklist / maintenance plan / lubrication plan .......................................................................... 96 \n12 DECOMMISSIONING ............................................................................................................................... 97 \n13 ADDITIONAL INFORMATION.................................................................................................................. 98 \n \n \n",
+      "text_char_count": 6685
+    },
+    {
+      "page_number": 7,
+      "source_page": 7,
+      "locator": "Page 7",
+      "semantic_title": "Title Page",
+      "image_path": null,
+      "text": "symex GmbH & Co. KG \n \nTABLE OF CONTENTS \nRev. 1.1 \nOrder No. SY909735 \n 7\n2 Preamble \n \n \nDear Customer, \nThank you for choosing a product manufactured  \nby symex. \nWith this symex production mixing system CML125 you have ac-\nquired a product that is especially tailored to your manufacturing \nand production conditions. \nIn order to manufacture your products with this machine at the \nhighest safety level, it is necessary to thoroughly read the opera-\ntion manual prior to installation and commissioning. \nEach person charged with the installation, commissioning, opera-\ntion, maintenance and repair of the machine must have read and \nunderstood the operating manual and in particular the \"safety re-\nminders\". \nThe installation and operation of the machine must comply \nwith the safety regulations applicable in the country where \nthe machine is used. The whole process must be carried out in a \nprofessional manner. \nNon-observance of the safety regulations may cause damage to \npersons and property and will cause any warranty or guarantee to \nlapse. \n \nThe symex team \n \n \n \n",
+      "text_char_count": 1082
+    },
+    {
+      "page_number": 8,
+      "source_page": 8,
+      "locator": "Page 8",
+      "semantic_title": "Table of Contents",
+      "image_path": null,
+      "text": "symex GmbH & Co. KG \n \nTABLE OF CONTENTS \nRev. 1.1 \nOrder No. SY909735 \n 8\n3 Guarantee and Liability \n \n \n \n \n \n \n \n \nAny warranty and liability claims for personal inju-\nries damage to property are excluded if these are \nattributable to one or several of the following \ncauses: \n other than normal use of the machine, \n improper assembly, commissioning, operation and maintenance \nof the machine, \n operation of the machine with defective safety devices or incor-\nrectly fitted or inoperative safety devices and guards, \n Non-observance of the information in the operation manual with \nregard to the transport, storage, installation, commissioning, op-\neration, maintenance and setting of the machine, \n arbitrary structural modifications of the machine, \n arbitrary changes of parametrizations and settings as well as pro-\ngram changes, \n inadequate supervision of machine components that are subject \nto wear, \n repairs carried out improperly, \n disasters due to the impact of foreign matters and force majeure, \n \narbitrary modification / interchange / exchange of piping, equip-\nment parts with safety functions (e.g. safety valves, bursting \ndisks, etc.), pressurized equipment components (e.g. valves, \npressure regulators, pressure gauges, filters, expansion pieces, \netc.) and assemblies (linked vessels including piping) that have \nbeen marked and/or designed in compliance with the Pressure \nEquipment Directive 2014/68/EU or the ATEX Directive \n2014/34/EU. \n",
+      "text_char_count": 1480
+    },
+    {
+      "page_number": 9,
+      "source_page": 9,
+      "locator": "Page 9",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 9\n4 General Safety Reminders \n4.1 Due diligence of the user \n \n \n \n \n \n \n \n \n \n \nThe system/machine has been designed and manufactured taking \ninto consideration a risk analysis and through careful selection of the \nharmonized standards to be complied with as well as in accordance \nwith further technical specifications. Thus, it corresponds to the state \nof the art and allows for a maximum of safety during operation. \nThe machine safety can, however, only be realized when all meas-\nures required to this effect are taken. The user is responsible to plan \nthese measures and control their implementation. \nIn particular, the user must ensure that \n \nthe machine is only used for the specified purpose (cf. section \n\"Normal use\" in chapter \"Specific Data of the system/Machine\") \n \nthe machine is only operated in a perfect, functional condition \nand especially the safety devices are verified at regular intervals \nfor operational reliability \n \nProhibition of all arbitrary rebuilds and modifications of the sys-\ntem by the user \n \nthe \nrequired \npersonal \nprotective \nequipment \nis  \navailable to the operators, maintenance and repair person-\nnel and worn by them \n \nthe operation manual is always legible and completely available \nat the location of the machine \n \nonly qualified and authorized personnel operates, maintains and \nrepairs the machine \n \nthese personnel are instructed at regular intervals with regard to \nall issues concerning safety at work and protection of the envi-\nronment, and know the operation manual and in particular the \nsafety indications contained therein \n \nall safety reminders and warnings attached to the machine are \nlegible and not removed \n \nFunction description, flow chart, installation drawing/assembly \nlayout and documentation of OEM devices are integral part of \nthis operation manual. \n \n \n",
+      "text_char_count": 1907
+    },
+    {
+      "page_number": 10,
+      "source_page": 10,
+      "locator": "Page 10",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 10 \n4.2 Explanation of the safety signs \n \nThe following operating instructions contain concrete safety notices in order to empha-\nsize the unavoidable remaining risks during machine operation. These remaining risks \nentail hazards for \n people \n the product and the machine \n the environment \nThe signs used in these operating instructions are above all to draw the attention to the \nsafety notices!  \nFor more information: refer to national/local regulations \nWarning signs according to ISO 7010 \n  \n \nDanger \nThis sign indicates that danger to persons is mainly to be \nexpected. \n(Danger to life, danger of injuries) \n \nAttention \nThis sign indicates that dangers to the machine, material \nand environment are mainly to be expected. \n \nBeware of dangerous electrical voltage in the working area \n(e.g. switch room, electric distributor). \n \nBeware of hot surface. \nHot surfaces, such as hot machine parts, tanks or materials, \nbut also hot liquids, are not always perceptible. \n \nBeware of injuries to hands. \nHand injuries are the most frequent consequences of acci-\ndents at work. Attention, keep hands away from places car-\nrying this warning sign! There is the danger that your hands \nmay be crushed, pulled in or otherwise injured. \n",
+      "text_char_count": 1302
+    },
+    {
+      "page_number": 11,
+      "source_page": 11,
+      "locator": "Page 11",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 11 \n \nBeware of strong magnetic field. \nPacemakers or other electric or electronic equipment may \nbe affected by this. \nIn case of non-observance, death, severe personal injuries \nor considerable damage to property may result from the \nelectromagnetic interferences. \n \n \n \nBeware of suspended loads in the workplace (e.g. due to \ncrane systems under hall ceilings). A responsible crane op-\nerator always tries not to swing loads above people. If, ex-\nceptionally, the crane operator does have to transport the \nload above people, he must give a warning signal so that \nthe people affected can leave the area. Furthermore, it is \nprohibited to work under lifted loads (e.g. with material \nhandling equipment). This can be FATAL! \n \nBeware of material handling equipment \nBeware of on-site movement of material handling equip-\nment (e.g. forklifts). \nFurthermore it is prohibited to work underneath a raised \nload (e.g. in case of mobile industrial handling equipment). \nThis can be FATAL! \n \n \nDanger of tripping \nInstall all machine connections (cables, hoses and piping) \nso that they do not present any risk of causing a tripping \nhazard! (Cable ducts, bridges etc.) \nBeware of danger of falling \nA warning should always be given at a steep edge if a safe-\nguard against falling is necessary but cannot be imple-\nmented for technical reasons. \n \n \nBeware of explosive atmosphere \nIn working areas as well as in storage facilities for gas bot-\ntles containing liquefied natural gas (e.g. propane, butane). \nAn explosive atmosphere can also result from the evapora-\ntion of combustible liquids (e.g. petrol) and from fine, \nwhirled up dust. \n",
+      "text_char_count": 1701
+    },
+    {
+      "page_number": 12,
+      "source_page": 12,
+      "locator": "Page 12",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 12 \nThe most important goal of the safety notices is to prevent injuries.  \n If a safety notice is preceded by a warning triangle with the caption \"Danger\", this \ndoes not mean that hazards for machines, materials and the environment are ex-\ncluded. \n However, if a safety notice is preceded by a warning triangle with the caption \"At-\ntention\", then no hazards for people are to be expected. \nNeither of the used signs can replace the text of the safety notice. Thus the text must \nalways be read completely! \n \n \nMandatory signs according to ISO 7010  \nIsolate before maintenance and repair \n \n \n \n \nWear hearing protection \nIf high sound levels (noise) occur in an area this must be \nindicated so that hearing protection is worn. \nFrom a noise level of 85 dB(A) upwards, the sign should be \nused as a reminder for wearing hearing protection. \n-> Workplace Regulation [in Germany: ArbStättV] \n-> Accident Prevention Regulation [in Germany: DGUV Re-\ngel 112-194 Benutzung von Gehörschutz] \n \n \nApplication: Eye protection against: \n- \nthermal influences \n- \nchemical influences \nUse eye protection \n \n \n \nUse face shield \n \n \nWear protective helmet \n \n",
+      "text_char_count": 1213
+    },
+    {
+      "page_number": 13,
+      "source_page": 13,
+      "locator": "Page 13",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 13 \n \nWear protective gloves \n \n \nWear safety shoes \n \n \n \n \nSafety Instruction \nThis sign does not indicate any safety instructions but in-\nformation for a better understanding of machine operations. \n \n \n \n \nThis sign shows that the lift truck may only be pushed un-\nderneath in this position. \nIn case of non-compliance the system may be damaged. \n \n \nProhibition signs according to ISO 7010 \n \n \nNo access for unauthorised persons \n \n \n \nDanger due to strong magnetic fields  \n \n \nFire, naked flame and smoking prohibited \n \n \n \n",
+      "text_char_count": 591
+    },
+    {
+      "page_number": 14,
+      "source_page": 14,
+      "locator": "Page 14",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 14 \n4.3 Fundamental safety measures for normal operation \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nThe machine/system must only be operated by authorised persons \nwho are trained on it, know the operation manual and can work in ac-\ncordance therewith! \nPrior to switching on the machine, verify and ensure that  \n \nonly authorised persons are within the work area of the machine  \n \nno one can be injured during start-up of the machine! \nVerify the machine before each production start for visible damage \nand ensure that it is only operated in a proper condition! Any defects \ndiscovered must be reported immediately to a superior! \nBefore starting production, remove material/objects that are not re-\nquired for production away from the work area of the machine! \nBefore starting production, verify and ensure that all safety devices are \nworking properly! \nThe user must not disable the safety devices on his own authority. \nsymex does not assume any warranty obligation for damage incurred \nas a result. \nWhen entering the target values, the permissible target values indi-\ncated on the rating plate and in the flow chart must be observed! \nThese must not be exceeded under any circumstances. \nThe mixing vessel can be used with overpressure, vacuum, high tem-\nperatures and utilizing the pumping capacity of the homogenizer. \nWhenever opening manually or externally controlled valves with a free \noutlet, it must be ensured that nobody is standing in the flow direction \nof the opened pipes. \nAll heating-related components and piping may have high surface \ntemperatures. \nFurthermore, high temperatures prevail in way of non-insulated sur-\nfaces of the heated mixing vessel. \nOperating pressures should always be selected at a lower rate than \nthe maximum permitted pressures. Otherwise there is the risk that any \nexisting safety devices will respond. \nNever reach into the agitator vessel while the agitator is operating. \nDo not hold any tools, measuring instruments or other objects into the \nmixing vessel. \nDo not touch any rotating agitator parts. \nPlease also refer to OEM documentation. \n",
+      "text_char_count": 2184
+    },
+    {
+      "page_number": 15,
+      "source_page": 15,
+      "locator": "Page 15",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 15 \nNoise \n \nThe noise level, which the system causes during operation is not constant and not \npredictable. It depends greatly on the properties of the manufacturing materi-\nals/products and the installation conditions of the symex mixing system or the exter-\nnal symex inline device. \n \nThe operator of symex inline devices must take the necessary noise mitigation \nmeasures. The relevant national/local noise protection regulations determine the type \nand scope of the required measures. Noise protection devices must be available \nwhile the system is in operation. \n \n \nCaution \n \n \nThe user is obliged to wear an ear protec-\ntion from a noise level of 80 dB (A). \n \n \n \n \n \n4.4 Fundamental safety measures for maintenance and repair \n \n \nInspection and maintenance intervals prescribed in the operation \nmanual must be adhered to (see also separate lubrication and \nmaintenance schedule)! \nObserve the maintenance and repair instructions in this opera-\ntion manual for individual components! \nSet-up, maintenance and repair work may only be executed by \ntrained specialists. Only use perfect tools. Inform operating staff \nbefore starting work. Designate supervisors. \n \nPrior to performing maintenance and repair work, block access \nto the work area of the machine to unauthorised persons! Attach \nor set up a sign calling attention to the maintenance and repair \nwork! \n \nPrior to performing maintenance and repair work, turn off the \nmain switch for the power supply and secure with a padlock! \nThe key for this lock must be kept by the person performing the \nmaintenance and repair work! \n \nWhen replacing heavy machine components, use only suitable \nand perfect load lifting equipment and lifting tackles! \n",
+      "text_char_count": 1775
+    },
+    {
+      "page_number": 16,
+      "source_page": 16,
+      "locator": "Page 16",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 16 \n \nPrior to maintenance and repair work ensure that all parts of the \nmachine that may possibly be touched have cooled down to \nroom temperature! \nRemove parts of the covering and guards not until the system has \nbeen completely stopped and protected against unintentional re-\nstart. \n \n \n \n \n \nWorking in vessels, silos and confined spaces \nIn his risk assessment the employer (the plant owner) has to point \nout if the vessel resp. the confined space needs clearance meas-\nurement prior to maintenance.  \nThe clearance measurement regards lack of oxygen, presence of \ntoxic gases and vapours as well as combustible gases and vapors \nbefore and during the work.  \n \nRefer to your local work safety regulations \n(In Germany:  \nDGUV Regel 113-004 (the former BGR 117-1) „Behälter, Silos und \nenge Räume; Teil 1: Arbeiten in Behältern, Silos und engen Räu-\nmen\") \n \n \n   \nDispose of environmentally hazardous lubricants, coolants or \ncleaning agents in compliance with the national and local regula-\ntions! \n \nCarry out a complete commissioning after completing the maintenance and servic-\ning work. In particular, check all safety devices and moving part covers.  \n \n",
+      "text_char_count": 1227
+    },
+    {
+      "page_number": 17,
+      "source_page": 17,
+      "locator": "Page 17",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 17 \n4.4.1 Working on the electrical equipment \n \n \n \n \n \n \n \n \n \n \n \n \nRepair work on the electrical equipment of the machine must \nonly be performed by qualified electricians! \nVerify electrical equipment at regular intervals! \nLoose connections are to be retightened! \nHave any damaged lines/cables replaced immediately! \nAlways keep the control cabinet closed! Access is only allowed to \nauthorised persons with a key/tool! \nNever hose down control cabinets and other electrical equipment \nhousings when cleaning! \nWorks on any live parts must always be performed by two persons. Use \nonly insulated tools. In case of emergency the second person must acti-\nvate the EMERGENCY STOP device or main switch immediately. \nClose off the work area with a red and white safety chain or with a \nred and white safety tape. \nPerform maintenance work only when the system is switched off! \nOnly carry out maintenance on the frequency converter and the motor \nwhen the main switch is deactivated and after waiting for at least ten \nminutes and checking that the unit is de energized. \n \n \nSystem parts on which inspection, maintenance and service works are being carried \nout must be de-energised as necessary. Isolated parts must be checked for zero po-\ntential, earthed and short-circuited. Isolate adjacent parts. \n \n",
+      "text_char_count": 1368
+    },
+    {
+      "page_number": 18,
+      "source_page": 18,
+      "locator": "Page 18",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 18 \n4.4.2 Work on hydraulic and pneumatic equipment \n \n \n \n \n \n \n \n \n \n \n \n \n \nMaintenance and repair work on hydraulic and pneumatic \nequipment must only be carried out by personnel specially \ntrained for this! \nDepressurize the hydraulic/pneumatic equipment of the machine prior \nto performing maintenance and repair work on them! \nReplace \nhose \nlines \nat \nregular \nintervals \nduring \nservicing \neven if no damage is discernible! \n(Follow the manufacturer's instructions!) \nPrior to commissioning after maintenance and repair  \n \nverify loosened screw connections for tight fit \n \nensure that removed container covers, meshes or filters are rein-\nstalled \nOn completion of maintenance and repair work and prior to resuming \nproduction ensure that  \n \nall materials, tools and other equipment required for performing \nmaintenance and repair work are removed from the work area of \nthe system  \n \nany spilled liquid is removed \n all safety devices of the system are working properly! \n4.5 Observe environmental regulations \n \n \nFor all work on and with the machine the legal obligations for the \nwaste prevention and proper recycling/disposal must be com-\nplied with. \nIn particular no water-endangering substances, such as \n lubricating greases and oils \n hydraulic oils \n coolants \n cleaning fluids containing solvent \nmust pollute the ground or be discharged into the sewer system! \nThese substances must be collected, stored and transported in \nsuitable containers and disposed of! \nEnsure that the operating materials, lubricants and auxiliary ma-\nterials are disposed of in an environmentally-appropriate man-\nner. The regulations for proper waste recycling and/or disposal \nmust be complied with. \n \nPlease also find out the location of a waste disposal site in your area. \n",
+      "text_char_count": 1849
+    },
+    {
+      "page_number": 19,
+      "source_page": 19,
+      "locator": "Page 19",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 19 \n4.6 Basic safety measures \nThe symex production mixing system has been designed and manufactured in \ncompliance with the applicable safety and environmental regulations as well as \ntechnical rules. It corresponds to the state of the art and guarantees maximum \nsafety. \n \nThis safety can, however, only be realized when all measures required to \nthis effect are taken. The operator of the machine is responsible to plan \nthese measures and control their implementation. \n \n \nPrior to commissioning the system, ensure the following: \n- The operator has to create a risk assessment for use of the work equipment (at \nits installation location) and derive the required and appropriate protective \nmeasures there from \n- The protective measures identified according to the state of the art must be \nimplemented \n- The operator must ascertain that work equipment used is safe according to the \nstate of the art \n- The operating staff must be assigned and trained at regular intervals \n- Before the work equipment is used for the first time by the staff, the employer \nmust make available to them written operating instructions on how to use the \nwork equipment \n \n \nDuring operation, it is particularly important to ensure that: \n- The machine is only used for its intended purpose \n(cf. chapter \"Specific data of the machine/system\") \n- The machine is only operated in a perfect, fully functional condition and espe-\ncially the safety devices are verified at regular intervals for operational reliability \n- The safety reminders and warnings attached to the machine are not removed \nand always legible \n- The required personal protective equipment is available to the operators, \nmaintenance and repair staff and used by them \n- The operation manual is always legible and completely available at the \nlocation of the machine \nThe contents and in particular the safety reminders contained therein  \nare known \n- Any risky intervention in the operating process of the system is prohibited \n- Due to the operating mode of the system it may be required to temporarily \nremove protective covers of accessible moving parts. \nThe operators must be prepared for this particular hazardous situation \n(recurring training). \n",
+      "text_char_count": 2272
+    },
+    {
+      "page_number": 20,
+      "source_page": 20,
+      "locator": "Page 20",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 20 \n- Only sufficiently qualified and authorized personnel (qualified person according \nto the Industrial Safety Regulations) is allowed to operate, maintain and repair \nthe system \n \nFailure to observe these fundamental principles may result in accidents and will \nvoid the symex warranty as well as the operating permit issued by the Supervisory \nAuthority. \n \n \nFor systems operated in hazardous areas, the following should be noted: \n- The Industrial Safety Regulation and/or Hazardous Substances Regulation re-\nquire, among others, the following organizational protection measures (pro-\ntective equipment for workers): \n- Marking of the hazardous areas \n- Written work instructions \n- If necessary, warning devices before explosion conditions are reached \n- Verification of explosion safety by competent persons \n- Training of staff \n- Work approval system for activities \n- If necessary, provide appropriate supervision \n- If required, provide suitable personal protective equipment \n \n- The operator or his representative must create an explosion protection \ndocument for a work equipment and the workflows according to the require-\nments of the Hazardous Substances Regulation. \nThis document must be created prior to commissioning. It must be revised in \ncase of significant modifications and/or extensions. \nThe staff must be trained with regard to possible explosion hazards and to the \nselected protective measures. \nThe training must be repeated at adequate intervals and documented. \n- It must be determined within the scope of a risk assessment whether there is a \nhazard due to a potential explosion. The risk assessment is the basis for further \nlabor protection measures and the creation of the explosion protection docu-\nment \n- Work in a potentially explosive atmosphere must only be performed by spe-\ncially trained staff and only with equipment, tools and personal protective \nequipment approved for use in the relevant Zone. \nFor cleaning, maintenance and repair work within or above hazardous areas, \nthe system operator must order the required safety measures to be taken and \nensure their implementation. \n \n- The checks required prior to recommissioning must only be carried out by ap-\npropriately qualified and authorized personnel. \n",
+      "text_char_count": 2320
+    },
+    {
+      "page_number": 21,
+      "source_page": 21,
+      "locator": "Page 21",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 21 \nOverview of the requirements and regulations that govern the installation \nand operation of the system: \n \n Machinery Directive 2006/42/EC on Machinery (Machinery Directive) \n Directive 2009/104/EC on minimum requirements for safety and health protec-\ntion for the use of work equipment by workers at work \n Directive 89/391/EEC on the implementation of measures to encourage im-\nprovements in the safety and health protection of workers at work \n BetrSichV (2015) German Ordinance on Industrial Safety and Health (and/or \nlocal regulations for industrial safety) \n TRBS 2153 German Technical Rules for Industrial Safety, avoidance of  \nignition hazards as a result of electrostatic charges \n \nFor work equipment operated in hazardous areas:  \n \n Directive 2014/34/EU on the harmonization of the laws of Member States re-\nlated to equipment and protective systems intended for use in potentially \nexplosive atmospheres (ATEX Directive, ATEX 114) (as applicable) \n Directive 1999/92/EC on minimum requirements to encourage improvements \nin the safety and health protection of the workers potentially at risk from \nexplosive atmospheres (ATEX 137) \n German Hazardous Substances Regulation (GefStoffV) \n EN 1127 potentially explosive atmospheres. Explosion protection.  \nPart 1: Basic concepts and methodology (as applicable) \n EN 13463 Non-electrical equipment for use in potentially explosive atmos-\npheres \nPart 1: Basic concepts and requirements (as applicable) \nPart 5: Protection through constructional safety \"c\" (as applicable) \nPart 6: Protection by control of ignition sources \"b\" (as applicable) \nPart 8: Protection by liquid immersion \"k\" (as applicable) \n EN 60079 Electrical apparatus for potentially explosive gas atmospheres \nPart 0: Equipment - general requirements (as applicable) \nPart 2: Equipment protection by pressurized enclosure \"p\" \n(as applicable) \n TRBS 2152 / TRGS 720 Technical Rules for Industrial Safety / Technical \nRules for Hazardous Substances and/or the relevant local rules \nand regulations - Dangerous explosive atmosphere - General \nPart 1 / TRGS 721: Assessment of the explosion hazard \nPart 2 / TRGS 722: Avoidance or limitation of hazardous potentially \nexplosive atmospheres \nPart 3: Avoidance of ignition of hazardous potentially explosive \natmospheres \nPart 4: Constructional explosion protection measures which limit the \neffects of an explosion to a harmless level \n TRBS 2153 Prevention of ignition hazards as a result of electrostatic charges \n TRGS 800 Fire protection measures \n DGUV Regel 113-001 (former BGR 104) German Guidelines for explosion protec-\ntion \n \n \n \n",
+      "text_char_count": 2693
+    },
+    {
+      "page_number": 22,
+      "source_page": 22,
+      "locator": "Page 22",
+      "semantic_title": "Title Page",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 22 \n4.7 Demands on the operators \nAvailability of information: \n \nThis operating manual must be kept at the machine. It must be ensured that all \npersons performing work on the machine can review the operation manual at any \ntime. In addition to the operating manual, operating instructions as defined by the \nOccupational Safety and Health Act and the local safety regulations must be made \navailable as well. \n \nAll safety reminders and operating instructions on the machine must always be \nlegible. Damaged or illegible signs must be renewed immediately. \nThe machine shall only be operated by persons who are trained, instructed and \nauthorized to this effect. These persons must know the operation manual and act \nin accordance therewith. The respective authorities of the operators are to be \nclearly defined. \n \nIn addition, special qualifications are required for the following activities: \n Activity: \n \nmust only be carried out by \n \n \nTransport  \n \n \n \n \nInstallation  \n \n \n \n \nStarting up \n \n \n \n \nTraining   \n \n \n \n \nTroubleshooting    \n \n \n \nservice work   \n \n \n \n \nCleaning   \n \n \n \n \nMaintenance   \n \n \n \n \nRepair   \n \n \n \n \nDecommissioning   \n \n \n \n \n \nOperators being trained on the job must first only work on the machine under the \nsupervision of an experienced person. Completed and successful training must be \nconfirmed in writing. \n \nIn general all control and safety devices must only be operated by instructed per-\nsons. \n \nAll persons performing work on the machine must read the operation manual and \nconfirm with their signature that they have understood the operation manual.  \n \nThe machine may be started only from the indicated workplace (e.g. control panel, \ncontrol console). \nIt is prohibited to remove or disable safety devices while the machine is operating. \n",
+      "text_char_count": 1856
+    },
+    {
+      "page_number": 23,
+      "source_page": 23,
+      "locator": "Page 23",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 23 \n \nDuring operation, the operators shall only stay at the indicated workplaces. \n \nThe operators have to pay attention that no unauthorized persons stay in the work \narea of the machine. \n \nAfter having switched off the machine, the operators must wait until all moveable \nparts have stopped and the function lights are extinguished – only then they may \nleave the machine. \n \nThe following checks must be carried out at least once a day (see also sepa-\nrate lubrication and maintenance schedule):  \n \n \n- Verify the machine for damage visible from outside \n \n- Verify the proper functioning of all safety devices \n- Verify the hydraulic and pneumatic hose lines for tightness and correct \nconnection \n \nOnly original spare parts or replacement part approved by the manufacturer may \nbe used. If non-equivalent spare parts and supplemental equipment are installed, \nthe warranty (or guarantee, as the case may be) of symex lapses, and no liability \nis accepted for damage to the machine itself or for consequential damage (per-\nsonal injury and material damage).  \n",
+      "text_char_count": 1126
+    },
+    {
+      "page_number": 24,
+      "source_page": 24,
+      "locator": "Page 24",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 24 \n \n \n \nATTENTION \n \n \nCleaning work in the boiler may only be carried \nout by two people at a time.  \nThe main switch must be secured with a padlock \nto prevent unauthorised used by third parties. \n \nThe '\"Emergency stop' button is only intended for emergencies and not for \nswitching off the machine during normal operation! During an emergency \nstop, the powerful deceleration of the individual components may cause \nmechanical damage. \nAfter pressing the 'Emergency stop', the button must be unlocked manu-\nally to restart the machine.  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nEmergency stop button \n \nAs a rule, these illustrations are only exemplary/symbolic, i.e. they do \nnot exactly reflect the details of the described system. \n",
+      "text_char_count": 835
+    },
+    {
+      "page_number": 25,
+      "source_page": 25,
+      "locator": "Page 25",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 25 \n4.8 Special types of hazards emanating from the machine/system  \n \nAs a rule, the illustrations are only exemplary/symbolic, i.e. they do not \nexactly reflect the details of the described system. \n \nThe upper vessel rim, lid, heating and the piping may become extremely hot dur-\ning production and cleaning. \n \n \n  \n     \n \n  \n \n \n \nBeware of  \nhot surfaces! \n \n \n \n \n \n \n \n \n \n   \n \n \nBeware of  \nhot surfaces! \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 497
+    },
+    {
+      "page_number": 26,
+      "source_page": 26,
+      "locator": "Page 26",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 26 \n \n \nBeware of  \nhot surfaces! \n \n \n \nBeware of burning / scalding by hot liquids released through the runoff of the \nmanifold \n \n \n      \n \n \nBeware of hot surfaces! \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 257
+    },
+    {
+      "page_number": 27,
+      "source_page": 27,
+      "locator": "Page 27",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 27 \nNo one shall stay in the immediate vicinity of the machine while the lid is lifted and \nlowered, as there is a crushing and piercing hazard generated by the compo-\nnents and pipe couplings lowering together with the lid! See the following Im-\nages \n \n \n \n \n \n     Danger \nBeware of crush-\ning and piercing \nhazard at the lid \nand when closing \nthe clamping belt! \n \n \n \nHinged bolt(s) \n(alternatively: \nmanually operated \nclamping belt) \n \n \n \n \n \n \n \n \n \n \n      Danger \n \nBeware of crushing  \nand piercing hazard \nat the components \nand pipe couplings \nthat are lowered \ntogether with the lid \n \n \n \n \n \n \n \n",
+      "text_char_count": 672
+    },
+    {
+      "page_number": 28,
+      "source_page": 28,
+      "locator": "Page 28",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 28 \n \n \n \n \n \n \n \n      Danger  \nBeware of crushing  \nand piercing hazard \nat the container \napertures \n \n \n \n \n \n \n \n \n \nBeware of liquids squirting out of under high pressure \nThe liquid may squirt briefly out of the manhole if it is opened while the CIP func-\ntion is running! \nWhile the homogenizer is running, the product can be returned via a pipe to the top \ncylindrical section of the vessel.  \nWhen doing this, the liquid jet can hit the agitator and squirt out of the manhole. \n \n \n \n \n                                                 \n \n       \n         Danger  \nWarning of the \ndanger of bruising,  \nshearing, cutting,  \ncutting off,  \nentrapment, \ncoiling and burning \nin the area of the manhole grid (option) by reaching inside the vessel during agita-\ntor operation.    \n \nThe manhole grid does not contain sufficient safeguards.  \nTo avoid injuries with the rotating parts a special training is re-\nquired.  \nProvision of the training must be documented. \n \n \n",
+      "text_char_count": 1034
+    },
+    {
+      "page_number": 29,
+      "source_page": 29,
+      "locator": "Page 29",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 29 \n \n \n \n \n \n \n      Danger \n \nBeware of crushing and \npiercing hazard \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 157
+    },
+    {
+      "page_number": 30,
+      "source_page": 30,
+      "locator": "Page 30",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 30 \n \n \n \n \n \n  \n \nDANGER \n \nOpen piping connec-\ntions (e.g. in the recircu-\nlation line/CIP line, etc.) \nmust be closed with the \nmatching cover pan-\nels/bland flanges \nduring operation of the \nsystem to prevent a \nhazard for the operating \nstaff through escaping \nfluid in case of malfunc-\ntion. \n \n \n \nTrue \n \n \nExample recirculation line. \nIn this case, shut-off \nvalves with an open \noutlet are fitted with \ncover plates. \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nBeware of burning and \nscalding. \nDuring the discharging \nprocess, a leaktight \nconnection between the \noutlet valve and the fill-\ning station must exist. If \nthis connection is not \navailable, a hot product, \nin particular overpres-\nsure in the boiler may \nsquirt unobstructed into \nthe room and injure \npeople! \n \n \n \nIncorrect \n \nShut-off valves \nwith an open outlet \nwithout cover. \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 941
+    },
+    {
+      "page_number": 31,
+      "source_page": 31,
+      "locator": "Page 31",
+      "semantic_title": "Terminal Diagram",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 31 \n  \n \n \n     Danger \n \nThe control cabinet and the \nterminal boxes installed in the system \ncontain hazardous electrical \nvoltages and control rotating \nmachine parts. \n \n \nDeath, severe bodily injury or \nsubstantial material damage may \nresult if not properly qualified \nstaff operate the system. \n \n \n \n \n \n \n \n \n  \n \n \n     Danger \n \n \n \n \n \n \n \nTerminal Boxes \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 446
+    },
+    {
+      "page_number": 32,
+      "source_page": 32,
+      "locator": "Page 32",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 32 \n \nCAUTION \n \n \nFailure \n/ \ndisturbance \nof \nthe \ncontrol \nsys-\ntems/Restoring the energy supply after an inter-\nruption. \nAll the valves enter the safe position if com-\npressed air fails or the energy supply is inter-\nrupted. All the functions must manually reacti-\nvate all the functions. Any error/fault must ac-\nknowledge in the controller. \n \n \n \n \nCAUTION \n \n \nOperating errors \nEntering inadmissible operating parameters \n(RPM speeds/pressures) is locked in the soft-\nware. \n \n \n \n \n",
+      "text_char_count": 551
+    },
+    {
+      "page_number": 33,
+      "source_page": 33,
+      "locator": "Page 33",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 33 \n \n5 Service \n \n \nFor maintenance and repair of the machine and/or the system, the symex mainte-\nnance team will be at any time at your disposal. \n \nShould you have any questions, problems or wishes, please contact the symex \nCompany. \n \n \n \nsymex GmbH & Co. KG \nLengstr. 10 \n27572 Bremerhaven, GERMANY \n \nPhone: \n+49 (0) 471 9 84 01 – 0 \nFax: \n+49 (0) 471 9 84 01 – 40 \nEmail: \ninfo@symex.de \n \nHere you will be quickly helped to find the right expert for your question. \n \nService: \n \nTelephone: \n+49 (0) 471 9 84 01 – 84 \nEmail: \nservice@symex.de  \n \nProject management/R&D: \n \nTelephone: \n+49 (0) 471 9 84 01 – 36 \nE-Mail: \nliebelt@symex.de \n \nInternet: http://www.symex.de \n \n",
+      "text_char_count": 742
+    },
+    {
+      "page_number": 34,
+      "source_page": 34,
+      "locator": "Page 34",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 34 \n6 Transport / Setup / Connection \n  \n \n       \n     \n      \n \n \n \nThe machine/system shall only be set up at the location agreed upon between symex and \nthe operator. \nIf another place of installation is chosen, any liability of symex for resulting damage is ex-\ncluded. \n \nIn accordance with the agreement with the operator, the machine/system will be preas-\nsembled or delivered in individual components. \n \nThe setup is made in accordance with the installation drawing and  \nassembly layout. \nThe Customer shall prepare the place of installation (bearing capacity of the \nfloor, the retention volume for collecting leaked fluids, if necessary), connec-\ntion of the supply and discharge lines (cooling water, hot water, steam, con-\ndensation, drinking water, waste water, etc.) and the electrical connection. \nIf individual components are delivered, we recommend having carried \nout the assembly through the skilled personnel of symex. \n \nThe machine/system shall only be assembled and set up by specialists. \n \nThe machine feet must be adjusted so that the machine can stand safely and free of \nstress and the weight is transferred evenly to the supporting base.  \n \nAll threaded connections, especially on flanges, lids, baffles, agitators and the homoge-\nnizer should be inspected for loose parts.  \nIf any loose screws are discovered, the connection must be professionally restored in con-\nsultation with symex. \nThe machine shall only be lifted at the holding points provided to this effect. \nWhen selecting the transport route, be sure to observe the permitted maximum floor load. \n \n \n \n \n \n \n \nDanger \nIn order to avoid damage to the machine and perilous injuries: \n \nLoad lifting devices and lifting tackles must comply with the regula-\ntions for the prevention of accidents!  \n \nWhen selecting the load lifting devices and lifting tackles, be sure to \ntake the weight of the system into consideration! \n \nThe transport routes must be so blocked and marked off that no un-\nauthorized persons can enter the danger zone!  \n \nTransport shall only be carried out by qualified and authorized per-\nsons. \n \n \n",
+      "text_char_count": 2180
+    },
+    {
+      "page_number": 35,
+      "source_page": 35,
+      "locator": "Page 35",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 35 \n6.1 Permissible devices and means for transport \n \n \nDanger \n \nDo not attach hoisting gear to add-on components or pipes under \nany circumstance. \n \nUse only suitable and sufficiently dimensioned hoisting gear. \n \nUnpackaged parts may be lifted only by means of rope or strap \nloops.  \nWhen attaching them directly, use loops from non-metallic materi-\nals as far as possible. Special care is required for coated/rubber-\nlined surfaces. \nParts of stainless steel (also fastening elements) must always be \nkept away from parts consisting of unalloyed steel. \nRemove corrosion protection devices only immediately before as-\nsembling the machine. \n \n \n \n \nIn order to eliminate the stumbling hazard: \n \nInstall all machine connections (cables, hoses and piping) so \nthat they do not present any risk of causing a tripping hazard! \n(Cable ducts, bridges etc.) \n \n \n \nAttention \n \nIn order to ensure trouble-free operation: \n Prepare the setup site so that the system can stand horizon-\ntally on an even floor! \n Set up the machine at the designated location as shown on \nthe drawing. \n Fit all connections carefully and verify that they are firmly \ntightened. \n \n \n \n",
+      "text_char_count": 1228
+    },
+    {
+      "page_number": 36,
+      "source_page": 36,
+      "locator": "Page 36",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 36 \n6.2 Remove transportation locks (if any) \n \n \nDanger \n \n \n \n \n \n \n \n \n \nThe agitator may be fitted with a transport fastening of wood.  \nThis device must be removed by trained and authorized per-\nsons \nonly. \n \n \n \n \n \n \n \n \n \n \n \n \n \nATTENTION \n \n \nTwo people are required to clean the inside of the \nvessel. Furthermore, the main switch must be \nsecured by means of a padlock in order to pre-\nvent any use by unauthorized persons. \n \n \n \n \nATTENTION \n \n \nWorking inside the vessel: Use only trained per-\nsonnel. Do not work without supervision. Don \nrescue harness/vest and connect to an opera-\ntional lifting device. \n \n",
+      "text_char_count": 685
+    },
+    {
+      "page_number": 37,
+      "source_page": 37,
+      "locator": "Page 37",
+      "semantic_title": "Title Page",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 37 \n6.3 Customer's pipework, quality of operating fluids \nBased on the purity requirements for the mixing/homogenization product, the Customer \nmust define the required purity of the operating fluids and the technical design of the pipe-\nwork. \nThe fluid suppliers and pipe fitters must be consulted in this regard. \n \nFor each operating fluid (liquid or gas), the design of the  \nsite pipework must be determined individually.   \nIn doing so, the following must observed, among other things: \n- \nthe dimensioning (permitted operating pressure and temperature, \nrequired flow pressure and flow rate)  \n- \nthe materials to be used (fluid resistance, certificates) \n- \nthe pipe connections (hygiene requirements) \n- \nthe production techniques (manufacturer approvals, qualified staff) \n- \nthe operating mode (draining/venting, heat/cold insulation, frost-resistance) \n- \nquality assurance (documentation, acceptances). \nWrong choices may lead to poor product quality and operational disruptions, contami-\nnation or damage to the symex system. \n \n \n \n6.4 Electrical installation \n \n \n \n \n \n \n \nDanger \n \n \n \n \n \n \n \nThe machine shall only be connected to the mains by skilled \nand authorized electricians! \n \nBefore the system can be connected to the mains supply, a check \nmust be performed to verify that the network data match those in \nthe functional description/technical data sheet.  \nIf it does, the connection can be made. \n \nThe electrical equipment of the machine can be found in the circuit \ndiagram. \n \nAlso read the chapter 'General safety reminders'. \nPlease also read the Function description. \n \nThe equipment of the control/switching cabinet is described in the electrical circuit dia-\ngram. \nNormally, the control cabinet with the control panel is fitted to the machine frame. \nIf so requested, the control panel can also be set up separately. \nFor additional electrical equipment (valves, pumps, units), designated terminals are avail-\nable. \n \n",
+      "text_char_count": 2022
+    },
+    {
+      "page_number": 38,
+      "source_page": 38,
+      "locator": "Page 38",
+      "semantic_title": "Terminal Diagram",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 38 \n \nCAUTION \n \n \nThe control cabinet and the terminal boxes in-\nstalled in the system are under dangerous elec-\ntrical voltages and control rotating mechanical \nparts. \nDeath, serious bodily injuries or considerable \nmaterial damage may result from interventions \nvia unqualified personnel. \n \n6.5 Check the rotation direction of the motors \nAfter preparing individual units for operation (see Chapter 10 Commissioning), the rota-\ntion direction of the motors according to the directional arrow must be tested. \nThis is particularly important for the mixing tools below. \nMain rotation direction viewed from above in the mixing/homogenizing container: \nCo-Twister \nPump rotor \nleft (counterclockwise) \n \nShear rotor  \nleft or right (depending on shearing) \nR/S homogenizer \nRotor \nleft \nCoaxial agitator \nCentral agitator \nleft  \n \nScraper agitator device  \nright  \nScraper agitator device Scraper agitator \nright \n  \n \n \n \nCAUTION \n \nIt must be ensured that all connections between \nthe sealing system, the homogenizer and the \ncoolant supply system have been made fitted \ncorrectly. This concerns in particular the quick-\naction locking couplings:  \nAfter switching on the homogenizer, check if \nthe sealing liquid is pumped by looking through \nthe inspection glass on the sealing liquid con-\ntainer. \n \n  \n  \nThe surfaces of all heating-related components and piping may \nbe hot. During operation, uninsulated, exposed surfaces of the \nmixing/homogenising container may become hot. \n \n",
+      "text_char_count": 1548
+    },
+    {
+      "page_number": 39,
+      "source_page": 39,
+      "locator": "Page 39",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 39 \n7 General system description \n7.1 General configuration \n \nAs a rule, these illustrations are only exemplary/symbolic, i.e. they do not \naccurately reflect the details of the described system. \n \n \n \n \n \n \n \n      Danger \n \n \nCrushing and  \npiercing hazard \ndue to the components  \nand pipe couplings  \nthat are lowered  \ntogether with the lid! \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 434
+    },
+    {
+      "page_number": 40,
+      "source_page": 40,
+      "locator": "Page 40",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 40 \n7.1.1 Lid lifting device for type CML systems \n \nIn machines with a lid lifting device, the inner vessel space is force-ventilated (and \nbrought to atmospheric pressure) by opening the lid lock.  \nOnce the clamping belt has been opened manually, the lid can be raised by \npressing the 'Raise lid' button. \nThe lifting motion is limited by a limit switch installed in the machine base. By leaving \nthe bottom position, the agitator is locked. \nLowering of the lid is accomplished by pushing the two buttons 'Lower lid'.  \nFor safety reasons, the buttons must be pressed simultaneously, and they must be \nkept pressed while the lid is lowered. If of one or both buttons are released, the low-\nering movement of the lid stops immediately.  \nUpon reaching the bottom lid position (the lid is positioned on the rim of the vessel), \nthe agitator is enabled again. \nThe factory sets the position of the two limit switches and the speed of the lid. \n \nAttention: \nBefore opening or closing the lid, make sure that it can move freely without risk.  \nThe operator must monitor the movement and make sure that neither persons nor \nassets are at risk.  \n \n \n \n \n \n \n \n \nCrushing hazard \nwhen closing the \nclamping belt! \n \nValve for forced ventilation \n(disk valve) \n \nLocking \n \nClamping belt \n \nLocking screw \n \nSecurity check to avoid operating errors: \nAfter pressing the 'Lift lid' button, the following prompts ap-\npear on the control panel: \n- Switch off the agitator and the homogenizer \n- Ventilate the vessel (switch off pressure) \n- Open the clamping belt (or hinged bolts) \nThese have to be confirmed in the field 'Lift lid release'. \n \n \n \n",
+      "text_char_count": 1703
+    },
+    {
+      "page_number": 41,
+      "source_page": 41,
+      "locator": "Page 41",
+      "semantic_title": "Wiring Diagram",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 41 \nOperating safety \n \nThe lid lift devices of the symex mixing vessels type CML and PML \ninclude all control components that ensure reliable and safe opera-\ntion (redundancy, sensor control). \n \nTwo-hand control according to DIN EN 574, limit switches, wear in-\ndicators (mechanical and/or electromechanical) and safety catch \nnut (redundancy) serves, in conjunction with the system control, to \nprevent malfunctions such as an uncontrolled fall or inadvertent \nlowering of the container lid. \n \nConditions for the reliable operation and thus the safe operation of \nthe lid lifting device are regular function tests to be performed by the \nsystem operator on the entire system, as well as recurring service \nwork (repair, maintenance, wear tests, tests of the sensors, wiring \nand controls). \n \nThe symex system documentation contains additional information \n(see operating instructions, functional description, lubrication and \nmaintenance schedule).  \n \nIf any doubts as to the operational safety or function arise, please \ninform the symex service. A service agreement is the basis for a \nhigh level of operational safety, the prevention of secondary costs \nand a fruitful cooperation. \n \n",
+      "text_char_count": 1252
+    },
+    {
+      "page_number": 42,
+      "source_page": 42,
+      "locator": "Page 42",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 42 \n7.1.2 Lid lock (clamping belt) for type CML systems \n \nThe mechanical clamping belt serves to lock the lid manually.  \n \n \n   Danger \n \n     \nA = EMERGENCY STOP    \n \n \n \n  \nB = Control voltage OFF  \nC = Control voltage ON   \nD = Lid UP  \nE = Lid DOWN  \n \n \nDANGER \n \n \nCrushing and piercing hazard caused by compo-\nnents and pipe couplings that move down to-\ngether with the lid! Crushing hazard when clos-\ning the clamping belt! \n \n \n \n",
+      "text_char_count": 500
+    },
+    {
+      "page_number": 43,
+      "source_page": 43,
+      "locator": "Page 43",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 43 \n7.1.3 Hinged lid device PM \n \nThe hinged lid works with a pneumatically actuated opening device for opening and \nclosing. \nHinged bolt  \nLever    \nPneumatic cylinder \n \n \n \nBefore you can open the lid you have to open all hinged bolts and have to dismount \nall the relevant pipelines. \n \n \n",
+      "text_char_count": 352
+    },
+    {
+      "page_number": 44,
+      "source_page": 44,
+      "locator": "Page 44",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 44 \nThe pneumatic cylinder is equipped with pressure retention valves keeping the lid in \nits current position during standstills at opening/closing processes or air pressure \nfailure. \n \nIn addition the opened lid has to be secured with a pin connection. \n \n \n \n \nDANGER \n \n \nRisk of crushing between the lid and lowering \ncomponents/pipe couplings \nRisk of crusing between the lid and the lowering \nflange connection \n \n \n",
+      "text_char_count": 482
+    },
+    {
+      "page_number": 45,
+      "source_page": 45,
+      "locator": "Page 45",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 45 \nThe pneumatically actuated lid opening decive is equipped with limit switches and a \ntwo-hand control device acc. to DIN EN 574. \nThe actuation of the opening device takes place using push buttons. \n     Open lid: push the central button \n     Close lid: push the two buttons on the two sides simultaneously \n                     (two-hand control device) \n \n \n \n \n \n \n    B                      C                                           A                                 B \n \n \n \n \nA = Open lid  \nB = Close lid  \nC = Pin connection for locking the lid \n \n \n",
+      "text_char_count": 622
+    },
+    {
+      "page_number": 46,
+      "source_page": 46,
+      "locator": "Page 46",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 46 \n7.1.4 Induction systems \n \nFor explosion protected systems, the operator must ensure that the system \nand the inducted substances (powder, gases and liquids) are inert (rendered \nunreactive). No foreign substances, which may lead to sparking, may be in-\nducted. \n \nThe machine can be equipped with the following induction systems: \n \n1) Dead space free induction valve on the homogenizer \nControlled by a disk valve, the inducted product is placed directly before the tool \nset of the homogenizer and then pumped via the long loop (recirculation line) into \nthe upper part of the vessel.  \nThis version is used very often for the production of gel on neutralised Carbopol \nbasis. Such a gel can be produced without air inclusion within a few minutes. \nA special type of application is the 'direct induction system', by which the sub-\nstances are inducted directly into the shear gap of the tool set through a dia-\nphragm valve or a disk valve. In this way, the hot-cold method can be imple-\nmented perfectly. \nNote: see also, 7.1.8 Homogenizer a.) ad b.) \n \n2) Bottom induction \nA cavity-free piston valve with a relatively large nominal width will be used, which \nis ideally suitable for inducting large quantities of powder. The bottom induction \nmethod is used, for example, for the production of toothpaste. During induction, \nthe agitator operates at high speed to rapidly disperse the powder in the vessel. \n \n3) Induction into the recirculation line \nA flap valve is welded particularly close to the recirculation line in the long loop \n(or the short loop, as the case may be). If the homogenizer is running, the prod-\nuct is sucked into the recirculation line and pumped into the upper part (or the \nlower part, as the case may be) of the vessel.  \n \n Air inclusions are extracted by the vacuum pump. \n \n4) Induction into the vessel (above the product level)  \nThe induction connection lies above the vessel flange and slopes towards the \nvessel. Liquid products can be inducted. Small quantities of air inclusions are ex-\ntracted by the vacuum pump. \n \n1 Short loop \n2 Long loop \n3 Product outlet via flow meter \n \n5 Spray nozzle agitator \n6 Bottom induction \n7 Liquid induction \n8 powder induction \n9 Direct induction (only for liquids) \n \n",
+      "text_char_count": 2312
+    },
+    {
+      "page_number": 47,
+      "source_page": 47,
+      "locator": "Page 47",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 47 \n7.1.4.1 Suitable induction hoses \n \n \nThe hose must be chemically resistant against the pumped fluids as well as wear-\nproof and pressure-proof.  \nMoreover, the hose should be kink-resistant, as well as tensile and tear resistant.  \nIt must have the official certificates (usually an FDA certificate of conformity) required \nfor the intended use. \n \n \nTo avoid electrostatic charges, only dissipative or conductive hoses may be used. \nCharges can occur during the transport of both powder and liquids. \n \nClassification of hoses according to their forward resistance R [Ω/m]   \n \nSource: Technical Rules for Industrial Safety TRBS 2153 \n \nInsulating hose: \n \nR > 106 \n \n: do not use! \ndissipative hose:  \n 103 < R < 106   \n \n: minimum requirement: \nconductive hose:  \n \nR < 103   \nΩ-hose \n     : \n \nR ≤ 106 Ω     \n(assembled hose) \nM-hose \n     : \n \nR ≤ 103 Ω     \n(             - \" -                     ) \n \nConductive hoses require regular electrical continuity tests.  \nIt must also be ensured that all internal metal inserts are connected to the fittings. \nThe hose connectors must be grounded and designed with static-dissipative nozzle \nsurfaces. In addition, the wire coil/clip at both ends must be grounded. For use in ex-\nplosive zones, the hose fitting should be ideally made of non-sparking material (e.g. \nbrass). \n \n \n",
+      "text_char_count": 1394
+    },
+    {
+      "page_number": 48,
+      "source_page": 48,
+      "locator": "Page 48",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 48 \n7.1.4.2 Precautions against electrostatic charges \n \nHazards due to electrostatic charges \nSources: Technical Regulations for Industrial Safety TRBS 2153, 'Prevention' and DIN VDE 0170-32-1 \nor EN 60079-32-1. \n \nElectrostatic charges are extremely dangerous and can result in electric shock, fire \nand explosions. \nElectrostatically chargeable are insulating materials and conductive or dissipative \nsubstances, objects and installations that are not grounded. \n \nInsulating materials can be charged through friction or as a result of operational ac-\ntivities. \nWhen dealing with liquids, the resulting electrical charge and the level of charging \ndepends on the properties of the liquid, the flow rate, the work processes, the size \nand geometry of the vessel and the vessel material. \n \nThe resulting electrical charge of a liquid depends on the dimension of the boundary \nsurface and the flow rate. \nAs second, non-miscible phase, as in, e.g., dispersions or liquid/liquid mixtures, con-\nsiderably increases the charge.  \nLow-conductivity liquids Ҡ load quicker. \n- low:  Ҡ ≤ 50 pS/m  \n \n: Risk of hazardous charge exists in general \n- medium:  50 ≤ Ҡ ≤ 1000 pS/m : Danger ... while fluid passes through pipework and \n \n \n  \n \n \n  filters as well as during stirring processes \n- high:    Ҡ > 1000 pS/m  \n: Danger ... while fluid is sprayed or if no ground \n \n \n  \n \n \n  contact exists \n \nMeasures against static charges \n \na) Systems and components \nIn principle, only dissipative or conductive objects or devices should be used. \nAll conductive materials must be grounded, and dissipative materials must be fitted \nwith a ground contact. \nPipeworks must be interconnected in a conductive manner and grounded. \nWear conductive shoes (bleeder resistor against earth RE < 105 Ω). \n \nb) Storage and mixing vessel \nLimitation of the rated power of the agitator. \nPrevention of a second, non-miscible phase. \nMedium-sized tanks (Di ≤ 5 m, 1 m³ < V < 50 m³): Pipeworks must be made of dissi-\npative materials or comply with the requirements for pipes and hoses. \nClean with air or other gases only if v < v_perm., however, no more than 7 m/s for \nsingle-phase liquids, otherwise 1 m/s.    \n(v_perm. depends on the shape and size of the vessel, the size, filling method, \nDN_filling pipe) \nHighly viscous liquids often charge quicker than low viscous liquids. \nFor Ex zone 0 (inside vessel), inerting is recommended. \n \n \n",
+      "text_char_count": 2480
+    },
+    {
+      "page_number": 49,
+      "source_page": 49,
+      "locator": "Page 49",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 49 \n7.1.5 Vessel pressure gauge and safety valve \n \nThe pressure gauge covers the entire pressure range.  It is equipped with a 4-20 mA \noutput and transmits the measured value to the PLC, where it is used for the pres-\nsure control and limitation.  \nThe safety valve protects the mixing and homogenising vessel against inadmissible \noverpressure.  \nBoth fittings are attached to the multi-nozzle or directly on the lid. \n \n \n \n \nFunction test of the safety valve: \nWhen manually venting the valve cone, \nit must be ensure that no one is injured  \n(escaping hot gases/aerosols).  \n \n \n \n \n7.1.6 Agitators  \n7.1.6.1 Principle symex coaxial agitator \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 745
+    },
+    {
+      "page_number": 50,
+      "source_page": 50,
+      "locator": "Page 50",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 50 \n \n \n \n \n \n \n \nAgitator \n \n \nBaffle \n \nCirclip \n(key ring) \n \nScraper \n(tiltable scraper) \n  \n \n                                                                                                             \nTemperature sensor \n(inside the baffle rod tip) \n \n \n7.1.6.2 Principle symex anchor/scraper agitator \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n  \n \n",
+      "text_char_count": 402
+    },
+    {
+      "page_number": 51,
+      "source_page": 51,
+      "locator": "Page 51",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 51 \nThe anchor agitator belongs to the group of scraper type agitation elements and op-\nerates for the most part in the laminar area. Depending on the rotation direct, the fluid \nis pumped up or down as well as radially. When the agitator transports in a down-\nward direction, large amounts of powder, which would otherwise float, can be added \nto the product to be agitated. All areas in the vessel are mixed; formation of dead \nzones is avoided. \nA baffle with an adapted, exactly defined area is always assigned to the agitator. \nThe operator must ensure that nothing drops into the vessel or into the product, be-\ncause foreign matter may cause sparks and/or damage the agitator or homogenizer.  \n \n7.1.6.3 Scraper \n \nThe scrapers are attached to the agitator arms of the anchor agitator and re-\nduce/remove the boundary layer on the vessel wall. \nBy default, we provide a tilting scraper, which is suitable for reversing mode (clock-\nwise/counterclockwise) and easy to clean. It is pressed to the wall only by the viscos-\nity of the product. Due to the relatively low contact pressure, the wear and tear is only \nslight. \nThe scrapers are adapted individually to the bottom of the vessel, since the scraper \narm and the vessel wall have unavoidable measuring tolerances. Replacement \nscrapers must be specifically fitted or adapted.   \n \n \n \n \n",
+      "text_char_count": 1407
+    },
+    {
+      "page_number": 52,
+      "source_page": 52,
+      "locator": "Page 52",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 52 \n7.1.7 Special mixers and special mixing tools  \n \nIn addition to the stirring systems described above, we offer special versions in ac-\ncordance with the process engineering requirements. Products that are challenging \nto produce sometimes require a specially designed agitator.  \nThis is often the case, if other substances are to be produced in addition to cosmetics \nand pharmaceutical products. \nThe required agitator components (dissolver disk, propeller, Sybot etc.) must then \nadapted to the requirements. \nWe recommend not using these types of stirrers for all products in the cosmetic or \npharmaceutical field, because the shear stress generated by these agitators are of-\nten too high and may destroy the emulsion. \n \n \n \n \n \nPropeller \n \n \n \n \nDissolver \n \n \n \nSybot \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 877
+    },
+    {
+      "page_number": 53,
+      "source_page": 53,
+      "locator": "Page 53",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 53 \n7.1.8 Homogenizer  \n7.1.8.1 symex homogenizer principle: Induction case and rotor-stator homogenizer \n \n \n \n1 Product inlet \n2 Product outlet (to short loop / long loop \n/ product relieve) \n3 Induction case \n4 Rotor \n5 Stator \n6 Direct induction into the shear gap of \nthe homogenisation tool (only for liq-\nuids) \n7 Induction straight before the homogeni-\nzation tool (for Powder and liquids) \n8 E-motor (rotation direction: left) \n7.1.8.2 symex homogenizer principle: Induction case and Co-Twister coaxial \nhomogenizer \n \n \n \n \n \n \n1 Product inlet \n2 Product outlet (to short loop / long loop / \nproduct relieve) \n3 Induction case \n4 Shear rotor  \n5 Pump rotor  \n6 Direct induction into the shear gap of the \nhomogenisation tool (only for liquids) \n7 Induction straight before the homogeni-\nzation tool (for Powder and liquids) \n8 E-motor shear rotor (rotation direction: \nleft or right) \n9 E-motor pump rotor (rotation direction: \nleft) \nRotation directions viewed from above into the induction case \n \n \n",
+      "text_char_count": 1070
+    },
+    {
+      "page_number": 54,
+      "source_page": 54,
+      "locator": "Page 54",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 54 \n \n \nThe homogenizer is flanged in the deepest point of the vessel. \nThe upper edge of the homogenizer set is located below the vessel bottom. \n \nA homogenizer can be operated in the following manner: \n \n1.) 'Internal homogenisation':  \nThe product is homogenized via the \nshort loop within the vessel, while the \nagitator is running or standing still. \n \n \n \n \n \n \n \n2.) 'External homogenisation':  \nThe product is homogenized via the \nlong loop and pumped back into the \nvessel. \n \n \n \n \n \n \nTo avoid hazards for the operating staff in the event of a malfunction through \nthe leaking product, the outlet nozzles should be closed with a blind cover dur-\ning the entire mixing and homogenisation process or connected to a suitable \ndischarging line (hose line or pipe).  \n \n \n3.) 'Draining the homogenizer':  \nThe entire system is drained via the open drain nozzle while the product is circulated \nover the long loop. \n \n \n",
+      "text_char_count": 984
+    },
+    {
+      "page_number": 55,
+      "source_page": 55,
+      "locator": "Page 55",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 55 \n4.) 'Direct induction' (option):  \nWith the direct induction method, liquid substances can be dosed directly into the \nhomogenisation tool, and homogenized and circulated directly with the remaining \nproduct. \n \n5.) 'Inducting the powder/liquids' (option):  \nThe homogenisation case can be fitted with two induction valves.  \nBy means of these two nozzles, liquid as well as powdered substances can be \nsucked in. \n \nSupply of solid matter \n \nThe homogenizer is designed for homogenising and pumping of liquids with \nor without solids content. \nThrough faulty operation during homogenisation/pumping of dispersions, se-\nvere damage may be caused to the homogenizer, in particular to the tool set \nand the mechanical seal.  \nTherefore it is imperative to observe the following:  \n \n1. In case of non-melting solids, it is imperative to make sure that these \nsolids are only fed into the homogenizer after the vessel has been first \nfilled with liquid at least up to the level of the short loop (the pump \nhousing and tool set must be flooded).  \n \n2. In case of melting solids (waxes), the system must be heated to at \nleast 80°C before starting to feed the solids into the system. \nFor this purpose, the homogenizer must be operated in short loop for \nsome time with a hot liquid. \n \n \n \nExamples for faulty operation \n \n1. Damage event - 'Burning of solids' \nWithout liquid, undue friction may cause the product to heat up sub-\nstantially/burn and wear/destruction of the rotor and stator (shear rotor \nand pump rotor). \n \n2. Damage event - 'Blocking, clogging' \nIn the production step 'Melting of waxes', the fluid in the tool set of the \nhomogenizer solidifies when the substance is fed in and temporary \nstandstill of the homogenizer; this generates adhesion between the ro-\ntor and stator.  \nThis means that when the homogenizer starts, the drive unit and the \ntool set overheats. Damage to the sealing and bearing unit, specifically \nthe mechanical seal and the counter ring, is then likely. \nLikewise, the medium can solidify in the short loop, block the loop and \noverload the homogenizer. \n \nIn both cases, an inspection by the symex service is imperative! \n \n",
+      "text_char_count": 2231
+    },
+    {
+      "page_number": 56,
+      "source_page": 56,
+      "locator": "Page 56",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 56 \n \nRegarding cooling water temperature of Co-Twister motors \nIf the water-cooled E-motor of the Co-Twister exceeds the temperature 30°C, the con-\ntrol panel issues a (non-acknowledgable) warning report. \nThe cause for the excessive heating of the cooling water must be examined and re-\nsolved. \nBitte den Temperaturwert anpassen! Er liegt 20% über der zulässi-\ngen Motor-Austrittstemperatur (Herstellerangabe, typabhängig). \n \n \n \nDANGER \n \n \nIn case of assembly work behind the covering of \nthe machine, the drive motor and the free space \nunder the homogenizer shall never be used as \nstorage area. \nIn case of non-observance death, serious bodily \ninjuries and considerable material damage may \nresult therefrom due to the clamping hazard and \nthe impairment of the machine's stability. \nFor disassembling, the homogenizer must be \ndisconnected. \n \n \n \nCAUTION \n \n \nPersons are not permitted to remain below ho-\nmogenizer, when the homogenizer is moved \ndown. \nFor dismantling, the homogenizer must be dis-\nconnected. \n \n \n \n \n",
+      "text_char_count": 1091
+    },
+    {
+      "page_number": 57,
+      "source_page": 57,
+      "locator": "Page 57",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 57 \n7.1.9 Sealing liquid tank for the homogenizer and agitator drives \n \nThe sealing liquid must be replaced at regular intervals (see separate lubrication \nand maintenance schedule). \nThe maximum useful life of the sealing liquid depends on the operating conditions \nand must be adapted to these conditions. To ensure trouble-free operation of the \nmechanical seal, the filling level, vessel pressure and fluid state must be checked \nperiodically. \n- The liquid level must be at the level of the sight glass.  \nIn the return tube, the quality of the functioning of the system can be checked (the \nliquid must flow over visibly). \n- Operation of the homogenizer requires a defined overpressure in the sealing liquid \ntank, which is generated by means of an air cushion. To this end, a pressure \ngauge and a purge valve are fitted on the vessel. \n \n \nPressure gauge (PI) with min/max switching contacts \n     \n    Target values [bar_Ü]                        \n   \n   \nPI \nMin \nMax        \n    R/S homogenizer  \n3 \n2 \n4 \n    sybot         \n3 \n2 \n4 \n    Co-Twister   \n4.5 \n4 \n5.5 \n \nIf a higher pressure should occur than \nthe value defined in the function description, \nplease contact symex Service. \n \nVerify at regular intervals for tightness! \n \nThe sealing liquid is filled in here (approx. 5-6 litres). \nYou will need a hook wrench for this purpose. \nFor ease of filling, use a hopper. \n \n \n \n \n \n \n \n \n \n \nA float switch monitors the liquid level and transmits a signal to the control system in \nthe event of loss of liquid. If the liquid level drops below a critical limit, the homoge-\nnizer shuts down. \nThe pressure gauge is equipped with min/max contacts. An alarm is triggered when \nexcessive pressure or pressure loss occurs. \n \n \n \n",
+      "text_char_count": 1801
+    },
+    {
+      "page_number": 58,
+      "source_page": 58,
+      "locator": "Page 58",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 58 \n7.1.10 Sealing liquid system for homogenizers \n \nUsed for \n- Co-Twister \n- Rotor/Stator homogenizer \n- sybot \n \nNote: Relates to replacement of shaft seals: \nAfter replacing the sealing, it is imperative that the entire sealing liquid system must \nfirst be cleaned and rinsed.   \n \nA filter (xF2505) is installed in the flow line of the sealing liquid line. This retains for-\neign and solid materials so that the mechanical seal and the sliding surfaces are not \ndamaged. The filter insert must be checked and cleaned at regular intervals (see Lu-\nbrication and Maintenance Schedule, page 15) \n7.1.10.1 Connections \n \nRotor/Stator homogenizer (HA-sealing) and sybot (HA or HN-sealing) \n \nHA-sealings have usually no pumping screw. Furthermore, a feed pump is available \nas well. \nHN-seals have their own pumping screw and operate without a feed pump. \n \nConnections for the HA and the HN mechanical seal: Infeed - bottom, return flow - \ntop.  \n \n \n \n \n \n \n \n \n \n \n \n                                                                 \n \n \n \n \n \n \n \n \n                                                        Example: HA-500 sealing housing \n \nThe sealing fluid flows from the sealing liquid tank through the feed pump into the \nsealing housing (bottom connection). \nThe sealing fluid then flows from the mechanical seal into the heat exchanger (if \navailable) and then back into the sealing liquid tank. \n \nReturn flow to the heat \nexchanger/sealing liquid \ntank \nInfeed from the  \npump/sealing liquid tank \n",
+      "text_char_count": 1566
+    },
+    {
+      "page_number": 59,
+      "source_page": 59,
+      "locator": "Page 59",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 59 \n                                                \nThe Co-Twister sealing (HC-sealing) \n \nHC-sealings do not have a pumping screw. Furthermore, a feed pump is available as \nwell.  \nConnections for the HC mechanical seal Infeed - top, return flow - bottom.  \n \n \n \n \n \n \n \n \n \n \n \n \n                                                              \n \n \n \n \n \n \n                                             Example:HC500 sealing \n \nThe sealing fluid flows from the sealing liquid tank through the feed pump into the \nsealing housing (top connection). \nThe sealing fluid then flows from the mechanical seal into the heat exchanger and \nthen back into the sealing liquid tank. \n \n \nThe sealing liquid tank (connection) \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nInfeed from the pump \nReturn flow to the \nheat exchanger \nReturn flow from the heat \nexchanger or also from the \nsealing. \nPosition of the dip tube, on the \nfront of the inspection glass. \nAir supply \nResidual dis-\nInfeed to the \npump or also to \nthe sealing \n",
+      "text_char_count": 1075
+    },
+    {
+      "page_number": 60,
+      "source_page": 60,
+      "locator": "Page 60",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 60 \n                                    \nThe inspection glass of the sealing liquid tank \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nAfter ventilating the sealing liquid tank, it must be filled up to half the level of the in-\nspection glass.  \nThe dip tube (return flow line) should be just above the filling level. \n   \n \n7.1.10.2 Filling, ventilation, pressurization \n    \nFor mechanical seal type HA and HC (sealing liquid pump available) \n \nVentilation can be easily achieved by means of the program of the system. \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nMaximum \nfilling level \nDip tube (return \nflow line) \n",
+      "text_char_count": 667
+    },
+    {
+      "page_number": 61,
+      "source_page": 61,
+      "locator": "Page 61",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 61 \nConnect the sealing liquid lines to the homegeniser, fill up the sealing liquid system \nand pressurize the sealing liquid tank (HA/V with 3bar and HC with 4.5bar. \n \nStart the sealing liquid pump at the display, and allow to run for two to three minutes. \nEnsure that the sealing liquid is also circulated in the sealing liquid system. Then \ncheck through the inspection glass of the sealing liquid tank (a clear liquid jet must be \nvisible from the dip tube). After ventilation, fill up the liquid sealing tank again and \npressurize the system. \n \n \n \n \n \nFor the mechanical seal type HN (sealing liquid pump is not available) \n \nConnect the sealing liquid lines to the homogenizer, fill up the sealing liquid system \nand pressurize the sealing liquid tank with a pressure of approx. 0.5 - 1bar. Discon-\nnect the return line at the homogenizer and ventilate by means of the matching coun-\nterpart (lock nipple or lock coupling) at the return flow line from the homogenizer. \n \n \nExample of coupling and nipple  \nfor ventilating the lines  \nand homogenizers, \n(old model, new model \n- no risk of confusion) \n \n \n \nConnect the return flow line again after ventilating the sealing liquid tank, fill up the \ntank (up to the middle of the inspection glass) and pressurize with a pressure of 3bar \n(HA/HN). \n \n \n \n \nManual ventilation for HN, HA and HC \n \nConnect the sealing liquid lines to the homogenizer, fill up the sealing liquid system \nand pressurize the sealing liquid tank with a pressure of approx. 0.5 - 1bar. \nDisconnect the return line at the homogenizer and ventilate by means of the match-\ning counterpart (lock nipple or lock coupling) at the return flow line. \nConnect the return flow line again after ventilating the sealing liquid tank, fill up the \ntank (up to the middle of the inspection glass) and pressurize with a pressure of 3bar, \nHC: 4.5bar). \n \n \n \n \n",
+      "text_char_count": 1938
+    },
+    {
+      "page_number": 62,
+      "source_page": 62,
+      "locator": "Page 62",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 62 \n7.1.10.3 Monitoring of sealing liquid circulation \n \nThe homogenizer can be started after the system has been filled and ventilated. \n \n1. Check the homogenizer rotation direction \nSet to low speed. If the rotation direction is wrong, immediately STOP the ho-\nmogenizer and remedy the cause. \n \n2. Check the sealing liquid circulation. \nPerform the check by means of the flow rate at the inspection glass (dip tube) \n \n2.1 Sealing liquid system with a separate pump (mechanical seal type HA and HC) \nA liquid jet must be clearly visible. \n \n2.2 Sealing liquid system without pump (mechanical seal type HN) \nThese mechanical seals have a pumping screw and are operated without an \nadditional pump. \nIn this case, a flow rate can only be detected as of a speed of approx. 1,500rpm. \n \nIn the case of oil as sealing liquid, the flow rate is even more difficult to detect. \nEven at a maximum speed, this is not the case.  \nHere, it is advisable to check the flow or circulation additionally based on the re-\nsulting warming up of the sealing liquid system (pipework and tanks). \nThe mechanical seal generates friction heat, which is then transferrred to the \nsealing liquid.  \nAt the start (when the sealing liquid system is still cold), the outlet \nline_mechanical seal should noticeably warm up after a short while*). With time, \nthe whole system heats up. \n \n*)If this is not the case, there is no circulation. In this case, the homogenizer must \nbe stopped immediately, and the cause of the error(s) must be detected and re-\nsolved. \n \n \n \n \n",
+      "text_char_count": 1604
+    },
+    {
+      "page_number": 63,
+      "source_page": 63,
+      "locator": "Page 63",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 63 \n7.1.10.4 Replacing the sealing liquid / cleaning the system   \n \n \n \nDraining the sealing liquid \n \n Vent the pressure from the sealing liquid tank via the safety valve (...)Y2501) on \ntop of the sealing liquid tank.  \n Open filling nozzle (...)X 2516) \n Unfasten the plug connectors on the homogenizer \n Dismantle the plug connectors from the sealing liquid hose (Ermeto) \n Drain the sealing liquid \n Unscrew the DN150 ring nut at the bottom of the sealing liquid tank and remove \nwith the sealing plate (together with the welded cooling coil, if applicable) in \ndownward direction \n Dismantle (clamp bracket) the level switch (..LSL/SLL2502) \n Remove the plug at the pressure gauge \n \n \n \n \nCleaning the sealing liquid system \n \n Rinse and wipe down the inside area of the sealing liquid tank, then wipe down \nonce again with a cleaning agent or suitable*)disinfectant. \n1. Wash down and disinfect the sealing plate \nRinse out the cooling coil of the infeed and return flow line, or \n2. heat exchanger (..W2515) Rinse out the infeed and return flow line \n*) must be checked by the system operator \n Clean the level switch \n Install the sealing liquid tank and sealing liquid lines (sealing plate, level switch, \npressure gauge, etc.). Attention:  \n Fill sealing liquid tank with hot water (max. 80°C) \nAttention: If oil is used as the sealing medium, water may not be used under any \ncircumstances for cleaning. In this case, the sealing liquid tank may only be \nwiped down, and the lines may be rinsed with sealing liquid if necessary. \n Unscrew the infeed coupling and discharge the water under pressure to rinse \nout contaminations. Repeat 2-3 times \n Fill up sealing liquid tank again with hot water. This time until the tank flows \nover. To do so, fill up by means of the clamping nozzle of the level switch \n Unscrew the return flow coupling and discharge the water under pressure to \nrinse out contaminations. Repeat 2-3 times \n Drain remaining water. To this end, open the DN15 ring nut (...X2517) below the \nsealing liquid tank and remove the blind cover. \n \n \nCaution! \nThe cleaning must be performed each time when the sealing is replaced or once a \nyear. \n",
+      "text_char_count": 2248
+    },
+    {
+      "page_number": 64,
+      "source_page": 64,
+      "locator": "Page 64",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 64 \n \nFilling of the sealing liquid system  \n \nSee Chapter 7.1.9.2. \n \nCaution! Applicable to sealing liquid mixtures \nIf possible, always use fresh drinking water for water-glycerine mixtures, as fully de-\nmineralised water and deionised water have corrosive properties. \n \n \n       \nRequired mixing ratio: 80% water and 20% glycerol (if necessary consult with \nsymex).  \nIf a higher proportion of glycerol is used, the mixture will be too viscous. This de-\ncreases the flow rate and the flow sensor may trigger an alarm.  \n \nCaution! \nTo prevent bacterial contamination of the system, the sealing liquid should be re-\nplaced every three months. For more information, consult the lubrication and mainte-\nnance schedule. \nDo not stock water for the sealing liquid system. \n \n \n \n \nSystem test and trial run \n \nStart the homogenizer and check the return flow through the inspection glass of the \nsealing liquid tank.  \nIf no flow is detected, immediately switch off the homogenizer again (under certain \ncircumstances, this is done automatically by the flow sensor).  \nFix the cause.  \nIf a flow is detected, check if the flow rate is stable across the entire homogenizer \nspeed range. As a rule, it is sufficient to check the flow rate at maximum speed. \nAt the same time, do not fail to check the cooling of the sealing system and of the \nmotor(s). \n \nApplicable to sealing liquid systems without a pump:  \nSince the flow rate depends directly on the homogenizer speed rate, it is advisable to \nperform the trial run at a higher speed.  This makes it easier to detect the flow \nthrough the inspection glass of the sealing liquid tank. \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 1711
+    },
+    {
+      "page_number": 65,
+      "source_page": 65,
+      "locator": "Page 65",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 65 \n7.1.11 Pressurized enclosure “Ex p” for water-cooled motors in explosive area \nsymex uses water-cooled motors with pressurized enclosure.  \nEquipped with a special pressurized purging air system, these motors may be oper-\nated also in explosion-risk areas*). In this case, the inside of the motor and the termi-\nnal box are protected by permanent overpressure ('system pressure') against ingres-\nsion of the potentially explosive ambient atmosphere. \nA control unit monitors the system pressure.  \n \n*) DIN EN 60079-2 (VDE 0170-3) Explosive atmospheres \nPart 2: Equipment protection by pressurized enclosure 'p' \n \nThe operator must keep the equipment in good condition, operate it properly, and \nmonitor, maintain and repair the equipment**). \n \n**) DIN EN 60079-17 (VDE 0165-10-1) Explosive atmospheres \nPart 17: Electrical installations inspection and maintenance \n \n \nTo ensure safe operation, it is necessary to monitor the protective gas supply. Fur-\nthermore, any remaining explosive atmosphere must be flushed from the housing by \nmeans of a pre-purging flush before any commissioning. These functions are as-\nsumed by the corresponding control device. The pre-purging pressures and pre-\npurging periods, as well as the operating parameters are already preset and may not \nbe altered. The parameters are listed in the OEM documentation.  \n \nDuring the pre-purge period is the engine out of operation. Only after this phase has \nbeen completed, the motor will be enabled. The pressurized enclosure is then in the \noperating phase. If the minimum pressure drops too low (e.g. due to a loss of air \npressure or excessive leakage at the motor) during the operating phase, the motor is \nshut down by the control panel. After the cause for the drop in air pressure has been \nresolved, the pre-purging phase must run again. \n \n \n \n \n \n \n \n \n \nCAUTION \n \n \nA function test of the control device must be per-\nformed annually \n \nMaintenance works and works to remedy defects may \nbe performed only by qualified skilled personnel. \n \n \n",
+      "text_char_count": 2095
+    },
+    {
+      "page_number": 66,
+      "source_page": 66,
+      "locator": "Page 66",
+      "semantic_title": "Terminal Diagram",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 66 \n7.1.11.1 \nPressurized enclosure - pneumatic connection to the motor  \nThe connections are marked accordingly. \nFluid inlet: 1x at the terminal box, 1x at the motor flange (free shaft end, top)  \nFluid outlet: 1x at the motor flange (bottom, on the drive) \nA second motor can be switched serially (Co-Twister, coaxial agitator). \n \n \n \n7.1.11.2 \nControl unit Ex zone 2 \nThe control unit consists of the following components: \n- \nPressurized enclosure “Ex p” control cabinet  \n- \nPressure reducing station (flushing medium connector) \n- \nPressure switch \n- \nPurge valve (rinsing fluid dosage) \n- \nControl device \n \nRinsing fluid pressures \n- \nSupply line: 2…3 barÜ (control LED available) \n- \nSystem pressure: 0..25 mbar (overpressure in “Ex p” control cabinet) \n \nOperation \nOnly a specialist company is permitted to set and program the control unit. After acti-\nvation, the control device first runs in the pre-purge phase, and then switches to the \noperating phase. \n \nPre-purge phase \nPre-purging starts (LED is alight) as soon as the control unit is operational.  \nIt serves to remove any explosive atmosphere that may exist in the motor housing \nand the terminal box before start-up. \nThe required rinsing time is individually determined and adjusted. \n",
+      "text_char_count": 1319
+    },
+    {
+      "page_number": 67,
+      "source_page": 67,
+      "locator": "Page 67",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 67 \nIf the maximum permitted system pressure is exceeded, the rinsing fluid supply is \nclosed automatically. (The fluid supply line may be reduced manually to the required \nleak volume flow). \n \nOperating phase \nAfter the pre-purge phase is completed, the control unit switches to the operating \nphase. The symex system is now ready for operation. Minor leakage volumes will be \nfilled up subsequently. \n \nDisruptions during the operating phase \nIf the system pressure drops below the minimum permitted level, the control unit \nswitches back to the pre-purge phase. In this case, the symex system is shut down \n(stop E-motors)  \n \n \n \nA restart is only possible after the \ndefect has been remedied (then the \npre-purging phase begins to run \nagain).  \n \nThe cause for the pressure loss must \nbe identified and remedied (possible \ncauses are, for example, insufficient \nsupply pressure or leaks).  \n \n \n \n \n \n \n \nFor more details, consult the OEM \ndocumentation of the manufacturer. \n \n \n \n \n \n \n \n \n \nCAUTION \n \nIn the presence of an explosive atmosphere, the \nbridge on the control unit must not be used. \nThus, the reliable compressed air-monitoring \nfunction is disabled. \n \n \n",
+      "text_char_count": 1238
+    },
+    {
+      "page_number": 68,
+      "source_page": 68,
+      "locator": "Page 68",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 68 \n7.1.11.3 \nControl unit Ex zone 1 \n \n \n \n \n \nUnlike the control unit for the Ex \nzone 2, the bypass for operation \nwithout compressed air is enabled \nby input via keys. \n \n \n \n \n \n \n \n \nFor more details, consult the OEM \ndocumentation of the manufacturer. \n \n \n \n \n \n \n \n \n \n \n \n \n \nCAUTION \n \n \nIn the presence of an explosive atmosphere, the \nbridge on the control unit must not be used. \nThus, the reliable compressed air-monitoring \nfunction is disabled.  \n \n \n \n",
+      "text_char_count": 528
+    },
+    {
+      "page_number": 69,
+      "source_page": 69,
+      "locator": "Page 69",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 69 \n7.1.12 Temperature control units (heating/cooling) \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n7.1.12.1 \nMixing/homogenising vessel with double jacket for heating and cooling \n \n• Two different jacket versions available  \n– \nFull jacket (for bottom and cylinder) with coil channel  \n– \nDouble jacket made from half pipes \n• Zoning \n– \nZones for different filling levels \n» Zone 1  \n Vessel bottom \n» Zone 2….4  \n Vessel jacket \n– \nThe zones are switched by the system control unit, \ndepending on the vessel level.   \n• Insulation jacket \n– Stainless steel jacket, filled with rockwool/mineral wool \n \nThe zone allocation of the double jacket \n \n \n",
+      "text_char_count": 706
+    },
+    {
+      "page_number": 70,
+      "source_page": 70,
+      "locator": "Page 70",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 70 \n7.1.12.2 \nHeating and cooling via secondary circuit  \n \n• Separate heat exchanger packages for heating and cooling \n– 2 primary circuits (heating fluid, cooling fluid) \n   Heat exchangers are switched parallel and separately controlled  \n \n \n \n active on demand \n each heat exchanger equipped with an angle seat valve \n      optionally: Plate heat exchanger in cascade configuration for every circuit \n– 1 secondary circuit with circulation pump between   \n     heat exchangers and vessel double jacket \n \n• Expansion tank in the secondary circuit compensates for volume fluctuation \nduring fast change between heating and cooling \n \n• Fast change between heating and cooling \n  \n• Several types of temperature control  mechanisms selectable \n \n• Several unit sizes, selection is made according to the size of the mixing container \n \n \n \n \n \n \n \n",
+      "text_char_count": 910
+    },
+    {
+      "page_number": 71,
+      "source_page": 71,
+      "locator": "Page 71",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 71 \n7.1.12.3 \nDirect heating and cooling  \n \n• Direct heating with steam  \nThe double jacket must be empty to avoid the risk of steam surges \n- Double jacket gets purged with compressed air \n- Steam is supplied via an angle seat valve \n \n• Direct cooling with water  \n- Cooling water is supplied via an angle seat valve \n \n• For fast heating and cooling purposes  \n- Pre-phase mixing container (e.g. for wax treatment) \n \n• Cannot be combined with containers load cells \n \n \n \n \n \n \n \n",
+      "text_char_count": 543
+    },
+    {
+      "page_number": 72,
+      "source_page": 72,
+      "locator": "Page 72",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 72 \n \n    \n \n \nAll components and \npipework connected  \nwith the temperature control unit may have \nvery hot surface temperatures. Furthermore, the  \nuninsulated, accessible surfaces of the heated  \nvessel may be very hot. \n \n \nTemperature control unit on the secondary side and mixer must be connected by pipes or \nhoses of the same size according to the instructions on the plates. \n \nThe temperature control units on the primary side to the Customer's supply lines (water, \nsteam, etc.) must be connected by pipes or hoses of the same size. \n \n \nAttention:  \nWhen connecting and during operation, the permissible pressures (see vessel plate) may \nnot be exceeded! \nDirect steam heating: To ensure that the condensate can drain off freely, the temperature \ncontrol unit must be set up in such a way that the connection between the vessel and the \ncondensate drain is installed at an incline. Otherwise, the condensate may collect in the \ndouble jacket of the vessel, which reduces the heating performance and extends the pre-\nheating period. \n \n \nCaution: When filling the secondary circuit,  \n \nthe system must be vented properly. \n \n \n \n",
+      "text_char_count": 1199
+    },
+    {
+      "page_number": 73,
+      "source_page": 73,
+      "locator": "Page 73",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 73 \n \n7.1.13 Temperature measurement and indication \n \n \n \n \n \nBaffle \n \nThermometer \n \n \n \n \n \n \n \n \n \n \n \n \n \nVessel flange \n \nThermometer \n \n \n \n \n \n \n \n \n \nThe temperature of the material to be mixed is electrically measured and indicated during \nthe mixing process. For this purpose, a temperature sensor is installed in the bottom of the \nvessel. \nAdditional temperature sensors can be installed in the baffle and the heating/cooling sys-\ntem. \nThe measured values of these sensors serve to control the temperature and are also indi-\ncated in the display. \nOptionally, a large number of process data (temperature, pressures, speed, etc.) can be \nstored by means of a data recorder integrated into the control unit. \n \n \n \n",
+      "text_char_count": 786
+    },
+    {
+      "page_number": 74,
+      "source_page": 74,
+      "locator": "Page 74",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 74 \n7.1.14 CIP cleaning system  \n \n \n \n \n \n \n \n \n \n \n \n \nCIP cleaning equipment \n \n \n \n \nCAUTION \n \n \nThe liquid may briefly squirt out of the manhole if \nit is opened while the CIP function is being car-\nried out. \n \n \nAs a rule, the cleaning equipment is operated together with the homogenizer or the \nCo-Twister. \nThe cleaning equipment may be equipped with different types of cleaning nozzles (jet \ncleaners, flood cleaning nozzles, etc.). \nFirst, the vessel must be ventilated and then filled with cleaning fluid and cleaning agents \nto about 1/3.  \nThe vessel is then closed, the lower flaps are set to recirculation and the upper flaps to \ncleaning so that the liquid is pumped back into the vessel by the homogenizer through the \nvia the collector line and the cleaning equipment.  \nDuring the cleaning process, the homogenizer is operated in the upper speed range.  \nAfter cleaning, the lower flaps are set to discharge and the cleaning liquid is discharged. \n \nThe cleaning equipment can also be operated via a separate pump.  \nFor this purpose, the pump must be connected on the induction side with the vessel outlet \nand on the pressure side with the distributor line.  \n",
+      "text_char_count": 1241
+    },
+    {
+      "page_number": 75,
+      "source_page": 75,
+      "locator": "Page 75",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 75 \nThe vessel must be ventilated and then filled with cleaning fluid and cleaning agents to \nabout 1/3.  \nThe vessel is then closed, and the vessel outlet and the shut-off valve before the cleaning \nelements are opened. Then start the cleaning recirculation pump (CIP pump). \nAfter the cleaning is completed, the distributor line must be disconnected and the cleaning \nliquid must be pumped out (or discharged through the vessel bottom valve, if available). \nIf required, repeat the process. \n \n  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n1. Short loop  \n \n \n \n2. Long loop \n3. Product  outlet via flow meter  \n4. Spray nozzles below lid, manhole \n5. Spray nozzle for Agitator \n \n6. Bottom induction \n7. Liquid induction  \n \n \n8. Powder induction \n9. Direct induction \n \nAdditionally: \nSampling line \nTransfer \netc. \n \n \n",
+      "text_char_count": 913
+    },
+    {
+      "page_number": 76,
+      "source_page": 76,
+      "locator": "Page 76",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 76 \n7.1.15 Vacuum setup \n \nVacuum pumps with liquid separator tank  \n \n \n \nThe following lines must be installed on site: \n \nConfiguration a) The vacuum pump is supplied separately by symex \n- Vacuum suction line(s)  \n- Cooling water supply  \n- Wastewater outlet (pressureless) \n- Exhaust pipe (pressureless) \n- Electrical connections (electric motor, valves, etc.) \n \nConfiguration b) The vacuum pump is integrated into the symex machine base \n- Cooling water supply (pipes may already be installed, see P&I diagram) \n- Wastewater outlet (pipes may already be installed, see P&I diagram) \n- Exhaust pipe (pressureless) \n \nConfiguration c) The vacuum line is connected to the Customer's own vacuum system \n- Vacuum suction line(s)  \n \nFor required widths, operating pressures and flow rates, see supplier documentation. \n \nThe delivery boundary (scope of symex delivery) is illustrated in the P&I diagram. \n \n \n",
+      "text_char_count": 969
+    },
+    {
+      "page_number": 77,
+      "source_page": 77,
+      "locator": "Page 77",
+      "semantic_title": "Title Page",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 77 \nRequirements for vacuum generation: \n- The vessel lid is located in its bottom position \n- the lid is closed/locked \n- all flaps and valves on the lid and in the vessel are closed \n \n(except for the vacuum flaps) \n \nDuring this vacuum generation process, make sure that the lid is in the bottom posi-\ntion and locked with the lid locking device and that all flaps and valves (except for \nthe vacuum valves) on the lid and in the vessel are closed. \n \n \n \n7.1.16 Operation panel OP \nObserve the attached operating manual and instructions of the manufacturer. \nThe system is operated by means of the matching keys on the OP (operation panel). \n \n \n \n \nControl panel  \nalso cf. function description \n \n \n \n \n",
+      "text_char_count": 767
+    },
+    {
+      "page_number": 78,
+      "source_page": 78,
+      "locator": "Page 78",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 78 \n7.1.17 General valve position \n \n \n \n \n \n \n \nopen \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nclosed \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 191
+    },
+    {
+      "page_number": 79,
+      "source_page": 79,
+      "locator": "Page 79",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 79 \n7.1.18 OEM devices: vacuum pump, valves, hydraulic, pneumatic equipment, etc. \n \nVacuum pump \nObserve the attached operator manual of the manufacturer. \nOEM documentation  \n \n \n \nLid lifting and pneumatic equipment \nObserve the attached operator manuals of the manufacturer. \n \n \nOEM documentation  \n \n \n \nFittings \nObserve the attached operator manuals of the manufacturer.  \nOEM documentation \n \n \n \nControl cabinet \nObserve the attached operator manual of the manufacturer. \nOEM documentation \n \n \n \nDrive motors and gear boxes \nObserve the attached operator manuals of the manufacturer. \nOEM documentation \n \n \n \nVessel light \nObserve the manufacturer's operation manual attached hereto. \nOEM documentation \n \n   \n    \n \n \n \n",
+      "text_char_count": 791
+    },
+    {
+      "page_number": 80,
+      "source_page": 80,
+      "locator": "Page 80",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 80 \n8 Functional description \n \nPlease refer to the separate document/chapter Functional description \n \n \n9 Specific Data of the System/Machine \n9.1 Intended use \nIntended use  \n \nIntended use of the system is the production of flow capable liquid cosmetic products such \nas emulsions and suspensions. \n \nThe maximum dynamic viscosity allowed is 120.000 mPa*s. \nThe device is not suitable for processing corrosive or toxic substances.  \nThe device is also not suitable for processing viruses or bacteria. \nProduct types  \n \nAll flow capable products such as  \n- Single phase liquids \n- Liquid / liquid dispersions (emulsions) \n- Liquid / solid dispersions (suspensions) with a continuous liquid phase and a maximum \ndiameter of the solid phase of 0,5mm (max. solid particle size for homogenizer and \ntransfer pumps). \n \nTypical product types of this viscosity are: \n \nToothpaste \n \nMascara \n \nThick (high viscous) creams (O/W emulsions) \n \nDiaper creams (highly loaded with ZnO) \n \nSun protection creams (highly loaded with TiO2) \nsymex guarantees that all specified semi-solid and liquid products can be produced on the \nmixing system \nFluid group  \n \nSelected fluid group according to article 13 of the Pressure Equipment Directive (PED): \n  Group 1: hazardous fluids \n  Group 2: substances and mixtures that are not part of group 1  \nThe classification has to be carried out by the plant operator (plant owner). \n \nFluids are gases, liquids and vapours in pure phase as well as mixtures thereof. \nFluids may contain a suspension of solids. \n \n \n",
+      "text_char_count": 1611
+    },
+    {
+      "page_number": 81,
+      "source_page": 81,
+      "locator": "Page 81",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 81 \nClassification of fluids according to the Pressure Equipment Directive \nAccording to Article 13 Directive 2014/68/EU (Pressure Equipment Directive) the classifi-\ncation of fluids shall be divided into the following two groups:  \n(a) group 1 consisting of substances and mixtures … Regulation (EC) No 1272/2008*), \nthat are classified as hazardous in accordance with the following physical or health hazard \nclasses … to that Regulation:  \n(i) unstable explosives or explosives of Divisions 1.1, 1.2, 1.3, 1.4 and 1.5;  \n(ii) flammable gases, category 1 and 2;  \n(iii) oxidising gases, category 1;  \n(iv) flammable liquids, category 1 and 2;  \n(v) flammable liquids, category 3 where the maximum allowable tempera-\nture is above the flashpoint;  \n(vi) flammable solids, category 1 and 2;  \n(vii) self-reactive substances and mixtures, type A to F;  \n(viii) pyrophoric liquids, category 1;  \n(ix) pyrophoric solids, category 1;  \n(x) substances and mixtures which in contact with water emit flammable \ngases, category 1, 2 and 3;  \n(xi) oxidising liquids, category 1, 2 and 3;  \n(xii) oxidising solids, category 1, 2 and 3;  \n(xiii) organic peroxides types A to F;  \n(xiv) acute oral toxicity, category 1 and 2;  \n(xv) acute dermal toxicity, category 1 and 2;  \n(xvi) acute inhalation toxicity, category 1, 2 and 3;  \n(xvii) specific target organ toxicity – single exposure, category 1. \n \nGroup 1 comprises also substances and mixtures contained in pressure equipment with a \nmaximum allowable temperature TS which exceeds the flashpoint of the fluid;  \n \n \n(b) group 2 consisting of substances and mixtures not referred to in point (a). \n \n \n \n \n*) REGULATION (EC) No 1272/2008 on classification, labelling and packaging of \nsubstances and mixtures, amending and repealing Directives 67/548/EEC and \n1999/45/EC, and amending Regulation (EC) No 1907/2006 \n  (“CLP-Regulation for Classification, Labelling and Packaging”) \n \n \n \n \n \n",
+      "text_char_count": 1993
+    },
+    {
+      "page_number": 82,
+      "source_page": 82,
+      "locator": "Page 82",
+      "semantic_title": "Title Page",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 82 \nAssignment  of substances/mixtures of substance to a fluid group \nInformation sources regarding the classification acc. to Art.13 Directive 2014/68/EU: \na) EU Safety Data Sheet in accordance with the REACH Regulation (Regulation \n(EC) Nr. 1907/2006)  Annex II *) \nThe EU Safety Data Sheet is developed by the substance manufacturer and will be updat-\ned constantly. It also contains the classification in accordance with the CLP Regulation. \nb) Substance databases \nSome substance databases are public available. \nThe required inputs are: substance designation, CAS nr., EU substance nr. or Index nr. \n \n*) DIREGULATION (EC) No 1907/2006 concerning the Registration,  \nEvaluation, Authorisation and Restriction of Chemicals (REACH), establishing a Euro-\npean Chemicals Agency, amending Directive 1999/45/EC and repealing Council  \nRegulation (EEC) No 793/93 and Commission Regulation (EC) No 1488/94 as well as \nCouncil Directive 76/769/EEC and Commission Directives 91/155/EEC, 93/67/EEC, \n93/105/EC and 2000/21/EC \n \n \n \n \n \nNormal operation \nIntended use must be ensured by the operator. \n \nOperation with non-approved products, materials, operating conditions and improper set-\ntings will damage the system. In this case symex accepts no liability. \n \nIntended use also includes observance of the operating manual and adherence to the in-\nspection and maintenance stipulations. \n \n \n",
+      "text_char_count": 1449
+    },
+    {
+      "page_number": 83,
+      "source_page": 83,
+      "locator": "Page 83",
+      "semantic_title": "Terminal Diagram",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 83 \n9.2 Explosion-pro machines  \nThis machine is not explosion protected  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nBeware of explosive atmosphere in working areas as well as in storage facili-\nties for gas bottles containing liquefied natural gas (e.g. propane, butane). \nAn explosive atmosphere can also result from the evaporation of combustible \nliquids (e.g. petrol) and from fine, whirled up dust. \n \nBehaviour: \nAll ignition sources (e.g. open fire, hot sources of heat, non explosion-proof \nhousehold appliances) must be kept away from this explosion area (Ex area). \nWelding, cutting and grinding work shall not be performed.      \n \nIn an explosive atmosphere, only electrical equipment that corresponds to the \nconformity category of the atmosphere (such as Group II, category 1, 2, 3 or in \naccordance with USA NEC500 etc.) and that have the appropriate scope of \nprotection may be operated. \n \nFor explosion protected machines, the control cabinet must be installed outside \nof the potentially explosive area. The necessary connecting lines have then \nbeen prepared for a terminal connection and have been identified accordingly. \n \nThe machine based is designed in the ignition protection type 'Pressurized en-\nclosure'. The permanent overpressure is applied to the enclosure which pre-\nvents the ingress of potentially explosive atmospheres. Top maintain this kind \nof protection there some special requirement for the user (see Ex supplemen-\ntary operating instructions) \n \nMechanical explosion protection 2014/34/EU and its harmonized standards. \nWhen operating the agitator or homogenizer in crossover mode, the operator \nmust ensure that the system does not contain any substances that may gener-\nate sparks.  \n- Safety devices must be checked in accordance with the maintenance and \nlubrication schedule. \n- Sensors that are relevant for monitoring \nIgnition sources must be provided with an additional safeguard to prevent \nany unintentional loosening.  \nFor explosion protection-related reasons, the system may not exceed the \ntemperatures indicated on the type label. \n \nTemperature classes: T1 \n450 °C    \nT4 \n135 °C \n    \n \nT2  \n300 °C          \nT5  \n100 °C \n       \n \nT3  \n200 °C   \nT6   \n85 °C \n",
+      "text_char_count": 2281
+    },
+    {
+      "page_number": 84,
+      "source_page": 84,
+      "locator": "Page 84",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 84 \n9.3 Overview plan / Dimensions  \n \n \n \n \n \n \n \n",
+      "text_char_count": 109
+    },
+    {
+      "page_number": 85,
+      "source_page": 85,
+      "locator": "Page 85",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 85 \n9.4 Specifications \n \n9.4.1 General \n9.4.1.1 Applied regulations \nPRESSURE EQUIPMENT \n Pressure Equipment Directive 2014/68/EU \n AD 2000 Codes of Practice on Pressure Vessels  \n ASME Code VIII Division 1 \n \n Canadian Standards Association (CSA) \n GOST-R \n \n \n \n SELO \n \n \nELECTRICAL ENGINEERING \n Low Voltage Directive 2014/35/EU \n EMC DIRECTIVE 2014/30/EU \n National Electric Code (NEC)  \n Canadian Electric Code (CEC) \n \nEXPLOSION PROTECTION \n ATEX Directive 2014/34/EU  \n NEC 505/506 (Zone Concept) \n NEC 500…504 (Division Concept) \n CEC Edition 1998 \n \nLOAD-BEARING STEEL STRUCTURES \n DIN EN 1090-2 Execution of steel structures \n \n \nMACHINES \n Machinery Directive 2006/42/EC \n . \n \n \nAn EC conformity assessment was conducted according to the Machinery Directive \n2006/42/EC for the entire system (see Chapter 4.6).  \nThe system documentation includes the following statement, prepared by symex: \n EC Declaration of Conformity  \n \n EC Declaration of Incorporation (incomplete system) \n \n \n",
+      "text_char_count": 1056
+    },
+    {
+      "page_number": 86,
+      "source_page": 86,
+      "locator": "Page 86",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 86 \n9.4.1.2 Electric connections \nVoltage supply \n: 400 V / 50Hz, 300 A \nMains type \n: 3/PE/N \nConnected load max.          [kW]  : 180 \nControl voltage                       [V] : 24 DC \nProtection type production area : IP 54 \nProtection type engineering area : IP 54 \n \n \n \n \n9.4.1.3 Materials and finishing \n \nMaterials \nProduct contact surfaces \n: 1.4404 \n \nHeating and cooling jacket \n: 1.4541 \n \nInsulation jacket \n: 1.4301 \nMachine stand \n: 1.4301 \n \nControl cabinet \n: 1.4301 \nPower unit \n: 1.4301 \nProduct contact seals \n: Viton (FPM) \n \nSurfaces \nVessel (inside) \n: ground and mirror polished Ra < 0.4 µm \nAgitator \n: ground and polished Ra < 0.4 µm \nVessel (outside) \n: ground Ra < 0.8 µm \nMachine base \n: ground and brushed \n \n \n \n",
+      "text_char_count": 802
+    },
+    {
+      "page_number": 87,
+      "source_page": 87,
+      "locator": "Page 87",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 87 \n9.4.2 Main components of the mixing system \n \n9.4.2.1 symex Mixer type CML125 \n Vessel \nVolume [l] \nNominal volume \n: 125L \nBatch volume max. \n: 125L \nBatch volume min. \n:  30L       \nHeating jacket volume  : 15L \n \n \nOperating pressures [bar_abs]   \nProduct area   \n:  0 … 3 \nHeating/cooling room  :  0 … 5 \n \nOperating temperatures [°C] \nProduct area   \n:  5 …133 \nHeating/cooling room  :  5 …151 \n \n \n \n Lid-lifting device:  see Chapter 7.1.1 \nLifting speed    [m/min] : max. 1,1m/min \nMotor power          [kW] : 1,5 at 50 Hz, 400 V Y \nMotor cooling \n:  water cooling \n \n \n \n Anchor/scraper agitator (see Chapter 7.1.6) \nAnchor speed range   [min-1]  :  15 - 59 \nNominal power              [kW] :  5,5 at 50 Hz, 400 V Y \nMotor cooling \n:  water cooling \n \n \n Co-axial agitator (see Chapter 7.1.6) \nCentral agitator \nSpeed range           [min-1] :  29 - 235 \nNominal power           [kW] :  3 at 50 Hz, 400 V Y \nMotor cooling \n \n:  water cooling \n \nScraper Agitator \nSpeed range           [min-1]  :  15 - 59 \nNominal power           [kW] :  5,5 at 50 Hz, 400 V Y \nMotor cooling \n \n:  water cooling \n \n",
+      "text_char_count": 1168
+    },
+    {
+      "page_number": 88,
+      "source_page": 88,
+      "locator": "Page 88",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 88 \n \n R/S homogenizer (see Chapter 7.1.8) \nShear speed                [m/s] :  0 – 30 \nRotor speed range   [min-1] :  … - … \nMotor power                [kW] :  …. at 50 Hz, 400V Y \nMotor cooling \n \n:  air cooling \n \n Co-Twister homogenizer (see Chapter 7.1.8) \nShear speed               [m/s]  :  0 – 60 \n \nPump rotor motor \nSpeed range            [min-1] :  597 - 7162 \nMotor power                [kW] :  30 at 171 Hz, 400 V Y \nMotor cooling \n \n:  water cooling \n \nShear rotor motor \nSpeed range            [min-1] :  -7162 - 7162 \nMotor power                [kW] :  30 at 171 Hz, 400 V Y \nMotor cooling \n \n:  water cooling \n \n Sealing liquid system:  see Chapters 7.1.8 and 7.1.9 \n Temperature control unit:  see Chapter 7.1.12 \n \n \n \n \n \n",
+      "text_char_count": 800
+    },
+    {
+      "page_number": 89,
+      "source_page": 89,
+      "locator": "Page 89",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \n \nRev. 1.1 \nOrder No. SY909735 \n 89 \n9.4.2.2 Entire system \n Work platform \nStanding  height                                             [mm] : \nMax. platform load at pallet delivery area    [kg/m2] : \nMax. platform load at all other areas           [kg/m2] : \n \n \n Vaccum system: see Chapter 7.1.15 \nSuction capacity_pump      [m3/ h] :  90 dry air at 20°C, \n \n   Pump inlet pressure 100 mbar_abs,  \n \n   Process water temperature 15°C                  \nMotor power                           [kW] :  3 at 50 Hz, 400 V Y \nMotor cooling \n:  air cooling \nProcess water consumption [l/min] :  >= 2,2 L/min \n \n   for pump inlet pressure 100 mbar_abs, \n \n \n Product pump \nPump flow                           [m3/h] :  …   \nSpeed range                      [min-1] :  … - …  \nMotor power                          [kW] :  …. at 50 Hz, 400 V Y \nMotor cooling \n:  air cooling \n \n \n CIP system: see Chapter 7.1.14 \n Control cabinet \n Weighing system \n \nSee also Function description / Device list - Component list / Flow diagram. \nCf. folder X chapter X chapter X \n \nAlso cf. vessel data on the vessel rating plate. \nFor other information, please refer to the OEM documentation. \n \nThe values indicated on the vessel plate/motor rating plate must not be exceeded, as \nthis may damage the system. \n",
+      "text_char_count": 1312
+    },
+    {
+      "page_number": 90,
+      "source_page": 90,
+      "locator": "Page 90",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 90 \n10 Starting the machine \n \n10.1 Safety principles \n \n- \nThe safety instructions described in the documentation must be observed to avoid per-\nilous injury of persons as well as damage to property and to the system/machine. \n \n- \nThe machine may be commissioned only by qualified persons observing the safety re-\nminders. \n \n- \nEnsure that only authorised persons remain in the work area of the machine and that \nno other persons not involved are at risk from the operation of the machine. \n \n- \nIncorrectly wired connections may destroy the electrical/electronic components. The \nmachine shall only be used for its specified purpose. \n \n- \nObserve the safety instructions of the manufacturer (OEM documentation). \n \n- \nDo not fail to read the Chapter 'General safety reminders'. \n \n- \nTake note of the proper behaviour in case of an incident before starting the machine. \n \n \n \n10.2  Commissioning \n \n- \nBefore starting the machine for the first time, check if all transport locking devices, tools \nand foreign parts have been removed from the machine. \n \n- \nEstablish the supply and disposal connections. \n \n- \nCheck the protection measures against electrostatic discharges (grounding of all com-\nponents, use of suitable hoses etc.) \n \n- \nEnable/check all safety devices \n- Protective covers of machine parts and electrical equipment \n- Functioning of work platforms/ladders (if any) \n- Functioning of first aid equipment (eye rinsing devices etc., if available) \n \n- \nVerify the proper functioning of the following system components: \n- pneumatic system \n- supply media (water/wastewater, steam/condensate, compressed air, etc.) \n- lubricant cycles (sealing liquid cycle homogenizer/agitator) \n- heating/cooling components \n- (other) \n \n \n",
+      "text_char_count": 1802
+    },
+    {
+      "page_number": 91,
+      "source_page": 91,
+      "locator": "Page 91",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 91 \n- \nCheck the electrical connections \nIncorrectly wired connections may destroy the electrical/electronic components. \nIncorrect connections may cause an unexpected start of the machine, or uncontrolled \nmovements of the machine. \n \n- \nBefore starting the machine, check the following units for proper functioning: \n \n- protective devices \n \n- emergency stop switch \n \n- control indicators \n \n- \nCheck the rotation direction of the motors (or of the mixing tools, if applicable, see \nChapter 6.5)  \nThe checks must be performed by two people. Rotate the motor shafts only briefly, as \nthe wrong rotation direction may cause substantial damage to the machine. \n \n- \nStart the system/machine \nCheck the operating sounds/temperatures/vibrations/smells.  \nIf in doubt, switch off the component concerned, check it and remedy the cause of the \nfault. \nCheck the proper functioning of the sealing liquid cycle of the homogenizer and the agi-\ntator (does the liquid flow?) See Chapter 7.1.9. \nCheck all pipes for leaks. \n \n- \nOperation of the system/machine \nCheck the operating parameters (pressures, temperatures, flow rates, etc.).  \nRegularly check the function of the sealing liquid cycles (flow of the fluid, temperatures, \npressures, levels). \nRegularly check all pipes for leaks. \n \n10.3  Trial run \n \nThe trial run serves to verify that the system/machine is ready for operation after assem-\nbly, repair work or prolonged rest periods. \n \nBefore starting the trial run, please read the operating instructions of the component manu-\nfacturers (for motor, gears, mechanical seals) carefully. They are attached to this operation \nmanual.  \n \n- \nProceed in detail as described in the section on commissioning. \n \n \nCaution \n \nNever reach into the agitator vessel while the agitator \nis operating. \n \nDo not hold any tools, measuring instruments or \nother objects into the mixing vessel. Do not touch \nany rotating agitator parts. \n \n \n",
+      "text_char_count": 1992
+    },
+    {
+      "page_number": 92,
+      "source_page": 92,
+      "locator": "Page 92",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 92 \n10.3.1 Trial run  of the mixing and homogenising vessel \n \nStart the trial run by filling up the tank somewhat.  \n \nSwitch on the agitators and the homogenizer for a period, then check the following proce-\ndures: \n \n Is rotation direction of the shafts OK? \n Is the smoothness of the stirring shaft, agitators and homogenizer OK? \n Are the oscillations and vibrations on the agitator lantern OK? \n Are the vibration and noises generated by the gearbox and the motor OK? \n Is the temperature of the gearbox and motor housing OK? \n Is the line system from mechanical seal to the sealing liquid tank OK? \n \nIf possible, measure the power consumption of the motor and compare it to the data pro-\nvided in the operator manual, motor data sheets, motor inspection certificates or other re-\ncords. \nSwitch the system off again. \n",
+      "text_char_count": 888
+    },
+    {
+      "page_number": 93,
+      "source_page": 93,
+      "locator": "Page 93",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 93 \n11 Maintenance, Repair, Spare Parts, Assistance \nin Case of Failures \n \n \n \n \nDanger \n \n \n \nCleaning, lubrication and maintenance work shall only be per-\nformed by authorised skilled personnel observing the main-\ntenance instructions and the regulations for the prevention of \naccidents!  \n \nIn case of non-observance bodily injuries, death or consider-\nable material damage may be the consequences! \n \n Perform maintenance work only when the system is \nswitched off! \n Only carry out maintenance on the frequency converter \nand the motor after the units stood still for for at least ten \nminutes and after verifying that the unit is de-energised. \n Dispose of old lubricants in an environmentally friendly \nmanner! \n For refilling oil, always use a suitable hopper or oil can \nwith a hopper in order to avoid contamination of the floor! \n Work on the electrical equipment shall only be performed \nby qualified and authorized electricians! \n Please refer to the General additional Ex instruction man-\nual \n \n11.1 General information \nThe symex Service is at your disposal at any time for maintencance of the machine \nor the system (See separate lubrication and maintenance schedule) \nIf you do not wish to make use of our maintenance service, we recommend observ-\ning the following information. \n \n11.1.1 Maintenance, repair \n \nHomogenizer \nReplacement of the mechanical seal of the homogenizer \nSee Folder 1 Chapter 4 and OEM documentation \n \nReplacement of the homogenizer set \nSee Folder 1 Chapter 4 and OEM documentation \n \nAgitator \nReplacement of the mechanical seal and/or radial sealing ring of the agitator \nCf. Chapter 6 and OEM documentation \n \n",
+      "text_char_count": 1722
+    },
+    {
+      "page_number": 94,
+      "source_page": 94,
+      "locator": "Page 94",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 94 \n \n11.1.2 Spare parts (symex) \n \nSpare parts and wear parts should be ordered in accordance with the spare parts drawing \nattached hereto. \nExample \n1.) Machine No. \nSY90XXXX  (see cover sheet of the operator manual) \n2.) Drawing No. \nXXXXXXXXX  (see Folder 1 Chapter 4) \n3.) Pos. No. \n \n23  (refer to drawing) \n4.) Number \n \n1  (refer to the Bill of Materials) \n \n \nSpare parts for OEM devices: \nVacuum pump \nObserve the attached operator manual of the manufacturer. \nOEM documentation Section 6 sorted according to manufacturer. \n \nLid lifting and pneumatic equipment \nObserve the attached operator manual of the manufacturer. \nOEM documentation Section 6 sorted according to manufacturer. \n \nFittings \nObserve the attached operator manual of the manufacturer. \nOEM documentation Section 6 sorted according to manufacturer. \n \nControl cabinet \nObserve the attached operator manual of the manufacturer. \nOEM documentation Section 7 \nDrive motors and gear boxes \nObserve the attached operator manual of the manufacturer. \nOEM documentation Section 6 sorted according to manufacturer. \n \n \nVessel light \nObserve the manufacturer's operation manual attached hereto. \nOEM documentation Section 6 sorted according to manufacturer. \n \nFor maintenance, repair, spare parts, assistance in case of failures of the machine \nand/or system, the symex Service is available to you at any time. \n",
+      "text_char_count": 1441
+    },
+    {
+      "page_number": 95,
+      "source_page": 95,
+      "locator": "Page 95",
+      "semantic_title": "PLC",
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 95 \n11.1.3 Assistance in case of failures \n \nFor the maintenance of the machine and/or system the symex Service is available to you \nat any time. \n \n \n \n \n \nDanger \n \nCleaning, lubrication and maintenance work shall only be per-\nformed by authorised skilled personnel observing the main-\ntenance instructions and the regulations for the prevention of \naccidents!  \nIn case of non-observance bodily injuries, death or consider-\nable material damage may be the consequences! \n \n \nIn order to avoid danger to life due to electric shock: \n Work on the electrical equipment shall only be performed \nby qualified and authorized electricians! \n \n \n \n \nKind of failure \nCause of the failure/ \noperator or mainte-\nnance error \nMeasures for eliminating the fail-\nure \nThe vessel lid can no \nlonger be lifted \n \n-Power failure \n-Lid lifting device \n \n-Clamping belt closed \nCheck the mains connection \nCf. folder 3 \nChapter 6 OEM documentation \nOpen clamping belt (see Product descrip-\ntion) \nThe vessel lid can no \nlonger be lowered \n-Power failure \n-Lid lifting device \n \nCheck the mains connection \nCf. folder 3 \nChapter 6 OEM documentation \nPumps, motors, hydraulic, \npneumatic equipment and \nvalves do not work  \n-Power failure \nSee OEM documentation, Folders 3 \nto 4, Chapter 6 \n \nElectrics \nPLC, solenoid valves, \ncable breakage, relay \nmotor circuit breaker \nContact your electrician or the \nsymex Service \n \n \n",
+      "text_char_count": 1465
+    },
+    {
+      "page_number": 96,
+      "source_page": 96,
+      "locator": "Page 96",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 96 \n11.1.4 Checklist / maintenance plan / lubrication plan \n \n \n \n \n \nDanger \n \nCleaning, lubrication and maintenance work shall only be per-\nformed by authorized skilled personnel observing the main-\ntenance instructions and the regulations for the prevention of \naccidents!  \nIn case of non-observance bodily injuries, death or consider-\nable material damage may be the consequences! \n \n \nIn order to avoid danger to life due to electric shock: \n Work on the electrical equipment shall only be performed \nby qualified and authorized electricians! \n \n \n(See separate lubrication and maintenance schedule) \n \n \nLocation \nGrease – oil grade \nInterval \nFor OEM devices, e.g. drive mo-\ntors and gearboxes, vacuum \npumps, centrifugal pumps, fit-\ntings, lid lifting device, pneumatic \nequipment, etc. \nSee OEM documentation, Folders \n3 to 4, Chapter 6 \nAlso cf. folder 1 chapter 3 \nSee OEM documentation, Folders \n3 to 4, Chapter 6 \nAlso cf. folder 1 chapter 3 \n \n \n \n",
+      "text_char_count": 1020
+    },
+    {
+      "page_number": 97,
+      "source_page": 97,
+      "locator": "Page 97",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 97 \n12 Decommissioning \n \nWhen decommissioning the machine (shutdown), the following safety remainders must \nabsolutely be observed in order to prevent perilous injuries, damage to assets as well as to \nthe environment. \n \nOnly authorized skilled personnel are allowed to decommission the machine. \n \nDisposal of the following operating materials/machine parts is accomplished by the com-\npany  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nEnsure that the operating materials, lubricants and auxiliary materials are disposed of in \nan environmentally-appropriate manner. The regulations for proper waste recycling and/or \ndisposal must be complied with. \n \nTransport \nThe machine shall only be lifted at the holding points provided to this effect. \n \nFor lifting the machine / machine parts, only the indicated load lifting equipment and lifting \ntackles shall be used. \nFor the selection of suitable load lifting equipment, the total weight must always be taken \ninto consideration. \n \nWhen transporting the machine, observe the permissible floor load. \n \nPrior to evacuating the machine, attach the following transportation locks ….  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nAlso read the Chapter 'Transport' in this connection. \nAlso read the chapter 'General safety reminders' in this connection. \n",
+      "text_char_count": 1578
+    },
+    {
+      "page_number": 98,
+      "source_page": 98,
+      "locator": "Page 98",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 98 \n13 Additional Information \n \nDocumentation feedback \n \n \nsymex GmbH & Co. KG \n \n \n \n \nFax: \n+49 (0) 471 98401-40 \nTechnical Documentation –  \n \n \n \nEmail: info@symex.de \nLengstr. 10 \n  \n \n \n \n \n \nhttp://www.symex.de \n \n27572 Bremerhaven, GERMANY \n \n \n \nDear symex system user, \n \nYou will certainly have had questions with regard to the installation and operation of the system. \nWe have taken great care to answer these questions with this operation manual. For this reason, \nwe are very much interested in learning whether we have also been successful in this. Please copy \nthis page and inform us about your experience with this operation manual. \n \nWe need your feedback if you find the descriptions incomprehensible, incomplete or faulty. This \napplies in particular if you identify a safety risk, whether due to the design or to an inadequate de-\nscription. \n \nKind regards \n \nsymex GmbH & Co.KG \n \nFor your feedback: \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nSender: \n \n \n",
+      "text_char_count": 1040
+    },
+    {
+      "page_number": 99,
+      "source_page": 99,
+      "locator": "Page 99",
+      "semantic_title": null,
+      "image_path": null,
+      "text": " \nsymex GmbH & Co. KG \n \nRev. 1.1 \nOrder No. SY909735 \n 99 \nPage for further notices \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+      "text_char_count": 844
+    }
+  ],
+  "elements": [],
+  "document_kind": "manual_pdf",
+  "quality_status": "low_structure",
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false
+}

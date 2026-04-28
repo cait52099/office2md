@@ -1,0 +1,10 @@
+{
+  "wiring_diagram_0001": {
+    "source_file": "wiring_diagram.pdf",
+    "page_number": 1,
+    "image_path": "assets/page_001.png",
+    "heading_path": [
+      "Page 1"
+    ]
+  }
+}

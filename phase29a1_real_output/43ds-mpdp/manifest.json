@@ -1,0 +1,19 @@
+{
+  "source_file": "43DS MPDP.xlsx",
+  "source_path": "C:\\Users\\hcai\\Downloads\\43DS MPDP.xlsx",
+  "checksum": "sha256:cc53a1f70bffd97b2bc803ed0c7c175ce167d3158a8a6f7783c30aeb79514001",
+  "file_type": "xlsx",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "ok",
+  "document_kind": "mpdp_table_xlsx",
+  "asset_count": 0,
+  "ai_used": false,
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "converted_at": "2026-04-28T03:47:18+00:00",
+  "status": "success",
+  "warnings": [],
+  "errors": []
+}

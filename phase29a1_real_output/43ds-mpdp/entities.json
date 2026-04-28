@@ -1,0 +1,51 @@
+{
+  "organization": [],
+  "line": [],
+  "document_type": [
+    "MPDP",
+    "scale-up plan"
+  ],
+  "manual_topic": [],
+  "drawing_number": [],
+  "project_number": [],
+  "order_number": [],
+  "commission_number": [],
+  "equipment": [],
+  "manufacturer": [],
+  "equipment_name": [],
+  "symex_number": [],
+  "customer": [],
+  "year_built": [],
+  "issue": [],
+  "revision": [],
+  "sheet_names": [
+    "MPDP-OWL"
+  ],
+  "table_count": [
+    "1"
+  ],
+  "scaleup_phase": [
+    "PFA",
+    "Pilot",
+    "Practice",
+    "Pre-Production",
+    "Production"
+  ],
+  "batch_type": [
+    "Lab bench",
+    "Pilot",
+    "PPPB",
+    "PPB",
+    "FPB"
+  ],
+  "tasks": [
+    "Stability",
+    "Approval",
+    "Test Fill"
+  ],
+  "release_gates": [
+    "Before Practice Release",
+    "Before Pre-Production Release",
+    "Before Production Release"
+  ]
+}

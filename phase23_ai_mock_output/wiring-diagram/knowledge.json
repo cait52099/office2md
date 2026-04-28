@@ -1,0 +1,25 @@
+{
+  "title": "wiring_diagram",
+  "summary": "",
+  "key_metadata": {
+    "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\phase15_input\\wiring_diagram.pdf",
+    "checksum": "sha256:ac003351d23a5f1c45c4ba0ab6036f4fb7e02ba52baf865e0887206b86fb9e0b",
+    "converter": "markitdown"
+  },
+  "tags": [
+    "wiring-diagram",
+    "pdf",
+    "low-structure",
+    "technical-drawing"
+  ],
+  "document_kind": "technical_drawing_pdf",
+  "quality_status": "low_structure",
+  "chunks_count": 1,
+  "assets_count": 1,
+  "source_file": "wiring_diagram.pdf",
+  "ai": {
+    "backend": "cli",
+    "model": null,
+    "raw": "{\"summary\": \"Mock AI summary for Knowledge Pack validation.\", \"key_points\": [], \"tags\": [], \"entities\": [], \"suggested_links\": [], \"questions_for_search\": []}"
+  }
+}

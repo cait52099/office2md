@@ -1,0 +1,37 @@
+{
+  "organization": [
+    "Symex"
+  ],
+  "line": [
+    "CML125"
+  ],
+  "document_type": [
+    "wiring diagram"
+  ],
+  "manual_topic": [],
+  "drawing_number": [
+    "ENG-186350"
+  ],
+  "project_number": [
+    "SY909735"
+  ],
+  "order_number": [
+    "SY909735"
+  ],
+  "commission_number": [],
+  "equipment": [
+    "PLC",
+    "terminal",
+    "valve",
+    "motor",
+    "pump",
+    "control panel"
+  ],
+  "manufacturer": [],
+  "equipment_name": [],
+  "symex_number": [],
+  "customer": [],
+  "year_built": [],
+  "issue": [],
+  "revision": []
+}

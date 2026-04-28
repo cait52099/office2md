@@ -1,0 +1,8 @@
+# Sample
+
+This is a small text fixture for office2md.
+
+## Details
+
+It should become chunks and Markdown output.
+

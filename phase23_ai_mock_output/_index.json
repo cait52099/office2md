@@ -1,0 +1,19 @@
+{
+  "documents": [
+    {
+      "title": "wiring-diagram",
+      "document": "wiring-diagram/document.md",
+      "source_file": "wiring_diagram.pdf",
+      "document_kind": "technical_drawing_pdf",
+      "quality_status": "low_structure",
+      "tags": [
+        "wiring-diagram",
+        "pdf",
+        "low-structure",
+        "technical-drawing"
+      ],
+      "chunks_count": 1,
+      "assets_count": 1
+    }
+  ]
+}

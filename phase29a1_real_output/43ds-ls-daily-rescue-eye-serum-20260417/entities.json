@@ -1,0 +1,715 @@
+{
+  "organization": [
+    "Symex"
+  ],
+  "line": [],
+  "document_type": [
+    "project presentation"
+  ],
+  "manual_topic": [],
+  "drawing_number": [],
+  "project_number": [
+    "77563"
+  ],
+  "order_number": [],
+  "commission_number": [],
+  "equipment": [
+    "Symex",
+    "M4E",
+    "Lee Trimix"
+  ],
+  "manufacturer": [],
+  "equipment_name": [],
+  "symex_number": [],
+  "customer": [],
+  "year_built": [],
+  "issue": [],
+  "revision": [],
+  "project_name": [
+    "Daily Rescue Eye Serum"
+  ],
+  "annual_volume": [
+    "0.3 T"
+  ],
+  "production_size": [
+    "100kg to 180kg"
+  ],
+  "formula_structure": [
+    "W/O"
+  ],
+  "category": [
+    "skincare"
+  ],
+  "technology": [
+    "M4E"
+  ],
+  "manloc": [
+    "Change Whitman to Oevel"
+  ],
+  "package_type": [
+    "New innovative eye packaging with a metallic applicator-provides an instant cooling & depuffing effect. ~15ml."
+  ],
+  "batch_ids": [
+    "VL322673",
+    "VL322674",
+    "VL324017",
+    "VL324568",
+    "VL324869",
+    "TC324870",
+    "VL325458",
+    "VL326528",
+    "VL325890",
+    "VL326103",
+    "VL325459"
+  ],
+  "process_parameters": [
+    "viscosity",
+    "M4E Ventri speed",
+    "timer",
+    "35L/MIN",
+    "30L/min",
+    "75L/min"
+  ],
+  "slide_count": [
+    "33"
+  ],
+  "slide_index": [
+    {
+      "slide_number": 1,
+      "slide_title": "General info",
+      "topic_label": "Project Overview",
+      "visual_evidence_needed": true,
+      "locator": "Slide 1",
+      "key_entities": [
+        "W/O",
+        "Oevel"
+      ]
+    },
+    {
+      "slide_number": 2,
+      "slide_title": "Prototype history information collection",
+      "topic_label": "Sensory / PD Feedback",
+      "visual_evidence_needed": false,
+      "locator": "Slide 2",
+      "key_entities": [
+        "W/O"
+      ]
+    },
+    {
+      "slide_number": 3,
+      "slide_title": "Submission sensory tracking",
+      "topic_label": "Sensory / PD Feedback",
+      "visual_evidence_needed": false,
+      "locator": "Slide 3",
+      "key_entities": [
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 4,
+      "slide_title": "Timeline",
+      "topic_label": "Timeline / Milestones",
+      "visual_evidence_needed": false,
+      "locator": "Slide 4",
+      "key_entities": []
+    },
+    {
+      "slide_number": 5,
+      "slide_title": "Lab Formula Study",
+      "topic_label": "Lab Formula & Process Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 5",
+      "key_entities": [
+        "W/O",
+        "Symex",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 6,
+      "slide_title": "Daily Rescue Eye Serum",
+      "topic_label": "Project Overview",
+      "visual_evidence_needed": true,
+      "locator": "Slide 6",
+      "key_entities": []
+    },
+    {
+      "slide_number": 7,
+      "slide_title": "Daily Rescue Eye Serum",
+      "topic_label": "Project Overview",
+      "visual_evidence_needed": true,
+      "locator": "Slide 7",
+      "key_entities": []
+    },
+    {
+      "slide_number": 8,
+      "slide_title": "Process flowchart",
+      "topic_label": "Process Flowchart",
+      "visual_evidence_needed": true,
+      "locator": "Slide 8",
+      "key_entities": [
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 9,
+      "slide_title": "Batch",
+      "topic_label": "Batch / Pilot History",
+      "visual_evidence_needed": false,
+      "locator": "Slide 9",
+      "key_entities": [
+        "VL322673",
+        "VL322674",
+        "VL324017",
+        "VL324568",
+        "VL324869",
+        "TC324870",
+        "VL325458",
+        "VL326528",
+        "M4E",
+        "Symex",
+        "Oevel",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 10,
+      "slide_title": "General info",
+      "topic_label": "Project Overview",
+      "visual_evidence_needed": true,
+      "locator": "Slide 10",
+      "key_entities": [
+        "PN77563",
+        "M4E",
+        "Symex",
+        "Lee Trimix",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 11,
+      "slide_title": "Pilot Summary",
+      "topic_label": "Batch / Pilot History",
+      "visual_evidence_needed": true,
+      "locator": "Slide 11",
+      "key_entities": []
+    },
+    {
+      "slide_number": 12,
+      "slide_title": "Batch",
+      "topic_label": "Batch / Pilot History",
+      "visual_evidence_needed": false,
+      "locator": "Slide 12",
+      "key_entities": [
+        "M4E",
+        "Oevel",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 13,
+      "slide_title": "Spec",
+      "topic_label": "Specification / CPP-CQA",
+      "visual_evidence_needed": true,
+      "locator": "Slide 13",
+      "key_entities": [
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 14,
+      "slide_title": "Feasibility study for Pilot Scale-up",
+      "topic_label": "Micro / Risk Assessment",
+      "visual_evidence_needed": true,
+      "locator": "Slide 14",
+      "key_entities": [
+        "VL322673",
+        "W/O",
+        "viscosity",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 15,
+      "slide_title": "Batch",
+      "topic_label": "Batch / Pilot History",
+      "visual_evidence_needed": true,
+      "locator": "Slide 15",
+      "key_entities": [
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 16,
+      "slide_title": "M4E Study",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 16",
+      "key_entities": [
+        "VL322674",
+        "W/O",
+        "M4E",
+        "viscosity",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 17,
+      "slide_title": "M4E Study",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 17",
+      "key_entities": [
+        "M4E",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 18,
+      "slide_title": "M4E Study",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 18",
+      "key_entities": [
+        "M4E",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 19,
+      "slide_title": "M4E Study",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 19",
+      "key_entities": [
+        "M4E",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 20,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 20",
+      "key_entities": [
+        "VL324017",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 21,
+      "slide_title": "Micro issue",
+      "topic_label": "Micro / Risk Assessment",
+      "visual_evidence_needed": false,
+      "locator": "Slide 21",
+      "key_entities": []
+    },
+    {
+      "slide_number": 22,
+      "slide_title": "M4E Study",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 22",
+      "key_entities": [
+        "VL324017",
+        "M4E",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 23,
+      "slide_title": "Batch",
+      "topic_label": "Batch / Pilot History",
+      "visual_evidence_needed": true,
+      "locator": "Slide 23",
+      "key_entities": [
+        "VL324017",
+        "M4E",
+        "Microscopy"
+      ]
+    },
+    {
+      "slide_number": 24,
+      "slide_title": "Formula Technical Risk Assessment",
+      "topic_label": "Micro / Risk Assessment",
+      "visual_evidence_needed": false,
+      "locator": "Slide 24",
+      "key_entities": [
+        "VL322673",
+        "W/O",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 25,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 25",
+      "key_entities": [
+        "VL324568",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 26,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": true,
+      "locator": "Slide 26",
+      "key_entities": [
+        "VL324568",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 27,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 27",
+      "key_entities": [
+        "VL324869",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 28,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 28",
+      "key_entities": [
+        "TC324870",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 29,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 29",
+      "key_entities": [
+        "VL325458",
+        "M4E",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 30,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 30",
+      "key_entities": [
+        "VL325890",
+        "M4E",
+        "Symex",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 31,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 31",
+      "key_entities": [
+        "VL326103",
+        "M4E",
+        "Symex",
+        "viscosity"
+      ]
+    },
+    {
+      "slide_number": 32,
+      "slide_title": "Notes:",
+      "topic_label": "Project Overview",
+      "visual_evidence_needed": true,
+      "locator": "Slide 32",
+      "key_entities": []
+    },
+    {
+      "slide_number": 33,
+      "slide_title": "M4E pilot scale up",
+      "topic_label": "M4E Study",
+      "visual_evidence_needed": false,
+      "locator": "Slide 33",
+      "key_entities": [
+        "VL325459",
+        "VL326528",
+        "M4E",
+        "Symex",
+        "viscosity"
+      ]
+    }
+  ],
+  "topic_outline": [
+    {
+      "topic_label": "Project Overview",
+      "slide_numbers": [
+        1,
+        6,
+        7,
+        10,
+        32
+      ],
+      "locator": "Slides 1, 6, 7, 10, 32",
+      "slide_titles": [
+        "General info",
+        "Daily Rescue Eye Serum",
+        "Daily Rescue Eye Serum",
+        "General info",
+        "Notes:"
+      ]
+    },
+    {
+      "topic_label": "Sensory / PD Feedback",
+      "slide_numbers": [
+        2,
+        3
+      ],
+      "locator": "Slides 2-3",
+      "slide_titles": [
+        "Prototype history information collection",
+        "Submission sensory tracking"
+      ]
+    },
+    {
+      "topic_label": "Timeline / Milestones",
+      "slide_numbers": [
+        4
+      ],
+      "locator": "Slide 4",
+      "slide_titles": [
+        "Timeline"
+      ]
+    },
+    {
+      "topic_label": "Lab Formula & Process Study",
+      "slide_numbers": [
+        5
+      ],
+      "locator": "Slide 5",
+      "slide_titles": [
+        "Lab Formula Study"
+      ]
+    },
+    {
+      "topic_label": "Process Flowchart",
+      "slide_numbers": [
+        8
+      ],
+      "locator": "Slide 8",
+      "slide_titles": [
+        "Process flowchart"
+      ]
+    },
+    {
+      "topic_label": "Batch / Pilot History",
+      "slide_numbers": [
+        9,
+        11,
+        12,
+        15,
+        23
+      ],
+      "locator": "Slides 9, 11, 12, 15, 23",
+      "slide_titles": [
+        "Batch",
+        "Pilot Summary",
+        "Batch",
+        "Batch",
+        "Batch"
+      ]
+    },
+    {
+      "topic_label": "M4E Study",
+      "slide_numbers": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        22,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        33
+      ],
+      "locator": "Slides 16, 17, 18, 19, 20, 22, 25, 26, 27, 28, 29, 30, 31, 33",
+      "slide_titles": [
+        "M4E Study",
+        "M4E Study",
+        "M4E Study",
+        "M4E Study",
+        "M4E pilot scale up",
+        "M4E Study",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up",
+        "M4E pilot scale up"
+      ]
+    },
+    {
+      "topic_label": "Micro / Risk Assessment",
+      "slide_numbers": [
+        14,
+        21,
+        24
+      ],
+      "locator": "Slides 14, 21, 24",
+      "slide_titles": [
+        "Feasibility study for Pilot Scale-up",
+        "Micro issue",
+        "Formula Technical Risk Assessment"
+      ]
+    },
+    {
+      "topic_label": "Specification / CPP-CQA",
+      "slide_numbers": [
+        13
+      ],
+      "locator": "Slide 13",
+      "slide_titles": [
+        "Spec"
+      ]
+    }
+  ],
+  "batch_study_summary": [
+    {
+      "batch_id": "VL322673",
+      "batch_size": "50kg",
+      "equipment_process_route": "",
+      "m4e_parameter": "",
+      "result_status": "pass",
+      "locator": "Slide 24",
+      "slide_number": 24
+    },
+    {
+      "batch_id": "VL322674",
+      "batch_size": "50kg",
+      "equipment_process_route": "Symex, M4E",
+      "m4e_parameter": "30L/MIN",
+      "result_status": "",
+      "locator": "Slide 9",
+      "slide_number": 9
+    },
+    {
+      "batch_id": "VL324017",
+      "batch_size": "50kg",
+      "equipment_process_route": "M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 23",
+      "slide_number": 23
+    },
+    {
+      "batch_id": "VL324568",
+      "batch_size": "50kg",
+      "equipment_process_route": "M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 26",
+      "slide_number": 26
+    },
+    {
+      "batch_id": "VL324869",
+      "batch_size": "50kg",
+      "equipment_process_route": "M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 27",
+      "slide_number": 27
+    },
+    {
+      "batch_id": "TC324870",
+      "batch_size": "50kg",
+      "equipment_process_route": "M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 28",
+      "slide_number": 28
+    },
+    {
+      "batch_id": "VL325458",
+      "batch_size": "",
+      "equipment_process_route": "M4E",
+      "m4e_parameter": "",
+      "result_status": "Fail",
+      "locator": "Slide 29",
+      "slide_number": 29
+    },
+    {
+      "batch_id": "VL326528",
+      "batch_size": "100kg",
+      "equipment_process_route": "Symex, M4E",
+      "m4e_parameter": "25L/min",
+      "result_status": "",
+      "locator": "Slide 33",
+      "slide_number": 33
+    },
+    {
+      "batch_id": "VL325890",
+      "batch_size": "100kg",
+      "equipment_process_route": "Symex, M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 30",
+      "slide_number": 30
+    },
+    {
+      "batch_id": "VL326103",
+      "batch_size": "50kg",
+      "equipment_process_route": "Symex, M4E",
+      "m4e_parameter": "",
+      "result_status": "",
+      "locator": "Slide 31",
+      "slide_number": 31
+    },
+    {
+      "batch_id": "VL325459",
+      "batch_size": "4kg",
+      "equipment_process_route": "Symex, M4E",
+      "m4e_parameter": "35L/min",
+      "result_status": "fail",
+      "locator": "Slide 33",
+      "slide_number": 33
+    }
+  ],
+  "process_development_narrative": [
+    "W/O system with high internal water phase is treated as the core formula/process context.",
+    "Viscosity is linked to particle size, homogenization speed/time, and M4E venturi speed/timer.",
+    "50kg/100kg Symex trials show recirculation, operation, or stability challenges that affect scale-up confidence.",
+    "M4E parameters are studied across multiple VL/TC batches to compare route feasibility and output quality.",
+    "Lee Trimix plus M4E / Oevel route appears more feasible based on the captured batch evidence.",
+    "Process parameters need tight control because viscosity and specification outcomes are sensitive."
+  ],
+  "visual_heavy_slides_count": [
+    "20"
+  ],
+  "slides_with_images_count": [
+    "18"
+  ],
+  "missing_assets_count": [
+    "61"
+  ]
+}

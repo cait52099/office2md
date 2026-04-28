@@ -1,0 +1,16 @@
+{
+  "documents": [
+    {
+      "title": "readme",
+      "document": "readme/document.md",
+      "source_file": "README.md",
+      "document_kind": "document",
+      "quality_status": "ok",
+      "tags": [
+        "md"
+      ],
+      "chunks_count": 1,
+      "assets_count": 0
+    }
+  ]
+}

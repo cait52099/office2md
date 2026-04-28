@@ -1,0 +1,49 @@
+{
+  "organization": [
+    "Symex"
+  ],
+  "line": [
+    "CML125"
+  ],
+  "document_type": [
+    "operating manual"
+  ],
+  "manual_topic": [
+    "operating manual",
+    "temperature control",
+    "CIP"
+  ],
+  "drawing_number": [],
+  "project_number": [
+    "SY909735"
+  ],
+  "order_number": [
+    "SY909735"
+  ],
+  "commission_number": [],
+  "equipment": [
+    "PLC",
+    "terminal",
+    "valve",
+    "motor",
+    "pump",
+    "control panel"
+  ],
+  "manufacturer": [
+    "symex GmbH & Co. KG"
+  ],
+  "equipment_name": [
+    "Production Mixer System CML 125"
+  ],
+  "symex_number": [
+    "SY909735"
+  ],
+  "customer": [],
+  "year_built": [
+    "2019"
+  ],
+  "issue": [],
+  "revision": [
+    "Rev. 1.1"
+  ]
+}

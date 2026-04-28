@@ -1,0 +1,20 @@
+{
+  "source_file": "wiring_diagram.pdf",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\phase15_input\\wiring_diagram.pdf",
+  "checksum": "sha256:ac003351d23a5f1c45c4ba0ab6036f4fb7e02ba52baf865e0887206b86fb9e0b",
+  "file_type": "pdf",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "low_structure",
+  "document_kind": "technical_drawing_pdf",
+  "asset_count": 1,
+  "ai_used": true,
+  "converted_at": "2026-04-24T04:21:16+00:00",
+  "status": "success",
+  "warnings": [
+    "low_structure: no headings detected",
+    "no headings detected"
+  ],
+  "errors": []
+}

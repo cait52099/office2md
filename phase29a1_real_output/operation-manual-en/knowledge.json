@@ -1,0 +1,638 @@
+{
+  "title": "Operation manual EN",
+  "summary": "",
+  "key_metadata": {
+    "source_path": "C:\\Users\\hcai\\Downloads\\Operation manual EN.pdf",
+    "checksum": "sha256:16e9971d8cc1a4405910c1d059eaf6572659c2a1deb9664e1caa867bf678a46c",
+    "converter": "markitdown",
+    "manufacturer": "symex GmbH & Co. KG",
+    "equipment_name": "Production Mixer System CML 125",
+    "symex_number": "SY909735",
+    "year_built": "2019",
+    "revision": "Rev. 1.1"
+  },
+  "tags": [
+    "operating-manual",
+    "operation",
+    "pdf",
+    "low-structure"
+  ],
+  "document_kind": "manual_pdf",
+  "quality_status": "low_structure",
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "chunks_count": 180,
+  "assets_count": 3,
+  "pages_count": 99,
+  "text_pages_count": 99,
+  "pages_with_text_count": 99,
+  "rendered_pages_count": 3,
+  "text_chunks_count": 180,
+  "image_chunks_count": 0,
+  "page_chunks_count": 99,
+  "image_only_chunks_count": 0,
+  "searchable_page_chunks_count": 99,
+  "section_chunks_count": 81,
+  "section_chunks_with_body_count": 81,
+  "section_outline": [
+    {
+      "section_number": "1",
+      "title": "TABLE OF CONTENTS",
+      "page_hint": 5,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "2",
+      "title": "PREAMBLE",
+      "page_hint": 7,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "3",
+      "title": "GUARANTEE AND LIABILITY",
+      "page_hint": 8,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4",
+      "title": "GENERAL SAFETY REMINDERS",
+      "page_hint": 9,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.1",
+      "title": "DUE DILIGENCE OF THE USER",
+      "page_hint": 9,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.2",
+      "title": "EXPLANATION OF THE SAFETY SIGNS",
+      "page_hint": 10,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.3",
+      "title": "FUNDAMENTAL SAFETY MEASURES FOR NORMAL OPERATION",
+      "page_hint": 14,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.4",
+      "title": "FUNDAMENTAL SAFETY MEASURES FOR MAINTENANCE AND REPAIR",
+      "page_hint": 15,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.4.1",
+      "title": "Working on the electrical equipment",
+      "page_hint": 17,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.4.2",
+      "title": "Work on hydraulic and pneumatic equipment",
+      "page_hint": 18,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.5",
+      "title": "OBSERVE ENVIRONMENTAL REGULATIONS",
+      "page_hint": 18,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.6",
+      "title": "BASIC SAFETY MEASURES",
+      "page_hint": 19,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.7",
+      "title": "DEMANDS ON THE OPERATORS",
+      "page_hint": 22,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "4.8",
+      "title": "SPECIAL TYPES OF HAZARDS EMANATING FROM THE MACHINE/SYSTEM",
+      "page_hint": 25,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "5",
+      "title": "SERVICE",
+      "page_hint": 33,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6",
+      "title": "TRANSPORT / SETUP / CONNECTION",
+      "page_hint": 34,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6.1",
+      "title": "PERMISSIBLE DEVICES AND MEANS FOR TRANSPORT",
+      "page_hint": 35,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6.2",
+      "title": "REMOVE TRANSPORTATION LOCKS (IF ANY)",
+      "page_hint": 36,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6.3",
+      "title": "CUSTOMER'S PIPEWORK, QUALITY OF OPERATING FLUIDS",
+      "page_hint": 37,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6.4",
+      "title": "ELECTRICAL INSTALLATION",
+      "page_hint": 37,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "6.5",
+      "title": "CHECK THE ROTATION DIRECTION OF THE MOTORS",
+      "page_hint": 38,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7",
+      "title": "GENERAL SYSTEM DESCRIPTION",
+      "page_hint": 39,
+      "level": 1,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1",
+      "title": "GENERAL CONFIGURATION",
+      "page_hint": 39,
+      "level": 2,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.1",
+      "title": "Lid lifting device for type CML systems",
+      "page_hint": 40,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.2",
+      "title": "Lid lock (clamping belt) for type CML systems",
+      "page_hint": 42,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.3",
+      "title": "Hinged lid device PM",
+      "page_hint": 43,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.4",
+      "title": "Induction systems",
+      "page_hint": 46,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.4.1",
+      "title": "Suitable induction hoses",
+      "page_hint": 47,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.4.2",
+      "title": "Precautions against electrostatic charges",
+      "page_hint": 48,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.5",
+      "title": "Vessel pressure gauge and safety valve",
+      "page_hint": 49,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.6",
+      "title": "Agitators",
+      "page_hint": 49,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.6.1",
+      "title": "Principle symex coaxial agitator",
+      "page_hint": 49,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.6.2",
+      "title": "Principle symex anchor/scraper agitator",
+      "page_hint": 50,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.6.3",
+      "title": "Scraper",
+      "page_hint": 51,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.7",
+      "title": "Special mixers and special mixing tools",
+      "page_hint": 52,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.8",
+      "title": "Homogenizer",
+      "page_hint": 53,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.8.1",
+      "title": "Symex homogenizer principle: Induction case and rotor-stator homogenizer",
+      "page_hint": 53,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.8.2",
+      "title": "Symex homogenizer principle: Induction case and Co-Twister coaxial homogenizer",
+      "page_hint": 53,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.9",
+      "title": "Sealing liquid tank for the homogenizer and agitator drives",
+      "page_hint": 57,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.10",
+      "title": "Sealing liquid system for homogenizers",
+      "page_hint": 58,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.10.1",
+      "title": "Connections",
+      "page_hint": 58,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.10.2",
+      "title": "Filling, ventilation, pressurization",
+      "page_hint": 60,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.10.3",
+      "title": "Monitoring of sealing liquid circulation",
+      "page_hint": 62,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.10.4",
+      "title": "Replacing the sealing liquid / cleaning the system",
+      "page_hint": 63,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.11",
+      "title": "Pressurized enclosure “Ex p” for water-cooled motors in explosive area",
+      "page_hint": 65,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.11.1",
+      "title": "Pressurized enclosure - pneumatic connection to the motor",
+      "page_hint": 66,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.11.2",
+      "title": "Control unit Ex zone 2",
+      "page_hint": 66,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.11.3",
+      "title": "Control unit Ex zone 1",
+      "page_hint": 68,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.12",
+      "title": "Temperature control units (heating/cooling)",
+      "page_hint": 69,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.12.1",
+      "title": "Mixing/homogenising vessel with double jacket for heating and cooling",
+      "page_hint": 69,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.12.2",
+      "title": "Heating and cooling via secondary circuit",
+      "page_hint": 70,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.12.3",
+      "title": "Direct heating and cooling",
+      "page_hint": 71,
+      "level": 4,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.13",
+      "title": "Temperature measurement and indication",
+      "page_hint": 73,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.14",
+      "title": "CIP cleaning system",
+      "page_hint": 74,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.15",
+      "title": "Vacuum setup",
+      "page_hint": 76,
+      "level": 3,
+      "toc_page": 5
+    },
+    {
+      "section_number": "7.1.16",
+      "title": "Operation panel OP",
+      "page_hint": 77,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "7.1.17",
+      "title": "General valve position",
+      "page_hint": 78,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "7.1.18",
+      "title": "OEM devices: vacuum pump, valves, hydraulic, pneumatic equipment, etc",
+      "page_hint": 79,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "8",
+      "title": "FUNCTIONAL DESCRIPTION",
+      "page_hint": 80,
+      "level": 1,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9",
+      "title": "SPECIFIC DATA OF THE SYSTEM/MACHINE",
+      "page_hint": 80,
+      "level": 1,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.1",
+      "title": "INTENDED USE",
+      "page_hint": 80,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.2",
+      "title": "EXPLOSION-PRO MACHINES",
+      "page_hint": 83,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.3",
+      "title": "OVERVIEW PLAN / DIMENSIONS",
+      "page_hint": 84,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4",
+      "title": "SPECIFICATIONS",
+      "page_hint": 85,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.1",
+      "title": "General",
+      "page_hint": 85,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.1.1",
+      "title": "Applied regulations",
+      "page_hint": 85,
+      "level": 4,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.1.2",
+      "title": "Electric connections",
+      "page_hint": 86,
+      "level": 4,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.1.3",
+      "title": "Materials and finishing",
+      "page_hint": 86,
+      "level": 4,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.2",
+      "title": "Main components of the mixing system",
+      "page_hint": 87,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.2.1",
+      "title": "Symex Mixer type CML125",
+      "page_hint": 87,
+      "level": 4,
+      "toc_page": 6
+    },
+    {
+      "section_number": "9.4.2.2",
+      "title": "Entire system",
+      "page_hint": 89,
+      "level": 4,
+      "toc_page": 6
+    },
+    {
+      "section_number": "10",
+      "title": "STARTING THE MACHINE",
+      "page_hint": 90,
+      "level": 1,
+      "toc_page": 6
+    },
+    {
+      "section_number": "10.1",
+      "title": "SAFETY PRINCIPLES",
+      "page_hint": 90,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "10.2",
+      "title": "COMMISSIONING",
+      "page_hint": 90,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "10.3",
+      "title": "TRIAL RUN",
+      "page_hint": 91,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "10.3.1",
+      "title": "Trial run of the mixing and homogenising vessel",
+      "page_hint": 92,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11",
+      "title": "MAINTENANCE, REPAIR, SPARE PARTS, ASSISTANCE IN CASE OF FAILURES",
+      "page_hint": 93,
+      "level": 1,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11.1",
+      "title": "GENERAL INFORMATION",
+      "page_hint": 93,
+      "level": 2,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11.1.1",
+      "title": "Maintenance, repair",
+      "page_hint": 93,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11.1.2",
+      "title": "Spare parts (symex)",
+      "page_hint": 94,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11.1.3",
+      "title": "Assistance in case of failures",
+      "page_hint": 95,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "11.1.4",
+      "title": "Checklist / maintenance plan / lubrication plan",
+      "page_hint": 96,
+      "level": 3,
+      "toc_page": 6
+    },
+    {
+      "section_number": "12",
+      "title": "DECOMMISSIONING",
+      "page_hint": 97,
+      "level": 1,
+      "toc_page": 6
+    },
+    {
+      "section_number": "13",
+      "title": "ADDITIONAL INFORMATION",
+      "page_hint": 98,
+      "level": 1,
+      "toc_page": 6
+    }
+  ],
+  "slide_chunks_count": 0,
+  "table_chunks_count": 0,
+  "topic_chunks_count": 0,
+  "batch_study_chunks_count": 0,
+  "visual_heavy_slides_count": 0,
+  "drawing_index_count": 0,
+  "drawing_index": [],
+  "embedded_images_count": 0,
+  "embedded_image_detected": false,
+  "missing_assets_count": 0,
+  "source_file": "Operation manual EN.pdf"
+}

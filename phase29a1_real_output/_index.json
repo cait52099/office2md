@@ -1,0 +1,93 @@
+{
+  "documents": [
+    {
+      "title": "43ds-00-m01u-pppbc-release-rational",
+      "document": "43ds-00-m01u-pppbc-release-rational/document.md",
+      "source_file": "43DS-00-M01U PPPBC release rational.docx",
+      "document_kind": "release_rationale_docx",
+      "quality_status": "ok",
+      "tags": [
+        "docx",
+        "release-rationale",
+        "pppbc",
+        "commercialization",
+        "process-release",
+        "m4e",
+        "viscosity",
+        "w-si",
+        "skincare"
+      ],
+      "chunks_count": 18,
+      "assets_count": 0
+    },
+    {
+      "title": "43ds-ls-daily-rescue-eye-serum-20260417",
+      "document": "43ds-ls-daily-rescue-eye-serum-20260417/document.md",
+      "source_file": "43DS-LS Daily Rescue Eye Serum 20260417.pptx",
+      "document_kind": "process_development_presentation",
+      "quality_status": "ok",
+      "tags": [
+        "pptx",
+        "project-presentation",
+        "formula-development",
+        "process-development",
+        "scale-up",
+        "m4e",
+        "symex",
+        "viscosity",
+        "w-o-formula"
+      ],
+      "chunks_count": 53,
+      "assets_count": 0
+    },
+    {
+      "title": "43ds-mpdp",
+      "document": "43ds-mpdp/document.md",
+      "source_file": "43DS MPDP.xlsx",
+      "document_kind": "mpdp_table_xlsx",
+      "quality_status": "ok",
+      "tags": [
+        "xlsx",
+        "mpdp",
+        "scale-up-plan",
+        "pilot",
+        "practice",
+        "pre-production",
+        "production",
+        "stability"
+      ],
+      "chunks_count": 6,
+      "assets_count": 0
+    },
+    {
+      "title": "operation-manual-en",
+      "document": "operation-manual-en/document.md",
+      "source_file": "Operation manual EN.pdf",
+      "document_kind": "manual_pdf",
+      "quality_status": "low_structure",
+      "tags": [
+        "operating-manual",
+        "operation",
+        "pdf",
+        "low-structure"
+      ],
+      "chunks_count": 180,
+      "assets_count": 3
+    },
+    {
+      "title": "sy909735-wiring-diagram-revision-b-19-06-2019",
+      "document": "sy909735-wiring-diagram-revision-b-19-06-2019/document.md",
+      "source_file": "SY909735_Wiring diagram_Revision B_19_06_2019.pdf",
+      "document_kind": "technical_drawing_pdf",
+      "quality_status": "low_structure",
+      "tags": [
+        "wiring-diagram",
+        "pdf",
+        "low-structure",
+        "technical-drawing"
+      ],
+      "chunks_count": 72,
+      "assets_count": 3
+    }
+  ]
+}

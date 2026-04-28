@@ -1,0 +1,39 @@
+[project]
+name = "office2md"
+version = "0.1.0"
+description = "Convert Office/PDF documents to knowledge-base-ready Markdown"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.0",
+  "pydantic>=2.0",
+  "pyyaml>=6.0",
+  "python-slugify>=8.0",
+  "pymupdf>=1.24",
+  "markitdown[all]",
+  "docling",
+]
+
+[project.optional-dependencies]
+marker = [
+  "marker-pdf",
+]
+dev = [
+  "pytest",
+  "ruff",
+]
+
+[project.scripts]
+office2md = "office2md.cli:app"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["office2md*"]
+exclude = ["tests*", "output*", "configs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

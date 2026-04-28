@@ -1,0 +1,21 @@
+{
+  "source_file": "43DS-00-M01U PPPBC release rational.docx",
+  "source_path": "C:\\Users\\hcai\\Downloads\\43DS-00-M01U PPPBC release rational.docx",
+  "checksum": "sha256:bade3553f9c8ac9ec1179fbc21502bd843268b02b3a195d92781f2f8b120530d",
+  "file_type": "docx",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "ok",
+  "document_kind": "release_rationale_docx",
+  "asset_count": 0,
+  "ai_used": false,
+  "extraction_status": "text",
+  "requires_ocr_or_vision": false,
+  "converted_at": "2026-04-28T04:52:05+00:00",
+  "status": "success",
+  "warnings": [
+    "embedded_image_detected: 6 embedded Office images were counted but not exported"
+  ],
+  "errors": []
+}

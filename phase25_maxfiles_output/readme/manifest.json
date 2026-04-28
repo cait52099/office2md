@@ -1,0 +1,17 @@
+{
+  "source_file": "README.md",
+  "source_path": "C:\\Users\\hcai\\Downloads\\office2md\\tests\\fixtures\\README.md",
+  "checksum": "sha256:b28dcb9316bf794da6193e3d86676fabf4762ae1bdc3e5e915942dbf0bf6b550",
+  "file_type": "md",
+  "engine": "markitdown",
+  "fallback_used": false,
+  "ocr_used": false,
+  "quality_status": "ok",
+  "document_kind": "document",
+  "asset_count": 0,
+  "ai_used": false,
+  "converted_at": "2026-04-24T06:09:56+00:00",
+  "status": "success",
+  "warnings": [],
+  "errors": []
+}
