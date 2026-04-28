@@ -2,7 +2,13 @@
 
 `office2md` converts Office, PDF, and text-like files into Markdown output that is easier to ingest into a knowledge base or RAG pipeline.
 
-The MVP focuses on stable batch conversion, traceable metadata, manifest output, and simple chunk generation. OCR, Marker integration, LLM cleanup, image captioning, and advanced table repair are reserved for later phases.
+The current pipeline has three stages:
+
+1. Document conversion from Office/PDF/text-like files.
+2. Per-document Knowledge Pack generation with metadata, chunks, entities, manifests, and source maps.
+3. Knowledge Library Builder for SQLite FTS search, JSON graph output, Markdown portal pages, and interop JSONL exports.
+
+v0.2.0-rc1 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 is the planned place for optional embedding/vector search on top of the SQLite/FTS foundation.
 
 ## Install
 
@@ -122,6 +128,34 @@ Batch safety controls:
 office2md convert ./input ./output --recursive --dry-run --include "*.pdf" --exclude "*backup*"
 office2md convert ./input ./output --recursive --max-files 10
 ```
+
+## Knowledge Library Builder
+
+Phase 3.0 can build a local library-level database from an existing office2md output root. It does not reconvert source files and does not call AI, OCR, Marker, or external APIs.
+
+```bash
+office2md build-library ./output ./library
+office2md library-report ./library
+office2md search-library ./library/library.db "M4E viscosity"
+```
+
+`build-library` reads document output folders containing `manifest.json`, `knowledge.json`, `entities.json`, `source_map.json`, `chunks.jsonl`, and `document.md`. Missing optional files are recorded as warnings, and failed manifests are skipped.
+
+Library outputs include:
+
+- `library.db` with relational tables and SQLite FTS5 search.
+- `library_manifest.json`.
+- `library_index.json`.
+- `library_graph.json`.
+- `_library.md`, `_documents.md`, `_entities.md`, `_topics.md`, `_batches.md`, and `_quality_report.md`.
+- `exports/llamaindex_documents.jsonl`.
+- `exports/haystack_documents.jsonl`.
+- `exports/txtai_rows.jsonl`.
+- `exports/graphrag_input.jsonl`.
+
+Interop exports are plain JSONL files. LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
+
+v0.2.0-rc1 does not create embeddings or a vector database. Phase 3.1 may add optional embedding/vector search as a separate layer.
 
 ## Supported Formats
 

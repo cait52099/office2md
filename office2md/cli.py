@@ -16,6 +16,7 @@ from office2md.converters.markitdown_converter import MarkItDownConverter
 from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
+from office2md.library import build_library, library_report, search_library
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
 from office2md.postprocess.drawing_index import build_drawing_index_chunks, extract_drawing_index
@@ -130,6 +131,68 @@ def doctor_ai() -> None:
     table.add_column("Status")
     for name, status in run_ai_checks().items():
         table.add_row(name, status)
+    console.print(table)
+
+
+@app.command("build-library")
+def build_library_command(input_output_root: Path, library_output_dir: Path) -> None:
+    """Build a local searchable Knowledge Library from office2md output folders."""
+    result = build_library(input_output_root, library_output_dir)
+    table = Table(title="office2md build-library")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("library_db", result["library_db"])
+    table.add_row("documents_count", str(result["documents_count"]))
+    table.add_row("chunks_count", str(result["chunks_count"]))
+    table.add_row("entities_count", str(result["entities_count"]))
+    table.add_row("warnings", str(len(result["warnings"])))
+    console.print(table)
+    for warning in result["warnings"][:20]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+
+
+@app.command("search-library")
+def search_library_command(library_db: Path, query: str, limit: int = typer.Option(10, help="Maximum results to print.")) -> None:
+    """Search a local Knowledge Library SQLite database using FTS."""
+    results = search_library(library_db, query, limit=limit)
+    table = Table(title=f"office2md search-library: {query}")
+    table.add_column("Rank")
+    table.add_column("Document")
+    table.add_column("Kind")
+    table.add_column("Chunk")
+    table.add_column("Evidence")
+    table.add_column("Locator")
+    table.add_column("Preview")
+    for item in results:
+        table.add_row(
+            str(item["rank"]),
+            item["document_title"] or "",
+            item["document_kind"] or "",
+            item["chunk_title"] or "",
+            item["evidence_type"] or "",
+            item["locator"] or "",
+            item["preview"] or "",
+        )
+    console.print(table)
+
+
+@app.command("library-report")
+def library_report_command(library_db_or_output_dir: Path) -> None:
+    """Print a summary report for a built Knowledge Library."""
+    report = library_report(library_db_or_output_dir)
+    table = Table(title="office2md library-report")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("documents_count", str(report["documents_count"]))
+    table.add_row("chunks_count", str(report["chunks_count"]))
+    table.add_row("entities_count", str(report["entities_count"]))
+    table.add_row("document_kind_distribution", _format_counts(report["document_kind_distribution"]))
+    table.add_row("evidence_type_distribution", _format_counts(report["evidence_type_distribution"]))
+    table.add_row("top_entities", ", ".join(item["entity_text"] for item in report["top_entities"][:10]))
+    table.add_row("top_batches", ", ".join(item["batch_id"] for item in report["top_batches"][:10]))
+    table.add_row("missing_assets_summary", str(len(report["missing_assets_summary"])))
+    table.add_row("low_quality_documents", str(len(report["low_quality_documents"])))
+    table.add_row("export_files_generated", ", ".join(report["export_files_generated"]))
     console.print(table)
 
 
@@ -559,6 +622,10 @@ def _brief_error(exc: Exception) -> str:
     if len(first_line) > 240:
         first_line = first_line[:237] + "..."
     return f"{exc.__class__.__name__}: {first_line}" if first_line else exc.__class__.__name__
+
+
+def _format_counts(values: dict) -> str:
+    return ", ".join(f"{key}: {value}" for key, value in values.items())
 
 
 def _clean_manual_section_title(title: str) -> bool:

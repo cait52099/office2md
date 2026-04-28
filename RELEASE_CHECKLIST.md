@@ -103,3 +103,26 @@ rc5 Office validation evidence:
 - [ ] Office missing asset counts and warnings are recorded without blocking conversion.
 - [ ] Office image references are counted and warned only; no Office embedded images are extracted in rc5.
 - [ ] Real Office image extraction is deferred to Phase 2.9B.
+
+v0.2.0-rc1 Knowledge Library validation evidence:
+
+- [ ] `python -m pytest -q` reports 55 passed.
+- [ ] `python -m ruff check office2md tests` reports all checks passed.
+- [ ] `office2md build-library` succeeds on the 5-file output root.
+- [ ] `library.db` is created with documents, chunks, entities, entity_mentions, assets, relations, documents_fts, and chunks_fts.
+- [ ] `library_manifest.json` is created with schema version, input root, counts, warnings count, exports count, and release label.
+- [ ] `library_index.json` is created with document/evidence distributions and top entities.
+- [ ] `library_graph.json` is created with document/entity/chunk/topic/batch/asset nodes.
+- [ ] Markdown portal files are created: `_library.md`, `_documents.md`, `_entities.md`, `_topics.md`, `_batches.md`, `_quality_report.md`.
+- [ ] `library-report` prints document kind distribution, evidence type distribution, top entities, top batches, missing assets, low quality documents, and export files.
+- [ ] `search-library` returns relevant results for `M4E viscosity`.
+- [ ] `search-library` returns relevant results for `VL324017`.
+- [ ] `search-library` returns relevant results for `SY909735`.
+- [ ] `exports/llamaindex_documents.jsonl` is generated.
+- [ ] `exports/haystack_documents.jsonl` is generated.
+- [ ] `exports/txtai_rows.jsonl` is generated.
+- [ ] `exports/graphrag_input.jsonl` is generated.
+- [ ] Each interop export has one row per chunk on the 5-file validation set.
+- [ ] Original office2md output root is not modified by `build-library`.
+- [ ] LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.
