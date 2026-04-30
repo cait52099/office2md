@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Dict, List
 
@@ -15,6 +16,12 @@ FILENAME_DOCUMENT_KIND_RULES = [
     ("functional_description_pdf", ["functional description"]),
     ("fault_catalog_pdf", ["faults and measures", "fault catalog"]),
     ("technical_drawing_pdf", ["wiring diagram", "piping and instrumentation", "p&id", "p and id"]),
+    ("certificate_pdf", ["egcon", "atex", "certificate", "declaration of conformity", "conformity"]),
+    ("manual_pdf", ["manual", "montage", "installation", "anleitung"]),
+    ("project_book_pdf", ["project book"]),
+    ("report_pdf", ["report", "protokoll", "protocol", "quote", "price"]),
+    ("datasheet_pdf", ["datasheet", "data sheet", "datenblatt"]),
+    ("datasheet_pdf", [" data"]),
 ]
 
 CONTENT_DOCUMENT_KIND_RULES = [
@@ -22,6 +29,7 @@ CONTENT_DOCUMENT_KIND_RULES = [
     ("functional_description_pdf", ["functional description"]),
     ("fault_catalog_pdf", ["faults and measures", "fault messages", "measures catalog", "fault catalog"]),
     ("technical_drawing_pdf", ["wiring diagram", "schematic", "p&id", "p and id", "piping and instrumentation diagram"]),
+    ("datasheet_pdf", ["technical data", "datasheet", "data sheet"]),
 ]
 
 PARENT_FOLDER_DOCUMENT_KIND_RULES = [
@@ -75,7 +83,29 @@ def classify_document_kind(path: Path, markdown: str) -> str:
     if document_kind:
         return document_kind
 
+    document_kind = classify_obvious_pdf_subtype(path, markdown)
+    if document_kind:
+        return document_kind
+
     return "generic_pdf"
+
+
+def classify_obvious_pdf_subtype(path: Path, markdown: str = "") -> str | None:
+    if path.suffix.lower() != ".pdf":
+        return None
+    filename_text = _normalize_classification_text(path.name)
+    stem_text = _normalize_classification_text(path.stem)
+    content_text = _normalize_classification_text(markdown[:4000])
+    filename_kind = _match_document_kind(f"{filename_text} {stem_text}", FILENAME_DOCUMENT_KIND_RULES)
+    if filename_kind:
+        return filename_kind
+    content_kind = _match_document_kind(content_text, CONTENT_DOCUMENT_KIND_RULES)
+    if content_kind:
+        return content_kind
+    filename_tokens = f"{filename_text} {stem_text}"
+    if re.search(r"(^|\s)(\d{6,}|fbs\d|phoenix|block|eaton|pfannenberg|lapp|helukabel|insys|abb|st)(\s|$)", filename_tokens):
+        return "component_document_pdf"
+    return None
 
 
 def _match_document_kind(text: str, rules: List[tuple[str, List[str]]]) -> str | None:

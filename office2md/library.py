@@ -11,6 +11,7 @@ from office2md.postprocess.office_structure import (
     build_hmi_translation_chunks,
     is_hmi_translation_xlsx,
 )
+from office2md.postprocess.pdf_structure import classify_obvious_pdf_subtype
 
 
 LIBRARY_SCHEMA_VERSION = "1"
@@ -98,44 +99,71 @@ def search_library(
     filters, params = _search_filters(kinds or [], evidences or [], document, exclude_docs or [], has_locator)
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
-        try:
-            sql = f"""
-                SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
-                       c.is_noisy, c.noise_score, c.noise_reasons_json,
-                       d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
-                       bm25(chunks_fts) AS score,
-                       COUNT(*) OVER() AS total_hits
-                FROM chunks_fts
-                JOIN chunks c ON c.chunk_id = chunks_fts.chunk_id
-                JOIN documents d ON d.doc_id = c.doc_id
-                WHERE chunks_fts MATCH ?
-                {filters}
-                ORDER BY score + CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
-                LIMIT ? OFFSET ?
-                """
-            rows = conn.execute(
-                sql,
-                [query, *params, limit, offset],
-            ).fetchall()
-        except sqlite3.OperationalError:
-            like = f"%{query}%"
-            sql = f"""
-                SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
-                       c.is_noisy, c.noise_score, c.noise_reasons_json,
-                       d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
-                       0 AS score,
-                       COUNT(*) OVER() AS total_hits
-                FROM chunks c
-                JOIN documents d ON d.doc_id = c.doc_id
-                WHERE (c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?)
-                {filters}
-                ORDER BY CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
-                LIMIT ? OFFSET ?
-                """
-            rows = conn.execute(
-                sql,
-                [like, like, like, like, *params, limit, offset],
-            ).fetchall()
+        rows = _search_rows(conn, query, filters, params, limit, offset)
+        fallback_used = False
+        if not rows and _is_multi_term_query(query):
+            rows = _fallback_token_search(conn, query, filters, params, limit, offset)
+            fallback_used = bool(rows)
+    return _search_results(rows, query, offset, fallback_used)
+
+
+def _search_rows(conn: sqlite3.Connection, query: str, filters: str, params: List[Any], limit: int, offset: int) -> List[sqlite3.Row]:
+    try:
+        sql = f"""
+            SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
+                   c.is_noisy, c.noise_score, c.noise_reasons_json,
+                   d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
+                   bm25(chunks_fts) AS score,
+                   COUNT(*) OVER() AS total_hits
+            FROM chunks_fts
+            JOIN chunks c ON c.chunk_id = chunks_fts.chunk_id
+            JOIN documents d ON d.doc_id = c.doc_id
+            WHERE chunks_fts MATCH ?
+            {filters}
+            ORDER BY score + CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+            LIMIT ? OFFSET ?
+            """
+        return conn.execute(sql, [query, *params, limit, offset]).fetchall()
+    except sqlite3.OperationalError:
+        like = f"%{query}%"
+        sql = f"""
+            SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
+                   c.is_noisy, c.noise_score, c.noise_reasons_json,
+                   d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
+                   0 AS score,
+                   COUNT(*) OVER() AS total_hits
+            FROM chunks c
+            JOIN documents d ON d.doc_id = c.doc_id
+            WHERE (c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?)
+            {filters}
+            ORDER BY CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+            LIMIT ? OFFSET ?
+            """
+        return conn.execute(sql, [like, like, like, like, *params, limit, offset]).fetchall()
+
+
+def _fallback_token_search(conn: sqlite3.Connection, query: str, filters: str, params: List[Any], limit: int, offset: int) -> List[Dict]:
+    merged: Dict[str, Dict] = {}
+    for token in _search_tokens(query):
+        for index, row in enumerate(_search_rows(conn, token, filters, params, max(limit * 3, 10), 0), start=1):
+            item = dict(row)
+            current = merged.setdefault(
+                item["chunk_id"],
+                {**item, "token_hits": 0, "best_rank": index, "matched_tokens": set()},
+            )
+            current["token_hits"] += 1
+            current["best_rank"] = min(current["best_rank"], index)
+            current["matched_tokens"].add(token)
+    ranked = sorted(
+        merged.values(),
+        key=lambda item: (-item["token_hits"], item["best_rank"], bool(item["is_noisy"]), item.get("noise_score") or 0),
+    )
+    selected = ranked[offset : offset + limit]
+    total_hits = len(ranked)
+    return [{**item, "total_hits": total_hits} for item in selected]
+
+
+def _search_results(rows: List[Any], query: str, offset: int, fallback_used: bool = False) -> List[Dict]:
     return [
         {
             "rank": index + 1,
@@ -151,10 +179,21 @@ def search_library(
             "noise_score": row["noise_score"],
             "noise_reasons": _json_list(row["noise_reasons_json"]),
             "total_hits": row["total_hits"],
+            "fallback_used": fallback_used,
             "preview": _preview(row["text"], query),
         }
         for index, row in enumerate(rows, start=offset)
     ]
+
+
+def _is_multi_term_query(query: str) -> bool:
+    return len(_search_tokens(query)) > 1
+
+
+def _search_tokens(query: str) -> List[str]:
+    stopwords = {"and", "or", "the", "a", "an", "of", "for", "to", "in", "on", "with"}
+    tokens = [token.lower() for token in re.findall(r"[A-Za-z0-9_]+", query)]
+    return [token for token in tokens if len(token) >= 3 and token not in stopwords]
 
 
 def locate_document(path: Path, query: str, limit: int = 20) -> List[Dict]:
@@ -186,11 +225,16 @@ def library_report(path: Path) -> Dict:
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         evidence = dict(conn.execute("SELECT evidence_type, COUNT(*) FROM chunks GROUP BY evidence_type").fetchall())
+        documents = [dict(row) for row in conn.execute("SELECT * FROM documents").fetchall()]
+        chunks = [dict(row) for row in conn.execute("SELECT * FROM chunks").fetchall()]
+        assets = [dict(row) for row in conn.execute("SELECT * FROM assets").fetchall()]
+        page_level_docs = _page_level_searchable_documents(documents, chunks, assets)
+        page_level_doc_ids = {doc["doc_id"] for doc in page_level_docs}
         missing_assets = conn.execute(
             "SELECT title, json_extract(key_metadata_json, '$.missing_assets_count') AS missing FROM documents WHERE CAST(json_extract(key_metadata_json, '$.missing_assets_count') AS INTEGER) > 0"
         ).fetchall()
         low_quality = conn.execute(
-            "SELECT title, quality_status FROM documents WHERE quality_status IN ('low_structure', 'visual_only')"
+            "SELECT doc_id, title, quality_status FROM documents WHERE quality_status IN ('low_structure', 'visual_only')"
         ).fetchall()
         batches = conn.execute(
             "SELECT batch_id, COUNT(*) AS count FROM chunks WHERE batch_id IS NOT NULL AND batch_id != '' GROUP BY batch_id ORDER BY count DESC LIMIT 10"
@@ -220,7 +264,8 @@ def library_report(path: Path) -> Dict:
         "top_entities": index.get("top_entities", [])[:10],
         "top_batches": [dict(row) for row in batches],
         "missing_assets_summary": [dict(row) for row in missing_assets],
-        "low_quality_documents": [dict(row) for row in low_quality],
+        "low_quality_documents": [dict(row) for row in low_quality if row["doc_id"] not in page_level_doc_ids],
+        "page_level_pdf_documents": page_level_docs,
         "noisy_chunks_count": noisy_chunks_count,
         "noisy_documents": [dict(row) for row in noisy_documents],
         "hmi_translation_documents": [dict(row) for row in hmi_documents],
@@ -257,6 +302,8 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
                 doc_chunks = build_hmi_translation_chunks(hmi_markdown, manifest.get("source_file", ""), Path(manifest.get("source_file", "hmi_translation")).stem)
                 source_map = {chunk["chunk_id"]: _source_map_from_chunk(chunk) for chunk in doc_chunks}
         title = knowledge.get("title") or Path(manifest.get("source_file") or output_dir.name).stem
+        if doc_kind == "generic_pdf":
+            doc_kind = _refine_generic_pdf_kind(manifest, title, doc)
         key_metadata = knowledge.get("key_metadata", {})
         tags = _dedupe_list([*(knowledge.get("tags", []) or []), *("hmi translation plc-hmi bilingual-text".split() if doc_kind == "hmi_translation_xlsx" else [])])
         documents.append(
@@ -806,21 +853,31 @@ def _batches_md(chunks: List[Dict], docs: List[Dict]) -> str:
 def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
     lines = ["# Quality Report", "", "## Failed Documents", ""]
     lines.extend(f"- {warning}" for warning in warnings if "failed" in warning.lower()) or lines.append("_None._")
+    page_level_docs = _page_level_searchable_documents(rows["documents"], rows["chunks"], rows["assets"])
+    page_level_doc_ids = {doc["doc_id"] for doc in page_level_docs}
+    lines.extend(["", "## Page-Level Searchable PDFs", ""])
+    lines.append(f"- page_level_pdf_count: {len(page_level_docs)}")
+    for doc in page_level_docs[:100]:
+        lines.append(f"- {doc['title']}: {doc['document_kind']}, {doc['quality_status']}, locators={doc['locator_chunks']}, assets={doc['asset_count']}")
+    if not page_level_docs:
+        lines.append("_None._")
     lines.extend(["", "## Low Structure", ""])
-    low = [doc for doc in rows["documents"] if doc["quality_status"] == "low_structure"]
+    low = [doc for doc in rows["documents"] if doc["quality_status"] == "low_structure" and doc["doc_id"] not in page_level_doc_ids]
     lines.extend(f"- {doc['title']}" for doc in low) or lines.append("_None._")
     lines.extend(["", "## Visual Only / Image Only", ""])
     visual = [doc for doc in rows["documents"] if doc["quality_status"] == "visual_only" or doc["extraction_status"] == "image_only"]
     lines.extend(f"- {doc['title']}" for doc in visual) or lines.append("_None._")
     lines.extend(["", "## Missing / Embedded Assets", ""])
+    asset_rows = 0
     for doc in rows["documents"]:
         metadata = doc.get("key_metadata") or {}
         manifest = doc.get("manifest") or {}
         missing = metadata.get("missing_assets_count") or manifest.get("missing_assets_count") or 0
         embedded = metadata.get("embedded_images_count") or manifest.get("embedded_images_count") or 0
         if missing or embedded:
+            asset_rows += 1
             lines.append(f"- {doc['title']}: missing_assets_count={missing}, embedded_images_count={embedded}")
-    if lines[-1] == "## Missing / Embedded Assets":
+    if not asset_rows:
         lines.append("_None._")
     lines.extend(["", "## Chunks Without Locator", ""])
     missing_locator = [chunk for chunk in rows["chunks"] if not chunk.get("locator")]
@@ -856,6 +913,36 @@ def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def _page_level_searchable_documents(documents: List[Dict], chunks: List[Dict], assets: List[Dict]) -> List[Dict]:
+    chunks_by_doc: Dict[str, List[Dict]] = defaultdict(list)
+    assets_by_doc = Counter(asset["doc_id"] for asset in assets)
+    for chunk in chunks:
+        chunks_by_doc[chunk["doc_id"]].append(chunk)
+    docs = []
+    for doc in documents:
+        if doc.get("quality_status") != "low_structure":
+            continue
+        if not str(doc.get("document_kind", "")).endswith("_pdf") and doc.get("document_kind") != "generic_pdf":
+            continue
+        doc_chunks = chunks_by_doc.get(doc["doc_id"], [])
+        page_chunks = [chunk for chunk in doc_chunks if chunk.get("evidence_type") in {"page", "text_page", "drawing_index"}]
+        locator_chunks = [chunk for chunk in page_chunks if chunk.get("locator")]
+        if page_chunks and locator_chunks and assets_by_doc[doc["doc_id"]] and not any(chunk.get("is_noisy") for chunk in doc_chunks):
+            docs.append(
+                {
+                    "doc_id": doc["doc_id"],
+                    "title": doc["title"],
+                    "source_file": doc.get("source_file", ""),
+                    "document_kind": doc.get("document_kind", ""),
+                    "quality_status": doc.get("quality_status", ""),
+                    "page_level_chunks": len(page_chunks),
+                    "locator_chunks": len(locator_chunks),
+                    "asset_count": assets_by_doc[doc["doc_id"]],
+                }
+            )
+    return docs
 
 
 def _write_interop_exports(exports_dir: Path, rows: Dict[str, List[Dict]]) -> None:
@@ -970,6 +1057,24 @@ def _unique_record_id(base_id: Any, suffix_hint: Any, used: set[str]) -> str:
         counter += 1
     used.add(candidate)
     return candidate
+
+
+def _refine_generic_pdf_kind(manifest: Dict, title: str, doc: Dict) -> str:
+    source_file = manifest.get("source_file") or f"{title}.pdf"
+    if not str(source_file).lower().endswith(".pdf"):
+        return "generic_pdf"
+    text = f"{title}\n{_document_preview_text(doc)}"
+    return classify_obvious_pdf_subtype(Path(source_file), text) or "generic_pdf"
+
+
+def _document_preview_text(doc: Dict, limit: int = 4000) -> str:
+    path = doc.get("document_md") or doc.get("document_raw_md")
+    if not path:
+        return ""
+    try:
+        return Path(path).read_text(encoding="utf-8", errors="ignore")[:limit]
+    except OSError:
+        return ""
 
 
 def _entities_from_json(data: Dict) -> List[Dict]:

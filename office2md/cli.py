@@ -176,7 +176,8 @@ def search_library_command(
         has_locator=has_locator,
     )
     total_hits = results[0].get("total_hits", 0) if results else 0
-    console.print(f"total_hits: {total_hits}; showing: {len(results)}; offset: {offset}")
+    fallback_note = "; fallback: token" if results and results[0].get("fallback_used") else ""
+    console.print(f"total_hits: {total_hits}; showing: {len(results)}; offset: {offset}{fallback_note}")
     table = Table(title=f"office2md search-library: {query}")
     table.add_column("Rank")
     table.add_column("Chunk ID")
@@ -243,6 +244,7 @@ def library_report_command(library_db_or_output_dir: Path) -> None:
     table.add_row("top_batches", ", ".join(item["batch_id"] for item in report["top_batches"][:10]))
     table.add_row("missing_assets_summary", str(len(report["missing_assets_summary"])))
     table.add_row("low_quality_documents", str(len(report["low_quality_documents"])))
+    table.add_row("page_level_pdf_documents", str(len(report.get("page_level_pdf_documents", []))))
     table.add_row("noisy_chunks_count", str(report["noisy_chunks_count"]))
     table.add_row("noisy_documents", str(len(report["noisy_documents"])))
     table.add_row("hmi_translation_documents", str(len(report["hmi_translation_documents"])))

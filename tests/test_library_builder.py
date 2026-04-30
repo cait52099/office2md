@@ -214,7 +214,57 @@ def test_build_library_handles_duplicate_document_and_chunk_ids(tmp_path):
     assert any(doc_id.startswith("same-checksum-") for doc_id in doc_ids)
 
 
-def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict):
+def test_build_library_refines_pdf_subtypes_and_page_level_quality(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "datasheet",
+        "datasheet-doc",
+        "Pump_data.pdf",
+        "generic_pdf",
+        [_chunk("datasheet_page", "page", ["Data"], "Technical data for pump", "Page 1", page_number=1, image_path="assets/page_001.png")],
+        {"equipment": ["pump"]},
+        quality_status="low_structure",
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    quality_report = (library_dir / "_quality_report.md").read_text(encoding="utf-8")
+    with sqlite3.connect(library_dir / "library.db") as conn:
+        kind = conn.execute("SELECT document_kind FROM documents").fetchone()[0]
+
+    assert kind == "datasheet_pdf"
+    assert "## Page-Level Searchable PDFs" in quality_report
+    assert "- page_level_pdf_count: 1" in quality_report
+    assert "## Low Structure\n\n_None._" in quality_report
+
+
+def test_search_library_falls_back_for_zero_hit_multi_term_query(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "equipment",
+        "equipment-doc",
+        "Equipment list.pdf",
+        "generic_pdf",
+        [
+            _chunk("homogenizer_chunk", "page", ["Parts"], "Homogenizer motor 2M2001", "Page 1"),
+            _chunk("cooling_chunk", "page", ["Parts"], "Cooling valve 1V2005", "Page 2"),
+        ],
+        {"equipment": ["homogenizer", "valve"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "homogenizer cooling", limit=5)
+
+    assert results
+    assert results[0]["fallback_used"] is True
+    assert {item["chunk_id"] for item in results} == {"homogenizer_chunk", "cooling_chunk"}
+
+
+def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):
     path.mkdir(parents=True)
     manifest = {
         "source_file": source_file,
@@ -223,13 +273,13 @@ def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, ch
         "engine": "markitdown",
         "status": "success",
         "document_kind": document_kind,
-        "quality_status": "ok",
+        "quality_status": quality_status,
         "extraction_status": "text",
     }
     knowledge = {
         "title": Path(source_file).stem,
         "document_kind": document_kind,
-        "quality_status": "ok",
+        "quality_status": quality_status,
         "extraction_status": "text",
         "key_metadata": {"source_path": manifest["source_path"], "checksum": manifest["checksum"], "converter": "markitdown"},
         "tags": [document_kind],

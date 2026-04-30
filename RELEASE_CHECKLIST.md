@@ -175,3 +175,16 @@ v0.2.0-rc3 100-file validation and duplicate-ID checkpoint evidence:
 - [ ] 100-file review library records 100 distinct document IDs and 1205 distinct chunk IDs.
 - [ ] `search-library` smoke tests pass for Translation, SY909735, homogenizer, and alarm.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.2.
+
+v0.2.0-rc4 Phase 3.0.3a quality/search checkpoint evidence:
+
+- [ ] `python -m pytest` reports 60 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CML125 100-file Phase 3.0.3a library report records `low_quality_documents: 13`.
+- [ ] CML125 100-file Phase 3.0.3a library report records `page_level_pdf_documents: 84`.
+- [ ] CML125 100-file Phase 3.0.3a library report records `noisy_chunks_count: 0`.
+- [ ] Generic PDF subtype refinement classifies obvious datasheet, component, certificate, manual, project book, and report PDFs while leaving uncertain PDFs as `generic_pdf`.
+- [ ] Search fallback marks multi-term token fallback in CLI output.
+- [ ] `search-library "homogenizer cooling"` returns useful hits with `fallback: token`.
+- [ ] `search-library "alarm history"` returns useful hits with `fallback: token`.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.3a.

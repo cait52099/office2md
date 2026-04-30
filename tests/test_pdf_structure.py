@@ -25,6 +25,21 @@ def test_classify_technical_drawing_pdf_by_filename(tmp_path):
     assert classify_document_kind(path, "plain text") == "technical_drawing_pdf"
 
 
+def test_classify_obvious_pdf_subtypes_by_filename(tmp_path):
+    cases = {
+        "Pump_data.pdf": "datasheet_pdf",
+        "Pump_EGCon.pdf": "certificate_pdf",
+        "Pump_manual.pdf": "manual_pdf",
+        "Project book.pdf": "project_book_pdf",
+        "Kick-Off-Meeting Report.pdf": "report_pdf",
+        "1404416.pdf": "component_document_pdf",
+    }
+    for filename, expected in cases.items():
+        path = tmp_path / filename
+        path.write_text("pdf", encoding="utf-8")
+        assert classify_document_kind(path, "plain text") == expected
+
+
 def test_pdf_fallback_without_headings_is_low_structure(tmp_path):
     path = tmp_path / "manual.pdf"
     path.write_text("pdf", encoding="utf-8")
