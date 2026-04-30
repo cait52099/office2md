@@ -8,7 +8,7 @@ The current pipeline has three stages:
 2. Per-document Knowledge Pack generation with metadata, chunks, entities, manifests, and source maps.
 3. Knowledge Library Builder for SQLite FTS search, JSON graph output, Markdown portal pages, and interop JSONL exports.
 
-v0.2.0-rc1 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 is the planned place for optional embedding/vector search on top of the SQLite/FTS foundation.
+v0.2.0-rc2 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 is the planned place for optional embedding/vector search on top of the SQLite/FTS foundation.
 
 ## Install
 
@@ -113,6 +113,8 @@ PPTX slide chunks and source maps include `slide_number`, `slide_title`, `topic_
 
 XLSX MPDP files can produce sheet/table provenance and phase-level `table_section` chunks for PFA, Pilot, Practice, Pre-Production, and Production. DOCX release rationale files can extract release metadata and add `Release Summary`, `Key Release Metadata`, `Key Process Parameters`, and `Recommendation` while preserving raw content.
 
+PLC/HMI translation XLSX files, such as `*_Translation_Chinese*.xlsx`, are detected as `hmi_translation_xlsx` when they contain `Category`, `ViewPath`, `Internal ID`, `en-GB`, and `zh-CN` table headers. Their Knowledge Pack uses HMI table/group/row chunks with sheet, group, and row locators, while long Internal ID values, all-empty `ref` columns, repeated `NaN`, and repeated full ViewPath strings are kept out of searchable Markdown. HMI group chunks are scoped to screen/function areas; field/control path tokens such as `Textfeld`, `TextField`, `Bildbaustein`, and `Symbolisches EA-Feld` stay in row metadata instead of becoming group headings.
+
 Office image export is intentionally deferred to Phase 2.9B. Current Office outputs record `embedded_images_count`, `missing_assets_count`, and manifest warnings when image references are present, but embedded Office images are not exported.
 
 For large real directories, inspect first and then cap the first real run:
@@ -121,6 +123,8 @@ For large real directories, inspect first and then cap the first real run:
 office2md convert ./input ./output --recursive --dry-run --include "*.pdf"
 office2md convert ./input ./output --recursive --max-files 5
 ```
+
+Windows PowerShell note: the scanner automatically skips Office temporary files whose names start with `~$`. In PowerShell, avoid passing `--exclude "~$*"` for now because quoting and wildcard expansion can be confusing; run without that exclude unless you need an additional project-specific pattern.
 
 Batch safety controls:
 
@@ -137,6 +141,7 @@ Phase 3.0 can build a local library-level database from an existing office2md ou
 office2md build-library ./output ./library
 office2md library-report ./library
 office2md search-library ./library/library.db "M4E viscosity"
+office2md locate-document ./library "Translation"
 ```
 
 `build-library` reads document output folders containing `manifest.json`, `knowledge.json`, `entities.json`, `source_map.json`, `chunks.jsonl`, and `document.md`. Missing optional files are recorded as warnings, and failed manifests are skipped.
@@ -155,7 +160,25 @@ Library outputs include:
 
 Interop exports are plain JSONL files. LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
 
-v0.2.0-rc1 does not create embeddings or a vector database. Phase 3.1 may add optional embedding/vector search as a separate layer.
+v0.2.0-rc2 does not create embeddings or a vector database. Phase 3.1 may add optional embedding/vector search as a separate layer.
+
+Use `locate-document` when a search result points to a file family and you need the source folder quickly:
+
+```bash
+office2md locate-document ./library "Translation"
+office2md locate-document ./library/library.db "SY909735"
+```
+
+Search supports lightweight filters for usability on mixed technical libraries:
+
+```bash
+office2md search-library ./library/library.db "PLC" --limit 20
+office2md search-library ./library/library.db "PLC" --kind hmi_translation_xlsx --limit 20
+office2md search-library ./library/library.db "PLC" --evidence drawing_index --kind technical_drawing_pdf --limit 20
+office2md search-library ./library/library.db "CIP" --exclude-doc Translation --has-locator --limit 20
+```
+
+Noisy chunks are retained but marked and ranked lower by default. Noise detection covers repeated `NaN`, base64-like IDs, dense Windows/HMI paths, XML/HTML tag density, missing locators, and low natural-language ratio.
 
 ## Supported Formats
 

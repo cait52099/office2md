@@ -133,6 +133,63 @@ def test_xlsx_table_provenance_and_entities(tmp_path, monkeypatch):
     assert "PPPB" in entities["batch_type"]
 
 
+def test_hmi_translation_xlsx_structures_markdown_chunks_source_map_and_entities(tmp_path, monkeypatch):
+    long_id = "USb22NXN1iivCY2FKzp8v7Sq2hPlEwHfLKjBbqfgJyfmaQ4JYrVkKmbeLAeBIqMWurSKbtWwEE6MNYEwFuyxV4wHu3AALNDcU6t5qketBTsGWG80byDKlAobccs4g"
+    markdown = "\n".join(
+        [
+            "## User Texts",
+            "| Category | ViewPath | Internal ID | Substitutions | en-GB\\* | zh-CN | ref=\"0\" | ref=\"1\" |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bilder\\C1 Contr\\_1\\Einsaugungen\\Group\\_50\\Textfeld\\_84\\Text | {long_id}== | NaN | % | % | NaN | NaN |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bilder\\C1 Contr\\_1\\Temperieren\\Group\\_42\\Textfeld\\_51\\Text | {long_id}AA== | NaN | °C | °C | NaN | NaN |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bilder\\C1 Contr\\_2\\Wasserdosierung\\Group\\_47\\Textfeld\\_81\\Text | {long_id}BB== | NaN | kg | kg | NaN | NaN |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bilder\\C1 Contr\\_1\\Temperieren\\Bildbaustein\\_10\\Text | {long_id}CC== | NaN | Heat | Heat | NaN | NaN |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bilder\\E5\\_Sytem\\G\\_Probe\\_calibration\\Symbolisches EA-Feld\\_1\\Text | {long_id}DD== | NaN | Probe | Probe | NaN | NaN |",
+            f"| <HMI screen> | SY909735\\_PLC+HMI\\_V15\\SY909735 (HMI)\\Bildverwaltung\\Vorlagen\\Trends\\Template\\_Schaltfläche\\_18\\Text AUS | {long_id}EE== | NaN | Trend | Trend | NaN | NaN |",
+        ]
+    )
+    source = tmp_path / "Copy of SY909735_Translation_Chinese ver.1.xlsx"
+    source.write_text("fake", encoding="utf-8")
+    monkeypatch.setattr(cli, "get_converter", lambda engine: FakeConverter(markdown))
+
+    out_dir, status = cli.convert_one(source, tmp_path / "out", ConvertOptions(engine="markitdown"))
+
+    document_md = (out_dir / "document.md").read_text(encoding="utf-8")
+    chunks = [json.loads(line) for line in (out_dir / "chunks.jsonl").read_text(encoding="utf-8").splitlines()]
+    source_map = json.loads((out_dir / "source_map.json").read_text(encoding="utf-8"))
+    entities = json.loads((out_dir / "entities.json").read_text(encoding="utf-8"))
+    manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert status == "success"
+    assert manifest["document_kind"] == "hmi_translation_xlsx"
+    assert manifest["quality_status"] == "structured_with_noise"
+    assert "Internal ID" not in document_md
+    assert long_id not in document_md
+    assert "ref=\"0\"" not in document_md
+    assert document_md.count("NaN") == 0
+    assert {chunk["evidence_type"] for chunk in chunks} >= {"hmi_translation_table", "hmi_translation_group", "hmi_translation_row"}
+    group_chunks = [chunk for chunk in chunks if chunk["evidence_type"] == "hmi_translation_group"]
+    row_chunks = [chunk for chunk in chunks if chunk["evidence_type"] == "hmi_translation_row"]
+    group_text = "\n".join(" / ".join(chunk["heading_path"]) for chunk in group_chunks)
+    group_headings = "\n".join(line for line in document_md.splitlines() if line.startswith("### "))
+    assert len(group_chunks) < len(row_chunks)
+    assert "Textfeld" not in group_text
+    assert "TextField" not in group_text
+    assert "Bildbaustein" not in group_text
+    assert "Symbolisches EA-Feld" not in group_text
+    assert "Template_Schaltfläche" not in group_text
+    assert "Textfeld" not in group_headings
+    assert "Bildbaustein" not in group_headings
+    assert "Symbolisches EA-Feld" not in group_headings
+    assert all(chunk.get("locator") for chunk in chunks)
+    assert all(chunk.get("locator", "").startswith("Sheet: User Texts / Row:") for chunk in row_chunks)
+    assert all(item.get("provenance_status") == "xlsx_hmi_translation" for item in source_map.values())
+    assert any(item.get("row_number") for item in source_map.values())
+    assert entities["document_type"] == ["hmi translation", "hmi text table"]
+    assert "PLC" in entities["equipment"]
+    assert "HMI" in entities["equipment"]
+
+
 def test_pptx_slide_chunks_and_entities(tmp_path, monkeypatch):
     markdown = "<!-- Slide number: 1 -->\nProject number: PN77563\nProject name: LS Daily Rescue Eye Serum\nFormula structure: W/O\nTechnology: M4E\nVL322673\n![](Picture13.jpg)"
     source = tmp_path / "43DS-LS Daily Rescue Eye Serum 20260417.pptx"

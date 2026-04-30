@@ -6,7 +6,7 @@ from typing import Dict, List
 ENTITY_RULES = {
     "organization": [r"\bSymex\b"],
     "line": [r"\bCML\s*125\b", r"\bCML125\b"],
-    "document_type": [r"\bwiring diagram\b"],
+    "document_type": [r"\bwiring diagram\b", r"\bhmi translation\b", r"\bhmi text table\b"],
     "manual_topic": [
         r"\bfunctional description\b",
         r"\boperating manual\b",
@@ -25,6 +25,7 @@ ENTITY_RULES = {
     ],
     "equipment": [
         r"\bPLC\b",
+        r"\bHMI\b",
         r"\bterminal\b",
         r"\bvalve\b",
         r"\bmotor\b",
@@ -69,6 +70,13 @@ def extract_entities(source_path: Path, markdown: str, document_kind: str = "", 
         entities["document_type"] = ["MPDP", "scale-up plan"]
     if document_kind == "process_development_presentation":
         entities["document_type"] = ["project presentation"]
+    if document_kind == "hmi_translation_xlsx":
+        entities["document_type"] = ["hmi translation", "hmi text table"]
+        equipment = entities.get("equipment", [])
+        for value in ["PLC", "HMI"]:
+            if value not in equipment:
+                equipment.append(value)
+        entities["equipment"] = equipment
     return entities
 
 
@@ -81,6 +89,12 @@ def _normalize_entity(value: str) -> str:
         return "Symex"
     if lower == "plc":
         return "PLC"
+    if lower == "hmi":
+        return "HMI"
+    if lower == "hmi translation":
+        return "hmi translation"
+    if lower == "hmi text table":
+        return "hmi text table"
     if lower == "wiring diagram":
         return "wiring diagram"
     manual_topics = {

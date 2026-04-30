@@ -16,7 +16,7 @@ from office2md.converters.markitdown_converter import MarkItDownConverter
 from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
-from office2md.library import build_library, library_report, search_library
+from office2md.library import build_library, library_report, locate_document, search_library
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
 from office2md.postprocess.drawing_index import build_drawing_index_chunks, extract_drawing_index
@@ -152,26 +152,77 @@ def build_library_command(input_output_root: Path, library_output_dir: Path) -> 
 
 
 @app.command("search-library")
-def search_library_command(library_db: Path, query: str, limit: int = typer.Option(10, help="Maximum results to print.")) -> None:
+def search_library_command(
+    library_db: Path,
+    query: str,
+    limit: int = typer.Option(10, help="Maximum results to print."),
+    offset: int = typer.Option(0, help="Number of matching results to skip."),
+    kind: List[str] = typer.Option(None, "--kind", help="Filter by document_kind. Can be repeated."),
+    evidence: List[str] = typer.Option(None, "--evidence", help="Filter by evidence_type. Can be repeated."),
+    document: str = typer.Option(None, "--doc", "--document", help="Filter by document title or source_file."),
+    exclude_doc: List[str] = typer.Option(None, "--exclude-doc", help="Exclude document title/source_file match. Can be repeated."),
+    has_locator: bool = typer.Option(False, "--has-locator", help="Only show chunks with source locators."),
+) -> None:
     """Search a local Knowledge Library SQLite database using FTS."""
-    results = search_library(library_db, query, limit=limit)
+    results = search_library(
+        library_db,
+        query,
+        limit=limit,
+        offset=offset,
+        kinds=kind or [],
+        evidences=evidence or [],
+        document=document,
+        exclude_docs=exclude_doc or [],
+        has_locator=has_locator,
+    )
+    total_hits = results[0].get("total_hits", 0) if results else 0
+    console.print(f"total_hits: {total_hits}; showing: {len(results)}; offset: {offset}")
     table = Table(title=f"office2md search-library: {query}")
     table.add_column("Rank")
+    table.add_column("Chunk ID")
     table.add_column("Document")
+    table.add_column("Source File")
     table.add_column("Kind")
     table.add_column("Chunk")
     table.add_column("Evidence")
     table.add_column("Locator")
+    table.add_column("Output Dir")
     table.add_column("Preview")
     for item in results:
         table.add_row(
             str(item["rank"]),
+            item["chunk_id"] or "",
             item["document_title"] or "",
+            item["source_file"] or "",
             item["document_kind"] or "",
             item["chunk_title"] or "",
             item["evidence_type"] or "",
             item["locator"] or "",
+            item["output_dir"] or "",
             item["preview"] or "",
+        )
+    console.print(table)
+
+
+@app.command("locate-document")
+def locate_document_command(library_db_or_output_dir: Path, query: str, limit: int = typer.Option(20, help="Maximum documents to print.")) -> None:
+    """Locate documents in a built Knowledge Library by fuzzy title/source match."""
+    results = locate_document(library_db_or_output_dir, query, limit=limit)
+    table = Table(title=f"office2md locate-document: {query}")
+    table.add_column("Title")
+    table.add_column("Source File")
+    table.add_column("Kind")
+    table.add_column("Output Dir")
+    table.add_column("Source Path")
+    table.add_column("Chunks")
+    for item in results:
+        table.add_row(
+            item.get("title", ""),
+            item.get("source_file", ""),
+            item.get("document_kind", ""),
+            item.get("output_dir", ""),
+            item.get("source_path", ""),
+            str(item.get("chunks_count", "")),
         )
     console.print(table)
 
@@ -192,6 +243,9 @@ def library_report_command(library_db_or_output_dir: Path) -> None:
     table.add_row("top_batches", ", ".join(item["batch_id"] for item in report["top_batches"][:10]))
     table.add_row("missing_assets_summary", str(len(report["missing_assets_summary"])))
     table.add_row("low_quality_documents", str(len(report["low_quality_documents"])))
+    table.add_row("noisy_chunks_count", str(report["noisy_chunks_count"]))
+    table.add_row("noisy_documents", str(len(report["noisy_documents"])))
+    table.add_row("hmi_translation_documents", str(len(report["hmi_translation_documents"])))
     table.add_row("export_files_generated", ", ".join(report["export_files_generated"]))
     console.print(table)
 
@@ -403,6 +457,8 @@ def convert_one(source_path: Path, output_root: Path, options: ConvertOptions):
 
     if document_kind == "technical_drawing_pdf":
         quality_status = "low_structure"
+    if document_kind == "hmi_translation_xlsx":
+        quality_status = "structured_with_noise"
     if source.suffix.lower() == ".pdf" and pages and pages_with_text_count == 0:
         extraction_status = "image_only"
         quality_status = "visual_only"
@@ -445,6 +501,7 @@ def convert_one(source_path: Path, output_root: Path, options: ConvertOptions):
     drawing_index_chunks_count = sum(1 for chunk in chunks if chunk.get("evidence_type") == "drawing_index")
     topic_chunks_count = sum(1 for chunk in chunks if chunk.get("evidence_type") == "topic")
     batch_study_chunks_count = sum(1 for chunk in chunks if chunk.get("evidence_type") == "batch_study")
+    hmi_translation_chunks_count = sum(1 for chunk in chunks if str(chunk.get("evidence_type") or "").startswith("hmi_translation_"))
     section_chunks_with_body_count = sum(
         1
         for chunk in chunks
@@ -495,6 +552,7 @@ def convert_one(source_path: Path, output_root: Path, options: ConvertOptions):
         "drawing_index_chunks_count": drawing_index_chunks_count,
         "topic_chunks_count": topic_chunks_count,
         "batch_study_chunks_count": batch_study_chunks_count,
+        "hmi_translation_chunks_count": hmi_translation_chunks_count,
         "visual_heavy_slides_count": extracted_metadata.get("visual_heavy_slides_count", 0),
         "embedded_images_count": embedded_images_count or embedded_base64_count,
         "embedded_image_detected": bool(embedded_images_count or embedded_base64_count),

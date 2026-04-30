@@ -126,3 +126,36 @@ v0.2.0-rc1 Knowledge Library validation evidence:
 - [ ] Original office2md output root is not modified by `build-library`.
 - [ ] LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.
+
+v0.2.0-rc2 HMI translation and search usability validation evidence:
+
+- [ ] `python -m pytest -q` reports 56 passed.
+- [ ] `python -m ruff check office2md tests` reports all checks passed.
+- [ ] HMI translation XLSX is detected as `document_kind: hmi_translation_xlsx`.
+- [ ] HMI translation XLSX records `quality_status: structured_with_noise`.
+- [ ] HMI single-file v2 output includes `hmi_translation_table`, `hmi_translation_group`, and `hmi_translation_row` chunks.
+- [ ] HMI group chunks are reduced from 594 to 138 on the CML125 validation sample.
+- [ ] HMI row chunks remain available with 250 row chunks.
+- [ ] HMI chunks without locator are 0.
+- [ ] HMI `document.md` does not include searchable base64-like Internal ID strings.
+- [ ] HMI `document.md` does not include repeated `NaN` or all-empty `ref` columns.
+- [ ] HMI group headings do not use field/control-level path tokens such as `Textfeld`, `TextField`, `Bildbaustein`, or `Symbolisches EA-Feld`.
+- [ ] Library-level chunks are reduced from 1327 to 871 on the CML125 20-file validation library.
+- [ ] Library-level `top_entities` aggregates `SY909735` by `normalized_text` and merges `project_number` plus `order_number`.
+- [ ] `_library.md` Key Entities lists `SY909735` only once.
+- [ ] `_quality_report.md` reports noisy chunks, HMI translation documents, raw text chunks, and chunks without locator.
+- [ ] `_quality_report.md` includes search recommendations for HMI translation, drawing index evidence, and excluding translation documents.
+- [ ] `locate-document` works with a library output directory.
+- [ ] `locate-document` works with `library.db`.
+- [ ] `locate-document "Translation"` returns `hmi_translation_xlsx`, 389 chunks, and output directory `copy-of-sy909735-translation-chinese-ver-1`.
+- [ ] `search-library` supports `--limit` and `--offset`.
+- [ ] `search-library` supports `--kind hmi_translation_xlsx`.
+- [ ] `search-library` supports `--evidence drawing_index`.
+- [ ] `search-library` supports `--exclude-doc Translation`.
+- [ ] `search-library` supports `--has-locator`.
+- [ ] `search-library "PLC" --kind hmi_translation_xlsx --limit 20` returns HMI translation results with locators.
+- [ ] `search-library "PLC" --evidence drawing_index --kind technical_drawing_pdf --limit 20` returns drawing index results.
+- [ ] `search-library "CIP" --exclude-doc Translation --has-locator --limit 20` excludes HMI translation results.
+- [ ] `search-library "SY909735" --limit 20` returns relevant CML125/SY909735 results.
+- [ ] Windows PowerShell note documents that Office temporary files `~$*` are skipped automatically and that `--exclude "~$*"` should be avoided for now.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.1.

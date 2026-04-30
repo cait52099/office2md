@@ -7,6 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+from office2md.postprocess.office_structure import (
+    build_hmi_translation_chunks,
+    is_hmi_translation_xlsx,
+)
+
 
 LIBRARY_SCHEMA_VERSION = "1"
 LIBRARY_RELEASE_LABEL = "v0.2.0-rc1"
@@ -72,53 +77,105 @@ def load_document_outputs(input_root: Path) -> tuple[List[Dict], List[str]]:
         else:
             warnings.append(f"missing document.md: {doc_dir}")
             doc["document_md"] = None
+        raw_path = doc_dir / "document.raw.md"
+        doc["document_raw_md"] = raw_path if raw_path.exists() else None
         documents.append(doc)
     return documents, warnings
 
 
-def search_library(library_db: Path, query: str, limit: int = 10) -> List[Dict]:
+def search_library(
+    library_db: Path,
+    query: str,
+    limit: int = 10,
+    offset: int = 0,
+    kinds: List[str] | None = None,
+    evidences: List[str] | None = None,
+    document: str | None = None,
+    exclude_docs: List[str] | None = None,
+    has_locator: bool = False,
+) -> List[Dict]:
     db_path = _resolve_db_path(library_db)
+    filters, params = _search_filters(kinds or [], evidences or [], document, exclude_docs or [], has_locator)
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         try:
-            rows = conn.execute(
-                """
+            sql = f"""
                 SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
-                       d.title AS document_title, d.document_kind, bm25(chunks_fts) AS score
+                       c.is_noisy, c.noise_score, c.noise_reasons_json,
+                       d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
+                       bm25(chunks_fts) AS score,
+                       COUNT(*) OVER() AS total_hits
                 FROM chunks_fts
                 JOIN chunks c ON c.chunk_id = chunks_fts.chunk_id
                 JOIN documents d ON d.doc_id = c.doc_id
                 WHERE chunks_fts MATCH ?
-                ORDER BY score
-                LIMIT ?
-                """,
-                (query, limit),
+                {filters}
+                ORDER BY score + CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+                LIMIT ? OFFSET ?
+                """
+            rows = conn.execute(
+                sql,
+                [query, *params, limit, offset],
             ).fetchall()
         except sqlite3.OperationalError:
             like = f"%{query}%"
-            rows = conn.execute(
-                """
+            sql = f"""
                 SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
-                       d.title AS document_title, d.document_kind, 0 AS score
+                       c.is_noisy, c.noise_score, c.noise_reasons_json,
+                       d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
+                       0 AS score,
+                       COUNT(*) OVER() AS total_hits
                 FROM chunks c
                 JOIN documents d ON d.doc_id = c.doc_id
-                WHERE c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?
-                LIMIT ?
-                """,
-                (like, like, like, like, limit),
+                WHERE (c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?)
+                {filters}
+                ORDER BY CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+                LIMIT ? OFFSET ?
+                """
+            rows = conn.execute(
+                sql,
+                [like, like, like, like, *params, limit, offset],
             ).fetchall()
     return [
         {
             "rank": index + 1,
+            "chunk_id": row["chunk_id"],
             "document_title": row["document_title"],
             "document_kind": row["document_kind"],
+            "source_file": row["source_file"],
+            "output_dir": row["output_dir"],
             "chunk_title": row["title"],
             "evidence_type": row["evidence_type"],
             "locator": row["locator"],
+            "is_noisy": bool(row["is_noisy"]),
+            "noise_score": row["noise_score"],
+            "noise_reasons": _json_list(row["noise_reasons_json"]),
+            "total_hits": row["total_hits"],
             "preview": _preview(row["text"], query),
         }
-        for index, row in enumerate(rows)
+        for index, row in enumerate(rows, start=offset)
     ]
+
+
+def locate_document(path: Path, query: str, limit: int = 20) -> List[Dict]:
+    db_path = _resolve_db_path(path)
+    like = f"%{query}%"
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT d.title, d.source_file, d.document_kind, d.output_dir, d.source_path,
+                   COUNT(c.chunk_id) AS chunks_count
+            FROM documents d
+            LEFT JOIN chunks c ON c.doc_id = d.doc_id
+            WHERE d.title LIKE ? OR d.source_file LIKE ? OR d.source_path LIKE ?
+            GROUP BY d.doc_id
+            ORDER BY d.source_file
+            LIMIT ?
+            """,
+            (like, like, like, limit),
+        ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def library_report(path: Path) -> Dict:
@@ -138,6 +195,20 @@ def library_report(path: Path) -> Dict:
         batches = conn.execute(
             "SELECT batch_id, COUNT(*) AS count FROM chunks WHERE batch_id IS NOT NULL AND batch_id != '' GROUP BY batch_id ORDER BY count DESC LIMIT 10"
         ).fetchall()
+        noisy_chunks_count = conn.execute("SELECT COUNT(*) FROM chunks WHERE is_noisy = 1").fetchone()[0]
+        noisy_documents = conn.execute(
+            """
+            SELECT d.title, d.source_file, COUNT(c.chunk_id) AS noisy_chunks_count
+            FROM chunks c
+            JOIN documents d ON d.doc_id = c.doc_id
+            WHERE c.is_noisy = 1
+            GROUP BY d.doc_id
+            ORDER BY noisy_chunks_count DESC
+            """
+        ).fetchall()
+        hmi_documents = conn.execute(
+            "SELECT title, source_file, output_dir FROM documents WHERE document_kind = 'hmi_translation_xlsx'"
+        ).fetchall()
     exports_dir = output_dir / "exports"
     export_files = sorted(path.name for path in exports_dir.glob("*.jsonl")) if exports_dir.exists() else []
     return {
@@ -150,6 +221,9 @@ def library_report(path: Path) -> Dict:
         "top_batches": [dict(row) for row in batches],
         "missing_assets_summary": [dict(row) for row in missing_assets],
         "low_quality_documents": [dict(row) for row in low_quality],
+        "noisy_chunks_count": noisy_chunks_count,
+        "noisy_documents": [dict(row) for row in noisy_documents],
+        "hmi_translation_documents": [dict(row) for row in hmi_documents],
         "export_files_generated": export_files,
     }
 
@@ -170,17 +244,26 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
         doc_chunks = doc.get("chunks", [])
         doc_id = _doc_id(manifest, knowledge, doc_chunks)
         output_dir = doc["output_dir"]
+        doc_kind = manifest.get("document_kind") or knowledge.get("document_kind", "")
+        hmi_markdown = _hmi_markdown_for_doc(doc)
+        if hmi_markdown and is_hmi_translation_xlsx(Path(manifest.get("source_file") or "document.xlsx"), hmi_markdown):
+            doc_kind = "hmi_translation_xlsx"
+            manifest = {**manifest, "document_kind": doc_kind, "quality_status": "structured_with_noise"}
+            knowledge = {**knowledge, "document_kind": doc_kind, "quality_status": "structured_with_noise"}
+            if not any(str(chunk.get("evidence_type", "")).startswith("hmi_translation_") for chunk in doc_chunks):
+                doc_chunks = build_hmi_translation_chunks(hmi_markdown, manifest.get("source_file", ""), Path(manifest.get("source_file", "hmi_translation")).stem)
+                source_map = {chunk["chunk_id"]: _source_map_from_chunk(chunk) for chunk in doc_chunks}
         rel_output = _relative_or_absolute(output_dir, input_root)
         title = knowledge.get("title") or Path(manifest.get("source_file") or output_dir.name).stem
         key_metadata = knowledge.get("key_metadata", {})
-        tags = knowledge.get("tags", [])
+        tags = _dedupe_list([*(knowledge.get("tags", []) or []), *("hmi translation plc-hmi bilingual-text".split() if doc_kind == "hmi_translation_xlsx" else [])])
         documents.append(
             {
                 "doc_id": doc_id,
                 "title": title,
                 "source_file": manifest.get("source_file") or knowledge.get("source_file", ""),
                 "source_path": manifest.get("source_path") or key_metadata.get("source_path", ""),
-                "document_kind": manifest.get("document_kind") or knowledge.get("document_kind", ""),
+                "document_kind": doc_kind,
                 "quality_status": manifest.get("quality_status") or knowledge.get("quality_status", ""),
                 "extraction_status": manifest.get("extraction_status") or knowledge.get("extraction_status", ""),
                 "checksum": manifest.get("checksum") or key_metadata.get("checksum", ""),
@@ -250,9 +333,13 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
                 "batch_id": chunk.get("batch_id") or source.get("batch_id"),
                 "confidence": chunk.get("confidence") or source.get("confidence"),
                 "provenance_status": chunk.get("provenance_status") or source.get("provenance_status"),
+                "group_path": chunk.get("group_path") or source.get("group_path"),
+                "row_number": chunk.get("row_number") or source.get("row_number"),
                 "source_map": source,
                 "tags": chunk.get("tags") or tags,
             }
+            noise = _noise_profile(chunk_record)
+            chunk_record.update(noise)
             chunks.append(chunk_record)
             relations.append(_relation(doc_id, "document", chunk_record["chunk_id"], "chunk", "document_has_chunk", chunk_title, chunk_record["locator"]))
             if chunk_record["locator"]:
@@ -358,7 +445,10 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
               batch_id TEXT,
               confidence TEXT,
               provenance_status TEXT,
-              source_map_json TEXT
+              source_map_json TEXT,
+              is_noisy INTEGER,
+              noise_score REAL,
+              noise_reasons_json TEXT
             );
             CREATE TABLE entities (
               entity_id TEXT PRIMARY KEY,
@@ -419,7 +509,7 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
             )
         for chunk in rows["chunks"]:
             conn.execute(
-                "INSERT INTO chunks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO chunks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     chunk["chunk_id"],
                     chunk["doc_id"],
@@ -439,6 +529,9 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
                     chunk["confidence"],
                     chunk["provenance_status"],
                     _json(chunk["source_map"]),
+                    1 if chunk.get("is_noisy") else 0,
+                    chunk.get("noise_score", 0),
+                    _json(chunk.get("noise_reasons", [])),
                 ),
             )
             chunk_entities = " ".join(
@@ -452,7 +545,7 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
                     chunk["chunk_id"],
                     chunk["doc_id"],
                     chunk["title"],
-                    chunk["text"],
+                    _searchable_text(chunk["text"]),
                     " ".join(chunk["heading_path"]),
                     chunk["locator"] or "",
                     chunk_entities,
@@ -485,6 +578,7 @@ def _build_index(rows: Dict[str, List[Dict]], warnings: List[str]) -> Dict:
         if mention["chunk_id"] is None:
             entity_counts[mention["entity_id"]] += 1
     entity_by_id = {entity["entity_id"]: entity for entity in rows["entities"]}
+    top_entities = _top_entities_by_normalized_text(entity_counts, entity_by_id)
     doc_entities = defaultdict(list)
     for mention in rows["entity_mentions"]:
         if mention["chunk_id"] is None:
@@ -498,16 +592,7 @@ def _build_index(rows: Dict[str, List[Dict]], warnings: List[str]) -> Dict:
         "entities_count": len(rows["entities"]),
         "document_kind_distribution": dict(doc_counts),
         "evidence_type_distribution": dict(evidence_counts),
-        "top_entities": [
-            {
-                "entity_id": entity_id,
-                "entity_text": entity_by_id[entity_id]["entity_text"],
-                "entity_type": entity_by_id[entity_id]["entity_type"],
-                "count": count,
-            }
-            for entity_id, count in entity_counts.most_common(25)
-            if entity_id in entity_by_id
-        ],
+        "top_entities": top_entities,
         "documents": [
             {
                 "doc_id": doc["doc_id"],
@@ -524,6 +609,36 @@ def _build_index(rows: Dict[str, List[Dict]], warnings: List[str]) -> Dict:
         ],
         "warnings": warnings,
     }
+
+
+def _top_entities_by_normalized_text(entity_counts: Counter, entity_by_id: Dict[str, Dict]) -> List[Dict]:
+    grouped: Dict[str, Dict] = {}
+    for entity_id, count in entity_counts.items():
+        entity = entity_by_id.get(entity_id)
+        if not entity:
+            continue
+        normalized = entity["normalized_text"]
+        item = grouped.setdefault(
+            normalized,
+            {
+                "entity_id": entity_id,
+                "entity_ids": [],
+                "entity_text": entity["entity_text"],
+                "entity_type": entity["entity_type"],
+                "entity_types": [],
+                "normalized_text": normalized,
+                "count": 0,
+            },
+        )
+        item["entity_ids"].append(entity_id)
+        if entity["entity_type"] not in item["entity_types"]:
+            item["entity_types"].append(entity["entity_type"])
+        item["count"] += count
+        if len(entity["entity_text"]) < len(item["entity_text"]):
+            item["entity_text"] = entity["entity_text"]
+            item["entity_id"] = entity_id
+            item["entity_type"] = entity["entity_type"]
+    return sorted(grouped.values(), key=lambda item: (-item["count"], item["entity_text"].casefold()))[:25]
 
 
 def _build_library_manifest(input_root: Path, rows: Dict[str, List[Dict]], warnings: List[str]) -> Dict:
@@ -598,7 +713,10 @@ def _library_md(rows: Dict[str, List[Dict]], index: Dict, warnings: List[str]) -
         lines.extend(f"- [{doc['title']}]({doc['output_dir']}/document.md)" for doc in docs)
         lines.append("")
     lines.extend(["## Key Entities", ""])
-    lines.extend(f"- {item['entity_text']} ({item['entity_type']}): {item['count']}" for item in index["top_entities"][:15])
+    lines.extend(
+        f"- {item['entity_text']} ({', '.join(item.get('entity_types') or [item.get('entity_type', '')])}): {item['count']}"
+        for item in index["top_entities"][:15]
+    )
     lines.extend(["", "## Key Topics", ""])
     lines.extend(f"- {topic}" for topic in sorted({c["topic_label"] for c in rows["chunks"] if c.get("topic_label")})[:30])
     lines.extend(["", "## Batch IDs", ""])
@@ -703,10 +821,36 @@ def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
     lines.extend(["", "## Chunks Without Locator", ""])
     missing_locator = [chunk for chunk in rows["chunks"] if not chunk.get("locator")]
     lines.extend(f"- {chunk['chunk_id']}: {chunk['title']}" for chunk in missing_locator[:100]) or lines.append("_None._")
+    lines.extend(["", "## Noisy Chunks", ""])
+    noisy = [chunk for chunk in rows["chunks"] if chunk.get("is_noisy")]
+    lines.append(f"- noisy_chunks_count: {len(noisy)}")
+    noisy_by_doc = Counter(chunk["doc_id"] for chunk in noisy)
+    docs_by_id = {doc["doc_id"]: doc for doc in rows["documents"]}
+    if noisy_by_doc:
+        for doc_id, count in noisy_by_doc.most_common(20):
+            doc = docs_by_id.get(doc_id, {})
+            lines.append(f"- {doc.get('title', doc_id)}: {count}")
+    else:
+        lines.append("_None._")
+    lines.extend(["", "## HMI Translation Documents", ""])
+    hmi_docs = [doc for doc in rows["documents"] if doc["document_kind"] == "hmi_translation_xlsx"]
+    lines.extend(f"- {doc['title']}: {doc['output_dir']}" for doc in hmi_docs) or lines.append("_None._")
+    raw_text = [chunk for chunk in rows["chunks"] if chunk.get("evidence_type") == "text" and chunk.get("provenance_status") == "raw_markdown"]
+    lines.extend(["", "## Raw Text Chunks", "", f"- raw_text_chunks_count: {len(raw_text)}"])
     lines.extend(["", "## Documents Without Entities", ""])
     doc_mentions = {mention["doc_id"] for mention in rows["entity_mentions"] if mention["chunk_id"] is None}
     no_entities = [doc for doc in rows["documents"] if doc["doc_id"] not in doc_mentions]
     lines.extend(f"- {doc['title']}" for doc in no_entities) or lines.append("_None._")
+    lines.extend(
+        [
+            "",
+            "## Search Recommendations",
+            "",
+            "- PLC/HMI translation can be filtered with `--kind hmi_translation_xlsx`.",
+            "- Wiring/PLC drawing search can use `--evidence drawing_index --kind technical_drawing_pdf`.",
+            "- Suppress translation table hits with `--exclude-doc Translation`.",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -759,6 +903,10 @@ def _chunk_metadata(chunk: Dict, doc: Dict) -> Dict:
         "table_name": chunk.get("table_name"),
         "topic_label": chunk.get("topic_label"),
         "batch_id": chunk.get("batch_id"),
+        "group_path": chunk.get("group_path") or (chunk.get("source_map") or {}).get("group_path"),
+        "row_number": chunk.get("row_number") or (chunk.get("source_map") or {}).get("row_number"),
+        "is_noisy": chunk.get("is_noisy", False),
+        "noise_score": chunk.get("noise_score", 0),
     }
 
 
@@ -840,8 +988,10 @@ def _chunk_title(chunk: Dict, source: Dict, heading_path: List[str]) -> str:
         chunk.get("topic_label"),
         chunk.get("batch_id"),
         chunk.get("section_title"),
+        chunk.get("group_path"),
         chunk.get("table_name"),
         source.get("slide_title"),
+        source.get("group_path"),
     ]:
         if value:
             return str(value)
@@ -910,13 +1060,145 @@ def _number_from_name(name: str, prefix: str) -> int | None:
 
 
 def _preview(text: str, query: str = "", limit: int = 220) -> str:
-    clean = re.sub(r"\s+", " ", text or "").strip()
+    clean = _searchable_text(text)
     if query:
         first_term = query.split()[0].casefold()
         index = clean.casefold().find(first_term)
         if index > 40:
             clean = "..." + clean[index - 40 :]
     return clean[:limit].rstrip() + ("..." if len(clean) > limit else "")
+
+
+def _search_filters(
+    kinds: List[str],
+    evidences: List[str],
+    document: str | None,
+    exclude_docs: List[str],
+    has_locator: bool,
+) -> tuple[str, List[Any]]:
+    clauses = []
+    params: List[Any] = []
+    if kinds:
+        clauses.append(f"d.document_kind IN ({', '.join('?' for _ in kinds)})")
+        params.extend(kinds)
+    if evidences:
+        clauses.append(f"c.evidence_type IN ({', '.join('?' for _ in evidences)})")
+        params.extend(evidences)
+    if document:
+        clauses.append("(d.title LIKE ? OR d.source_file LIKE ?)")
+        like = f"%{document}%"
+        params.extend([like, like])
+    for value in exclude_docs:
+        clauses.append("d.title NOT LIKE ? AND d.source_file NOT LIKE ?")
+        like = f"%{value}%"
+        params.extend([like, like])
+    if has_locator:
+        clauses.append("c.locator IS NOT NULL AND c.locator != ''")
+    return (" AND " + " AND ".join(f"({clause})" for clause in clauses)) if clauses else "", params
+
+
+def _hmi_markdown_for_doc(doc: Dict) -> str:
+    for key in ["document_raw_md", "document_md"]:
+        path = doc.get(key)
+        if path:
+            try:
+                return Path(path).read_text(encoding="utf-8")
+            except OSError:
+                continue
+    return "\n".join(chunk.get("text", "") for chunk in doc.get("chunks", []))
+
+
+def _source_map_from_chunk(chunk: Dict) -> Dict:
+    keys = [
+        "source_file",
+        "heading_path",
+        "locator",
+        "evidence_type",
+        "provenance_status",
+        "sheet_name",
+        "table_name",
+        "row_start",
+        "row_end",
+        "row_number",
+        "group_path",
+        "hmi_path_tail",
+        "english_text",
+        "chinese_text",
+        "unit",
+    ]
+    return {key: chunk.get(key) for key in keys}
+
+
+def _noise_profile(chunk: Dict) -> Dict:
+    text = chunk.get("text") or ""
+    reasons = []
+    score = 0.0
+    tokens = max(len(re.findall(r"\S+", text)), 1)
+    nan_count = len(re.findall(r"\bNaN\b", text, flags=re.IGNORECASE))
+    if nan_count / tokens > 0.08:
+        reasons.append("nan_density")
+        score += min(nan_count / tokens * 5, 3)
+    base64_count = len(_BASE64_RE.findall(text))
+    if base64_count:
+        reasons.append("base64_like")
+        score += min(base64_count * 1.5, 4)
+    path_count = len(re.findall(r"[A-Za-z]:\\|\\\\|PLC\+HMI|\\Bilder\\|\\Textfeld", text))
+    if path_count / tokens > 0.03:
+        reasons.append("windows_or_hmi_path_density")
+        score += min(path_count / tokens * 5, 2.5)
+    tag_count = len(re.findall(r"<[^>\n]{2,40}>", text))
+    if tag_count / tokens > 0.05:
+        reasons.append("xml_html_tag_density")
+        score += min(tag_count / tokens * 4, 2)
+    if not chunk.get("locator"):
+        reasons.append("missing_locator")
+        score += 1
+    alpha_words = len(re.findall(r"\b[A-Za-z]{3,}\b", text))
+    if alpha_words / tokens < 0.15 and len(text) > 200:
+        reasons.append("low_natural_language_ratio")
+        score += 1
+    return {
+        "is_noisy": score >= 2.0,
+        "noise_score": round(score, 3),
+        "noise_reasons": _dedupe_list(reasons),
+    }
+
+
+_BASE64_RE = re.compile(r"\b[A-Za-z0-9+/]{60,}={0,2}\b")
+
+
+def _searchable_text(text: str) -> str:
+    clean = text or ""
+    clean = _BASE64_RE.sub("[base64]", clean)
+    clean = re.sub(r"\bNaN\b(?:\s*[|,;]\s*\bNaN\b){2,}", "[NaN omitted]", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"\bNaN\b", "", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"(?:[A-Za-z]:\\|\\\\|SY\d+_PLC\+HMI)[^\s|]{40,}", _path_tail, clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    return clean
+
+
+def _path_tail(match: re.Match) -> str:
+    value = match.group(0).replace("\\_", "_")
+    parts = [part for part in value.split("\\") if part]
+    return ".../" + "/".join(parts[-3:]) if len(parts) > 3 else value
+
+
+def _json_list(value: str | None) -> List:
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
+def _dedupe_list(values: List[Any]) -> List[Any]:
+    result = []
+    for value in values:
+        if value and value not in result:
+            result.append(value)
+    return result
 
 
 def _quality_issues(rows: Dict[str, List[Dict]], warnings: List[str]) -> List[str]:

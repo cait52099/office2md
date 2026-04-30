@@ -7,7 +7,10 @@ from office2md.postprocess.manual_structure import (
     build_section_aware_content,
     extract_toc_entries_from_pages,
 )
-from office2md.postprocess.office_structure import build_process_development_narrative
+from office2md.postprocess.office_structure import (
+    build_process_development_narrative,
+    hmi_translation_document_markdown,
+)
 
 
 def image_link(label: str, image_path: str, profile: str) -> str:
@@ -31,6 +34,8 @@ def build_document_body(
         return build_process_development_presentation_body(source_path, markdown, metadata)
     if metadata["document_kind"] == "release_rationale_docx":
         return build_release_rationale_body(source_path, markdown, metadata)
+    if metadata["document_kind"] == "hmi_translation_xlsx":
+        return hmi_translation_document_markdown(source_path, markdown, metadata)
 
     return "\n".join(
         [
@@ -466,6 +471,15 @@ def build_knowledge_json(
         "process_development_narrative",
         "sheet_names",
         "table_count",
+        "line",
+        "source_system",
+        "languages",
+        "sheets_count",
+        "rows_count",
+        "hmi_text_rows_count",
+        "unique_screen_paths_count",
+        "units_found",
+        "hmi_groups",
     ]:
         if key in metadata.get("extracted_metadata", {}):
             data[key] = metadata["extracted_metadata"][key]
@@ -496,10 +510,16 @@ def build_source_map(chunks: List[Dict]) -> Dict:
             "table_index": chunk.get("table_index"),
             "row_start": chunk.get("row_start"),
             "row_end": chunk.get("row_end"),
+            "row_number": chunk.get("row_number"),
             "drawing_index_entry": chunk.get("drawing_index_entry"),
             "topic_label": chunk.get("topic_label"),
             "slide_numbers": chunk.get("slide_numbers"),
             "batch_id": chunk.get("batch_id"),
+            "group_path": chunk.get("group_path"),
+            "hmi_path_tail": chunk.get("hmi_path_tail"),
+            "english_text": chunk.get("english_text"),
+            "chinese_text": chunk.get("chinese_text"),
+            "unit": chunk.get("unit"),
             "locators": chunk.get("locators"),
             "evidence_slides": chunk.get("evidence_slides"),
             "confidence": chunk.get("confidence"),
@@ -542,7 +562,18 @@ def enrich_chunks(
 
 
 def _evidence_type(chunk: Dict) -> str:
-    if chunk.get("evidence_type") in {"section", "slide", "table", "table_section", "topic", "batch_study", "drawing_index"}:
+    if chunk.get("evidence_type") in {
+        "section",
+        "slide",
+        "table",
+        "table_section",
+        "topic",
+        "batch_study",
+        "drawing_index",
+        "hmi_translation_table",
+        "hmi_translation_group",
+        "hmi_translation_row",
+    }:
         return chunk["evidence_type"]
     if chunk.get("image_path"):
         if (chunk.get("page_text") or "").strip() or int(chunk.get("page_text_char_count") or 0) > 0:

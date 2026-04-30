@@ -7,6 +7,8 @@ from typing import Dict, List, Tuple
 def classify_office_document_kind(path: Path, markdown: str) -> str:
     text = f"{path.name}\n{markdown}".lower()
     suffix = path.suffix.lower()
+    if suffix == ".xlsx" and is_hmi_translation_xlsx(path, markdown):
+        return "hmi_translation_xlsx"
     if suffix == ".xlsx" and ("mpdp" in text or "scaleup phase" in text):
         return "mpdp_table_xlsx"
     if suffix == ".pptx" and ("daily rescue eye serum" in text or "m4e" in text):
@@ -21,6 +23,8 @@ def extract_office_metadata(path: Path, markdown: str, document_kind: str) -> Di
         return _pptx_metadata(markdown)
     if document_kind == "mpdp_table_xlsx":
         return _xlsx_metadata(markdown)
+    if document_kind == "hmi_translation_xlsx":
+        return _hmi_translation_metadata(path, markdown)
     if document_kind == "release_rationale_docx":
         return _docx_metadata(path, markdown)
     return {}
@@ -37,6 +41,8 @@ def build_office_chunks(markdown: str, source_file: str, doc_slug: str, document
         chunks = _table_chunks(markdown, source_file, doc_slug)
         chunks.extend(build_xlsx_phase_chunks(markdown, source_file, doc_slug, len(chunks)))
         return chunks
+    if document_kind == "hmi_translation_xlsx":
+        return build_hmi_translation_chunks(markdown, source_file, doc_slug)
     return []
 
 
@@ -76,7 +82,24 @@ def office_tags(document_kind: str, metadata: Dict) -> List[str]:
     if document_kind == "release_rationale_docx":
         tags.extend(["release-rationale", "pppbc", "commercialization", "process-release"])
         tags.extend(["m4e", "viscosity", "w-si", "skincare"])
+    if document_kind == "hmi_translation_xlsx":
+        tags.extend(["hmi", "translation", "plc-hmi", "bilingual-text"])
     return _dedupe(tags)
+
+
+def is_hmi_translation_xlsx(path: Path, markdown: str) -> bool:
+    value = f"{path.name}\n{markdown}".lower()
+    score = 0
+    if "translation_chinese" in value or "translation chinese" in value:
+        score += 2
+    headers = ["category", "viewpath", "internal id", "en-gb", "zh-cn"]
+    if all(header in value for header in headers):
+        score += 3
+    if value.count("<hmi screen>") >= 3:
+        score += 2
+    if any(token in value for token in ["plc+hmi", "bilder", "textfeld"]):
+        score += 1
+    return score >= 3
 
 
 def extract_pptx_slide_index(markdown: str) -> List[Dict]:
@@ -319,6 +342,321 @@ def _table_chunks(markdown: str, source_file: str, doc_slug: str) -> List[Dict]:
             "locator": f"Sheet: {sheet_name} / Table 1",
         }
     ]
+
+
+def build_hmi_translation_chunks(markdown: str, source_file: str, doc_slug: str) -> List[Dict]:
+    rows = parse_hmi_translation_rows(markdown)
+    sheet_name = _first_heading(markdown) or "User Texts"
+    chunks: List[Dict] = []
+    table_text = _hmi_table_summary_text(rows, source_file)
+    chunks.append(
+        {
+            "chunk_id": f"{doc_slug}_0001",
+            "source_file": source_file,
+            "heading_path": [sheet_name],
+            "text": table_text,
+            "char_count": len(table_text),
+            "evidence_type": "hmi_translation_table",
+            "provenance_status": "xlsx_hmi_translation",
+            "sheet_name": sheet_name,
+            "table_name": f"{sheet_name} / HMI Translation Table",
+            "row_start": min((row["row_number"] for row in rows), default=None),
+            "row_end": max((row["row_number"] for row in rows), default=None),
+            "locator": f"Sheet: {sheet_name}",
+        }
+    )
+    groups: Dict[str, List[Dict]] = {}
+    for row in rows:
+        groups.setdefault(row["group_path"], []).append(row)
+    for group_path, group_rows in sorted(groups.items()):
+        text = _hmi_group_text(group_path, group_rows)
+        chunks.append(
+            {
+                "chunk_id": f"{doc_slug}_{len(chunks) + 1:04d}",
+                "source_file": source_file,
+                "heading_path": [group_path],
+                "text": text,
+                "char_count": len(text),
+                "evidence_type": "hmi_translation_group",
+                "provenance_status": "xlsx_hmi_translation",
+                "sheet_name": sheet_name,
+                "group_path": group_path,
+                "row_start": min(row["row_number"] for row in group_rows),
+                "row_end": max(row["row_number"] for row in group_rows),
+                "locator": f"Sheet: {sheet_name} / Group: {group_path}",
+            }
+        )
+    row_limit = 250
+    for row in rows[:row_limit]:
+        text = _hmi_row_text(row)
+        chunks.append(
+            {
+                "chunk_id": f"{doc_slug}_{len(chunks) + 1:04d}",
+                "source_file": source_file,
+                "heading_path": [row["group_path"], row["field"]],
+                "text": text,
+                "char_count": len(text),
+                "evidence_type": "hmi_translation_row",
+                "provenance_status": "xlsx_hmi_translation",
+                "sheet_name": sheet_name,
+                "row_number": row["row_number"],
+                "row_start": row["row_number"],
+                "row_end": row["row_number"],
+                "group_path": row["group_path"],
+                "hmi_path_tail": row["hmi_path_tail"],
+                "english_text": row["english_text"],
+                "chinese_text": row["chinese_text"],
+                "unit": row["unit"],
+                "locator": f"Sheet: {sheet_name} / Row: {row['row_number']}",
+            }
+        )
+    return chunks
+
+
+def parse_hmi_translation_rows(markdown: str) -> List[Dict]:
+    rows: List[Dict] = []
+    header: List[str] = []
+    for line in markdown.splitlines():
+        if not line.strip().startswith("|") or re.search(r"^\|\s*-+", line):
+            continue
+        cells = [_clean_hmi_cell(cell) for cell in _split_markdown_row(line)]
+        if not header:
+            header = [re.sub(r"\\?\*", "", cell).strip().lower() for cell in cells]
+            continue
+        if len(cells) < 6:
+            continue
+        row_data = {header[index]: cells[index] for index in range(min(len(header), len(cells)))}
+        category = row_data.get("category", "")
+        view_path = row_data.get("viewpath", "")
+        english = row_data.get("en-gb", "")
+        chinese = row_data.get("zh-cn", "")
+        if not view_path or (not english and not chinese):
+            continue
+        if category and category.lower() != "<hmi screen>" and "<hmi screen>" not in category.lower():
+            continue
+        row_number = len(rows) + 2
+        group_path = _hmi_group_path(view_path)
+        unit = _hmi_unit(english, chinese)
+        rows.append(
+            {
+                "row_number": row_number,
+                "category": category,
+                "view_path": view_path,
+                "group_path": group_path,
+                "field": _hmi_field(view_path),
+                "hmi_path_tail": _hmi_path_tail(view_path),
+                "english_text": english,
+                "chinese_text": chinese,
+                "unit": unit,
+            }
+        )
+    return rows
+
+
+def hmi_translation_document_markdown(source_path: Path, markdown: str, metadata: Dict) -> str:
+    extracted = metadata.get("extracted_metadata", {})
+    rows = parse_hmi_translation_rows(markdown)
+    groups: Dict[str, List[Dict]] = {}
+    for row in rows:
+        groups.setdefault(row["group_path"], []).append(row)
+    lines = [
+        f"# {metadata['title']}",
+        "",
+        "## Document Summary",
+        "",
+        f"{extracted.get('project_number', 'SY909735')} PLC/HMI bilingual text translation table for CML125.",
+        "",
+        "## Key Metadata",
+        "",
+        f"- source_file: {metadata['source_file']}",
+        "- document_kind: hmi_translation_xlsx",
+        f"- project_number: {extracted.get('project_number', '')}",
+        f"- line: {extracted.get('line', '')}",
+        f"- source_system: {extracted.get('source_system', '')}",
+        f"- languages: {', '.join(extracted.get('languages', []))}",
+        "",
+        "## HMI Translation Overview",
+        "",
+        f"- sheets_count: {extracted.get('sheets_count', 0)}",
+        f"- rows_count: {extracted.get('rows_count', 0)}",
+        f"- hmi_text_rows_count: {extracted.get('hmi_text_rows_count', 0)}",
+        f"- unique_screen_paths_count: {extracted.get('unique_screen_paths_count', 0)}",
+        f"- units_found: {', '.join(extracted.get('units_found', []))}",
+        "",
+        "## HMI Text Groups",
+        "",
+    ]
+    for group_path, group_rows in sorted(groups.items()):
+        lines.extend([f"### {group_path}", "", "| Row | Screen Group | Field | en-GB | zh-CN | Unit | Source |", "|---|---|---|---|---|---|---|"])
+        for row in group_rows[:25]:
+            lines.append(
+                "| {row_number} | {group} | {field} | {english} | {chinese} | {unit} | {source} |".format(
+                    row_number=row["row_number"],
+                    group=_escape_table_cell(group_path),
+                    field=_escape_table_cell(row["field"]),
+                    english=_escape_table_cell(row["english_text"]),
+                    chinese=_escape_table_cell(row["chinese_text"]),
+                    unit=_escape_table_cell(row["unit"]),
+                    source=f"Sheet: User Texts / Row: {row['row_number']}",
+                )
+            )
+        if len(group_rows) > 25:
+            lines.append(f"| ... | {len(group_rows) - 25} additional rows |  |  |  |  | Sheet: User Texts |")
+        lines.append("")
+    lines.extend(
+        [
+            "## Source Traceability",
+            "",
+            f"- source_path: {metadata['source_path']}",
+            f"- checksum: {metadata['checksum']}",
+            "",
+            "## Raw Content",
+            "",
+            "Original XLSX table content is retained in document.raw.md. Opaque identifiers, all-empty reference columns, long PLC/HMI paths, and repeated empty cells are omitted from the searchable Markdown body.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _hmi_translation_metadata(path: Path, markdown: str) -> Dict:
+    rows = parse_hmi_translation_rows(markdown)
+    sheet = _first_heading(markdown) or "User Texts"
+    units = _dedupe([row["unit"] for row in rows if row.get("unit")])
+    groups = _dedupe([row["group_path"] for row in rows])
+    return {
+        "document_type": "hmi translation",
+        "project_number": _first([r"\b(SY\d{6,})\b"], f"{path}\n{markdown}") or "SY909735",
+        "line": "CML125" if re.search(r"\bCML\s*125\b|CML125", str(path), re.IGNORECASE) else "",
+        "source_system": "PLC/HMI",
+        "languages": ["en-GB", "zh-CN"],
+        "sheet_names": [sheet],
+        "sheets_count": 1 if sheet else 0,
+        "rows_count": rows[-1]["row_number"] - 1 if rows else 0,
+        "hmi_text_rows_count": len(rows),
+        "unique_screen_paths_count": len({row["view_path"] for row in rows}),
+        "units_found": units,
+        "hmi_groups": groups,
+        "table_count": 1 if rows else 0,
+    }
+
+
+def _hmi_table_summary_text(rows: List[Dict], source_file: str) -> str:
+    units = ", ".join(_dedupe([row["unit"] for row in rows if row.get("unit")]))
+    groups = ", ".join(_dedupe([row["group_path"] for row in rows])[:20])
+    return "\n".join(
+        [
+            f"HMI translation table: {source_file}",
+            "Source: Sheet: User Texts",
+            f"Rows: {len(rows)}",
+            "Languages: en-GB, zh-CN",
+            f"Units: {units}",
+            f"Screen groups: {groups}",
+        ]
+    )
+
+
+def _hmi_group_text(group_path: str, rows: List[Dict]) -> str:
+    lines = [f"HMI screen group: {group_path}", f"Rows: {len(rows)}"]
+    for row in rows[:40]:
+        lines.append(
+            "Row {row}: {field}; en-GB={english}; zh-CN={chinese}; unit={unit}".format(
+                row=row["row_number"],
+                field=row["field"],
+                english=row["english_text"],
+                chinese=row["chinese_text"],
+                unit=row["unit"],
+            )
+        )
+    if len(rows) > 40:
+        lines.append(f"... {len(rows) - 40} additional rows")
+    return "\n".join(lines)
+
+
+def _hmi_row_text(row: Dict) -> str:
+    parts = [
+        f"HMI screen group: {row['group_path']}",
+        f"Field: {row['field']}",
+        f"en-GB: {row['english_text']}",
+        f"zh-CN: {row['chinese_text']}",
+    ]
+    if row.get("unit"):
+        parts.append(f"Unit: {row['unit']}")
+    parts.append(f"Path tail: {row['hmi_path_tail']}")
+    return "\n".join(parts)
+
+
+def _clean_hmi_cell(value: str) -> str:
+    cell = value.strip()
+    cell = cell.replace(r"\_", "_")
+    cell = cell.replace("掳C", "\u00b0C")
+    cell = re.sub(r"\s+", " ", cell)
+    if cell.lower() == "nan":
+        return ""
+    return cell
+
+
+def _hmi_group_path(view_path: str) -> str:
+    parts = _hmi_path_parts(view_path)
+    structural = {"bilder", "bildverwaltung", "vorlagen", "group", "template", "guid"}
+    meaningful = []
+    for part in parts:
+        normalized = part.lower()
+        if part.startswith("SY") or "(HMI)" in part or normalized in structural:
+            continue
+        if _is_hmi_field_level_token(part):
+            if meaningful:
+                break
+            continue
+        if re.fullmatch(r"group_\d+|guid_\{?[0-9-]+\}?|text(?:\s+aus)?", part, re.IGNORECASE):
+            if meaningful:
+                break
+            continue
+        meaningful.append(part)
+        if len(meaningful) >= 2:
+            break
+    return " / ".join(meaningful[:2]) or "HMI Screens"
+
+
+def _is_hmi_field_level_token(part: str) -> bool:
+    return bool(
+        re.search(
+            r"textfeld|textfield|symbolisches\s+ea-feld|ea-feld|bildbaustein|template_schaltfl(?:a|ä|盲)che|schaltfl(?:a|ä|盲)che",
+            part,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _hmi_field(view_path: str) -> str:
+    parts = _hmi_path_parts(view_path)
+    for part in reversed(parts):
+        if part and not re.fullmatch(r"text(?:\s+aus)?|guid_\{?[0-9-]+\}?", part, flags=re.IGNORECASE):
+            return part
+    return "Text"
+
+
+def _hmi_path_tail(view_path: str) -> str:
+    parts = _hmi_path_parts(view_path)
+    return " / ".join(parts[-4:])
+
+
+def _hmi_path_parts(view_path: str) -> List[str]:
+    cleaned = _clean_hmi_cell(view_path)
+    cleaned = re.sub(r"^SY\d+_PLC\+HMI_V\d+\\", "", cleaned, flags=re.IGNORECASE)
+    return [part.strip("_ ") for part in cleaned.split("\\") if part.strip("_ ")]
+
+
+def _hmi_unit(english: str, chinese: str) -> str:
+    for value in [english, chinese]:
+        normalized = value.strip()
+        if normalized in {"kg", "%", "\u00b0C", "h", "s", "min", "L", "l/min", "L/min", "rpm", "bar"}:
+            return normalized
+    return ""
+
+
+def _escape_table_cell(value: str) -> str:
+    return str(value or "").replace("|", "/")
 
 
 def _pptx_metadata(markdown: str) -> Dict:

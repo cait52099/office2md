@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from office2md.library import build_library, search_library
+from office2md.library import build_library, locate_document, search_library
 
 
 def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
@@ -61,6 +61,49 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
         [_chunk("docx_text", "text", ["Executive Summary"], "Release rationale for M4E process", None)],
         {"mass_code": ["43DS-00-M01U"]},
     )
+    _write_doc(
+        output_root / "hmi",
+        "hmi-doc",
+        "Copy of SY909735_Translation_Chinese ver.1.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk(
+                "hmi_table",
+                "hmi_translation_table",
+                ["User Texts"],
+                "HMI translation table SY909735 PLC HMI",
+                "Sheet: User Texts",
+                sheet_name="User Texts",
+            ),
+            _chunk(
+                "hmi_row",
+                "hmi_translation_row",
+                ["C1 Contr_1 / Einsaugungen", "Textfeld_84"],
+                "HMI screen group: C1 Contr_1 / Einsaugungen\nField: Textfeld_84\nen-GB: PLC speed\nzh-CN: PLC speed\nUnit: %",
+                "Sheet: User Texts / Row: 2",
+                sheet_name="User Texts",
+                group_path="C1 Contr_1 / Einsaugungen",
+                row_number=2,
+            ),
+        ],
+        {"project_number": ["SY909735"], "order_number": ["SY909735"], "equipment": ["PLC", "HMI"], "document_type": ["hmi translation"]},
+    )
+    _write_doc(
+        output_root / "noisy",
+        "noisy-doc",
+        "Noisy.xlsx",
+        "document",
+        [
+            _chunk(
+                "noisy_raw",
+                "text",
+                ["User Texts"],
+                ("NaN | " * 30) + "C:/Users/example/SY909735_PLC+HMI_V15/SY909735/Bilder/C1/Textfeld " + ("USb22NXN1iivCY2FKzp8v7Sq2hPlEwHfLKjBbqfgJyfmaQ4JYrVkKmbeLAeBIqMWurSKbtWwEE6MNYEwFuyxV4wHu3AALNDcU6t5qketBTsGWG80byDKlAobccs4g " * 2),
+                None,
+            )
+        ],
+        {"project_number": ["SY909735"]},
+    )
     _write_failed_doc(output_root / "failed")
     _write_missing_entities_doc(output_root / "missing")
     before = sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*"))
@@ -70,7 +113,7 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
 
     after = sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*"))
     assert before == after
-    assert result["documents_count"] == 6
+    assert result["documents_count"] == 8
     assert result["warnings"]
     assert (library_dir / "library.db").exists()
     assert (library_dir / "library_manifest.json").exists()
@@ -87,8 +130,10 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
     ]:
         assert (library_dir / "exports" / name).exists()
     manifest = json.loads((library_dir / "library_manifest.json").read_text(encoding="utf-8"))
+    index_json = json.loads((library_dir / "library_index.json").read_text(encoding="utf-8"))
+    library_md = (library_dir / "_library.md").read_text(encoding="utf-8")
     assert manifest["schema_version"] == "1"
-    assert manifest["documents_count"] == 6
+    assert manifest["documents_count"] == 8
     assert manifest["exports_count"] == 4
     assert manifest["release_label"] == "v0.2.0-rc1"
 
@@ -104,10 +149,27 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
         "manual_pdf",
         "technical_drawing_pdf",
         "release_rationale_docx",
+        "hmi_translation_xlsx",
     }.issubset(kinds)
-    assert {"slide", "table", "table_section", "page", "section", "drawing_index", "batch_study", "topic"}.issubset(evidence)
+    assert {
+        "slide",
+        "table",
+        "table_section",
+        "page",
+        "section",
+        "drawing_index",
+        "batch_study",
+        "topic",
+        "hmi_translation_table",
+        "hmi_translation_row",
+    }.issubset(evidence)
     assert entities_count == len(_entity_rows(library_dir / "library.db"))
     assert locator == "Slide 20"
+    sy_entities = [item for item in index_json["top_entities"] if item["normalized_text"] == "sy909735"]
+    assert len(sy_entities) == 1
+    assert {"project_number", "order_number"}.issubset(set(sy_entities[0]["entity_types"]))
+    key_entities = library_md.split("## Key Entities", 1)[1].split("## Key Topics", 1)[0]
+    assert key_entities.count("SY909735") == 1
 
     graph = json.loads((library_dir / "library_graph.json").read_text(encoding="utf-8"))
     node_types = {node["type"] for node in graph["nodes"]}
@@ -116,6 +178,20 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
     assert search_library(library_dir / "library.db", "M4E")
     assert search_library(library_dir / "library.db", "SY909735")
     assert search_library(library_dir / "library.db", "VL324017")
+    assert search_library(library_dir / "library.db", "PLC", limit=1)[0]["output_dir"]
+    assert search_library(library_dir / "library.db", "PLC", kinds=["hmi_translation_xlsx"])[0]["document_kind"] == "hmi_translation_xlsx"
+    assert search_library(library_dir / "library.db", "PLC", evidences=["hmi_translation_row"])[0]["evidence_type"] == "hmi_translation_row"
+    assert all("Translation" not in item["source_file"] for item in search_library(library_dir / "library.db", "PLC", exclude_docs=["Translation"]))
+    assert all(item["locator"] for item in search_library(library_dir / "library.db", "SY909735", has_locator=True))
+    noisy = search_library(library_dir / "library.db", "Textfeld", document="Noisy", limit=5)
+    assert noisy[0]["is_noisy"]
+    assert "NaN | NaN" not in noisy[0]["preview"]
+    assert "[base64]" in noisy[0]["preview"]
+    located = locate_document(library_dir, "Translation")
+    assert located[0]["document_kind"] == "hmi_translation_xlsx"
+    assert located[0]["output_dir"]
+    located_from_db = locate_document(library_dir / "library.db", "Translation")
+    assert located_from_db[0]["document_kind"] == "hmi_translation_xlsx"
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict):
