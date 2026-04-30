@@ -188,3 +188,21 @@ v0.2.0-rc4 Phase 3.0.3a quality/search checkpoint evidence:
 - [ ] `search-library "homogenizer cooling"` returns useful hits with `fallback: token`.
 - [ ] `search-library "alarm history"` returns useful hits with `fallback: token`.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.3a.
+
+v0.2.0-rc5 Phase 3.0.4 200-file validation checkpoint evidence:
+
+- [ ] Python version is 3.11.9.
+- [ ] `python -m pytest` reports 60 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CML125 200-file conversion records 200 manifests, 200 success, and 0 failed.
+- [ ] CML125 200-file manifests record OCR used 0 and AI used 0.
+- [ ] Initial convert hit output-pipe/tool timeout after 103 outputs, then resumed with `--skip-existing` and redirected logs; final output is valid.
+- [ ] Manifest warnings are mainly Docling fallback caused by `LocalEntryNotFoundError / WinError 10054`, not OCR or AI usage.
+- [ ] `office2md build-library` succeeds with build warnings 0.
+- [ ] 200-file library reports documents 200, chunks 1751, entities 267.
+- [ ] 200-file document kind distribution is `datasheet_pdf: 112`, `component_document_pdf: 35`, `certificate_pdf: 25`, `manual_pdf: 9`, `generic_pdf: 8`, `technical_drawing_pdf: 4`, `report_pdf: 3`, `document: 2`, `hmi_translation_xlsx: 1`, `project_book_pdf: 1`.
+- [ ] 200-file evidence distribution is `drawing_index: 400`, `hmi_translation_group: 138`, `hmi_translation_row: 250`, `hmi_translation_table: 1`, `image: 31`, `page: 508`, `section: 8`, `text: 4`, `text_page: 411`.
+- [ ] 200-file quality metrics are `low_quality_documents: 16`, `page_level_pdf_documents: 181`, `noisy_chunks_count: 0`, `noisy_documents: 0`, `chunks_without_locator: 4`, `missing_assets_summary: 0`.
+- [ ] Search smoke tests pass for Translation, SY909735, CML125, homogenizer cooling, alarm history, temperature probe, 1V2005, 2M2001, CIP, and seal.
+- [ ] Minor `_quality_report.md` extra `_None._` formatting issue is noted as cosmetic follow-up.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, full-directory validation, or Phase 3.1 work is included.
