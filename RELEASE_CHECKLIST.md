@@ -159,3 +159,19 @@ v0.2.0-rc2 HMI translation and search usability validation evidence:
 - [ ] `search-library "SY909735" --limit 20` returns relevant CML125/SY909735 results.
 - [ ] Windows PowerShell note documents that Office temporary files `~$*` are skipped automatically and that `--exclude "~$*"` should be avoided for now.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.1.
+
+v0.2.0-rc3 100-file validation and duplicate-ID checkpoint evidence:
+
+- [ ] `python -m pytest` reports 57 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CML125 100-file conversion completes with Success 100, Failed 0, Skipped 0.
+- [ ] 100-file manifests record `ocr_used: false` and `ai_used: false`.
+- [ ] `office2md build-library` succeeds on the CML125 100-file output root with duplicate checksum files present.
+- [ ] 100-file library reports documents 100, chunks 1205, entities 261, warnings 0.
+- [ ] 100-file evidence distribution is `drawing_index: 400`, `hmi_translation_group: 138`, `hmi_translation_row: 250`, `hmi_translation_table: 1`, `image: 27`, `page: 248`, `text: 4`, `text_page: 137`.
+- [ ] 100-file quality report records noisy chunks 0 and chunks without locator 4.
+- [ ] Duplicate checksum outputs receive unique library document IDs without changing non-duplicate document IDs.
+- [ ] Duplicate chunk IDs receive unique library chunk IDs while preserving source-map evidence and locators.
+- [ ] 100-file review library records 100 distinct document IDs and 1205 distinct chunk IDs.
+- [ ] `search-library` smoke tests pass for Translation, SY909735, homogenizer, and alarm.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, or Office image export is used in Phase 3.0.2.

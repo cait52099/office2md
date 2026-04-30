@@ -194,6 +194,26 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
     assert located_from_db[0]["document_kind"] == "hmi_translation_xlsx"
 
 
+def test_build_library_handles_duplicate_document_and_chunk_ids(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    chunks = [_chunk("duplicate_chunk", "page", ["Page"], "Duplicate terminal data", "Page 1", page_number=1)]
+    _write_doc(output_root / "copy-a", "same-checksum", "Part.pdf", "generic_pdf", [dict(chunks[0])], {"equipment": ["terminal"]})
+    _write_doc(output_root / "copy-b", "same-checksum", "Part.pdf", "generic_pdf", [dict(chunks[0])], {"equipment": ["terminal"]})
+
+    library_dir = tmp_path / "library"
+    result = build_library(output_root, library_dir)
+
+    assert result["documents_count"] == 2
+    with sqlite3.connect(library_dir / "library.db") as conn:
+        doc_ids = [row[0] for row in conn.execute("SELECT doc_id FROM documents ORDER BY output_dir")]
+        chunk_ids = [row[0] for row in conn.execute("SELECT chunk_id FROM chunks ORDER BY chunk_id")]
+
+    assert len(doc_ids) == len(set(doc_ids)) == 2
+    assert len(chunk_ids) == len(set(chunk_ids)) == 2
+    assert any(doc_id.startswith("same-checksum-") for doc_id in doc_ids)
+
+
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict):
     path.mkdir(parents=True)
     manifest = {

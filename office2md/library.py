@@ -236,14 +236,17 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
     assets = []
     relations = []
     asset_seen = set()
+    used_doc_ids = set()
+    used_chunk_ids = set()
 
     for doc in docs:
         manifest = doc["manifest"]
         knowledge = doc.get("knowledge", {})
         source_map = doc.get("source_map", {})
         doc_chunks = doc.get("chunks", [])
-        doc_id = _doc_id(manifest, knowledge, doc_chunks)
         output_dir = doc["output_dir"]
+        rel_output = _relative_or_absolute(output_dir, input_root)
+        doc_id = _unique_record_id(_doc_id(manifest, knowledge, doc_chunks), rel_output, used_doc_ids)
         doc_kind = manifest.get("document_kind") or knowledge.get("document_kind", "")
         hmi_markdown = _hmi_markdown_for_doc(doc)
         if hmi_markdown and is_hmi_translation_xlsx(Path(manifest.get("source_file") or "document.xlsx"), hmi_markdown):
@@ -253,7 +256,6 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
             if not any(str(chunk.get("evidence_type", "")).startswith("hmi_translation_") for chunk in doc_chunks):
                 doc_chunks = build_hmi_translation_chunks(hmi_markdown, manifest.get("source_file", ""), Path(manifest.get("source_file", "hmi_translation")).stem)
                 source_map = {chunk["chunk_id"]: _source_map_from_chunk(chunk) for chunk in doc_chunks}
-        rel_output = _relative_or_absolute(output_dir, input_root)
         title = knowledge.get("title") or Path(manifest.get("source_file") or output_dir.name).stem
         key_metadata = knowledge.get("key_metadata", {})
         tags = _dedupe_list([*(knowledge.get("tags", []) or []), *("hmi translation plc-hmi bilingual-text".split() if doc_kind == "hmi_translation_xlsx" else [])])
@@ -311,11 +313,13 @@ def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dic
             )
 
         for chunk in doc_chunks:
-            source = source_map.get(chunk.get("chunk_id"), {})
+            original_chunk_id = chunk.get("chunk_id")
+            chunk_id = _unique_record_id(original_chunk_id or f"{doc_id}_chunk", doc_id, used_chunk_ids)
+            source = source_map.get(original_chunk_id, {})
             heading_path = chunk.get("heading_path") or source.get("heading_path") or []
             chunk_title = _chunk_title(chunk, source, heading_path)
             chunk_record = {
-                "chunk_id": chunk.get("chunk_id"),
+                "chunk_id": chunk_id,
                 "doc_id": doc_id,
                 "source_file": chunk.get("source_file") or manifest.get("source_file", ""),
                 "evidence_type": chunk.get("evidence_type") or source.get("evidence_type"),
@@ -951,6 +955,21 @@ def _doc_id(manifest: Dict, knowledge: Dict, chunks: List[Dict]) -> str:
             return str(chunk["doc_id"])
     checksum = manifest.get("checksum") or knowledge.get("key_metadata", {}).get("checksum") or manifest.get("source_file", "document")
     return re.sub(r"[^A-Za-z0-9_-]+", "_", str(checksum).split(":", 1)[-1][:32])
+
+
+def _unique_record_id(base_id: Any, suffix_hint: Any, used: set[str]) -> str:
+    base = re.sub(r"[^A-Za-z0-9_-]+", "_", str(base_id or "record")).strip("_") or "record"
+    if base not in used:
+        used.add(base)
+        return base
+    suffix = re.sub(r"[^A-Za-z0-9_-]+", "_", str(suffix_hint or "duplicate")).strip("_") or "duplicate"
+    candidate = f"{base}-{suffix}"
+    counter = 2
+    while candidate in used:
+        candidate = f"{base}-{suffix}-{counter}"
+        counter += 1
+    used.add(candidate)
+    return candidate
 
 
 def _entities_from_json(data: Dict) -> List[Dict]:
