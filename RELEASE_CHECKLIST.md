@@ -206,3 +206,20 @@ v0.2.0-rc5 Phase 3.0.4 200-file validation checkpoint evidence:
 - [ ] Search smoke tests pass for Translation, SY909735, CML125, homogenizer cooling, alarm history, temperature probe, 1V2005, 2M2001, CIP, and seal.
 - [ ] Minor `_quality_report.md` extra `_None._` formatting issue is noted as cosmetic follow-up.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, full-directory validation, or Phase 3.1 work is included.
+
+v0.2.0-rc6 Phase 3.0.5b operational runner checkpoint evidence:
+
+- [ ] `python -m pytest` reports 60 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `scripts/Invoke-Office2MdChunkedConvert.ps1` supports `-DryRun`.
+- [ ] Runner does not delete input files and only creates output/log directories.
+- [ ] Runner starts `office2md convert` with `--skip-existing`.
+- [ ] Runner redirects stdout and stderr to timestamped logs.
+- [ ] Runner counts generated `manifest.json` files.
+- [ ] Runner stops only the process tree it launched when an attempt exceeds timeout.
+- [ ] Runner supports `-MaxFiles` and `-FullDirectory`.
+- [ ] Runner uses `office2md.scanner.scan_input` to calculate supported file count.
+- [ ] `-MaxFiles 3 -DryRun` reports supported files 598 and expected manifests 3.
+- [ ] `-FullDirectory -DryRun` reports supported files 598 and expected manifests 598.
+- [ ] `docs/ops/cml125_batch_validation.md` documents why the runner exists, when to use it, 300-file and full-directory examples, and OneDrive/on-demand hydration risk.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, full-directory validation, or Phase 3.1 work is included.
