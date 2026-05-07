@@ -92,11 +92,14 @@ def search_library(
     kinds: List[str] | None = None,
     evidences: List[str] | None = None,
     document: str | None = None,
+    output_dir: str | None = None,
+    entities: List[str] | None = None,
     exclude_docs: List[str] | None = None,
     has_locator: bool = False,
+    related: int = 0,
 ) -> List[Dict]:
     db_path = _resolve_db_path(library_db)
-    filters, params = _search_filters(kinds or [], evidences or [], document, exclude_docs or [], has_locator)
+    filters, params = _search_filters(kinds or [], evidences or [], document, output_dir, entities or [], exclude_docs or [], has_locator)
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         rows = _search_rows(conn, query, filters, params, limit, offset)
@@ -104,23 +107,28 @@ def search_library(
         if not rows and _is_multi_term_query(query):
             rows = _fallback_token_search(conn, query, filters, params, limit, offset)
             fallback_used = bool(rows)
-    return _search_results(rows, query, offset, fallback_used)
+        results = _search_results(rows, query, offset, fallback_used)
+        if related > 0:
+            for result in results:
+                result["related_chunks"] = _related_chunks(conn, result["chunk_id"], related)
+    return results
 
 
 def _search_rows(conn: sqlite3.Connection, query: str, filters: str, params: List[Any], limit: int, offset: int) -> List[sqlite3.Row]:
     try:
+        rank_adjustment = _rank_adjustment_sql()
         sql = f"""
             SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
                    c.is_noisy, c.noise_score, c.noise_reasons_json,
                    d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
-                   bm25(chunks_fts) AS score,
+                   bm25(chunks_fts) + {rank_adjustment} AS score,
                    COUNT(*) OVER() AS total_hits
             FROM chunks_fts
             JOIN chunks c ON c.chunk_id = chunks_fts.chunk_id
             JOIN documents d ON d.doc_id = c.doc_id
             WHERE chunks_fts MATCH ?
             {filters}
-            ORDER BY score + CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+            ORDER BY score
             LIMIT ? OFFSET ?
             """
         return conn.execute(sql, [query, *params, limit, offset]).fetchall()
@@ -136,7 +144,7 @@ def _search_rows(conn: sqlite3.Connection, query: str, filters: str, params: Lis
             JOIN documents d ON d.doc_id = c.doc_id
             WHERE (c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?)
             {filters}
-            ORDER BY CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+            ORDER BY {_rank_adjustment_sql()}
             LIMIT ? OFFSET ?
             """
         return conn.execute(sql, [like, like, like, like, *params, limit, offset]).fetchall()
@@ -156,7 +164,13 @@ def _fallback_token_search(conn: sqlite3.Connection, query: str, filters: str, p
             current["matched_tokens"].add(token)
     ranked = sorted(
         merged.values(),
-        key=lambda item: (-item["token_hits"], item["best_rank"], bool(item["is_noisy"]), item.get("noise_score") or 0),
+        key=lambda item: (
+            -item["token_hits"],
+            item["best_rank"],
+            _rank_adjustment_value(item),
+            bool(item["is_noisy"]),
+            item.get("noise_score") or 0,
+        ),
     )
     selected = ranked[offset : offset + limit]
     total_hits = len(ranked)
@@ -180,9 +194,166 @@ def _search_results(rows: List[Any], query: str, offset: int, fallback_used: boo
             "noise_reasons": _json_list(row["noise_reasons_json"]),
             "total_hits": row["total_hits"],
             "fallback_used": fallback_used,
+            "mode": "token_fallback" if fallback_used else "fts",
             "preview": _preview(row["text"], query),
         }
         for index, row in enumerate(rows, start=offset)
+    ]
+
+
+def search_library_facets(
+    library_db: Path,
+    query: str,
+    kinds: List[str] | None = None,
+    evidences: List[str] | None = None,
+    document: str | None = None,
+    output_dir: str | None = None,
+    entities: List[str] | None = None,
+    exclude_docs: List[str] | None = None,
+    has_locator: bool = False,
+    limit: int = 8,
+) -> Dict[str, List[Dict]]:
+    results = search_library(
+        library_db,
+        query,
+        limit=250,
+        kinds=kinds or [],
+        evidences=evidences or [],
+        document=document,
+        output_dir=output_dir,
+        entities=entities or [],
+        exclude_docs=exclude_docs or [],
+        has_locator=has_locator,
+    )
+    chunk_ids = [item["chunk_id"] for item in results]
+    facets: Dict[str, List[Dict]] = {
+        "document_kind": _count_facet(results, "document_kind", limit),
+        "evidence_type": _count_facet(results, "evidence_type", limit),
+        "source_file": _count_facet(results, "source_file", limit),
+        "output_dir": _count_facet(results, "output_dir", limit),
+        "has_locator": _count_locator_facet(results),
+        "entity": [],
+    }
+    if chunk_ids:
+        db_path = _resolve_db_path(library_db)
+        placeholders = ",".join("?" for _ in chunk_ids)
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                f"""
+                SELECT e.entity_text AS value, COUNT(*) AS count
+                FROM entity_mentions m
+                JOIN entities e ON e.entity_id = m.entity_id
+                WHERE m.chunk_id IN ({placeholders})
+                GROUP BY e.entity_text
+                ORDER BY count DESC, value
+                LIMIT ?
+                """,
+                [*chunk_ids, limit],
+            ).fetchall()
+        facets["entity"] = [dict(row) for row in rows]
+    return facets
+
+
+def _count_facet(results: List[Dict], key: str, limit: int) -> List[Dict]:
+    counts = Counter(item.get(key) or "" for item in results)
+    counts.pop("", None)
+    return [{"value": value, "count": count} for value, count in counts.most_common(limit)]
+
+
+def _count_locator_facet(results: List[Dict]) -> List[Dict]:
+    counts = Counter("yes" if item.get("locator") else "no" for item in results)
+    return [{"value": value, "count": counts[value]} for value in ["yes", "no"] if counts[value]]
+
+
+def _rank_adjustment_sql() -> str:
+    return """
+        CASE WHEN c.is_noisy THEN 10.0 + c.noise_score ELSE 0 END
+        + CASE WHEN c.locator IS NOT NULL AND c.locator != '' THEN -0.30 ELSE 0.30 END
+        + CASE c.evidence_type
+            WHEN 'hmi_translation_row' THEN -0.45
+            WHEN 'hmi_translation_table' THEN -0.35
+            WHEN 'hmi_translation_group' THEN -0.35
+            WHEN 'drawing_index' THEN -0.35
+            WHEN 'page' THEN -0.25
+            WHEN 'text_page' THEN -0.25
+            WHEN 'section' THEN -0.10
+            WHEN 'text' THEN 0.20
+            ELSE 0
+          END
+    """
+
+
+def _rank_adjustment_value(item: Dict) -> float:
+    evidence_weights = {
+        "hmi_translation_row": -0.45,
+        "hmi_translation_table": -0.35,
+        "hmi_translation_group": -0.35,
+        "drawing_index": -0.35,
+        "page": -0.25,
+        "text_page": -0.25,
+        "section": -0.10,
+        "text": 0.20,
+    }
+    score = 0.0
+    if item.get("is_noisy"):
+        score += 10.0 + float(item.get("noise_score") or 0)
+    score += -0.30 if item.get("locator") else 0.30
+    score += evidence_weights.get(item.get("evidence_type"), 0)
+    return score
+
+
+def _related_chunks(conn: sqlite3.Connection, chunk_id: str, limit: int) -> List[Dict]:
+    target = conn.execute(
+        """
+        SELECT rowid AS row_number, doc_id, page_number, slide_number, sheet_name, section_number, locator
+        FROM chunks
+        WHERE chunk_id = ?
+        """,
+        (chunk_id,),
+    ).fetchone()
+    if target is None:
+        return []
+    rows = conn.execute(
+        """
+        SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
+               d.title AS document_title, d.source_file,
+               CASE
+                 WHEN c.page_number IS NOT NULL AND c.page_number = ? THEN 0
+                 WHEN c.slide_number IS NOT NULL AND c.slide_number = ? THEN 0
+                 WHEN c.sheet_name IS NOT NULL AND c.sheet_name = ? THEN 1
+                 WHEN c.section_number IS NOT NULL AND c.section_number = ? THEN 1
+                 ELSE 2
+               END AS context_rank,
+               ABS(c.rowid - ?) AS distance
+        FROM chunks c
+        JOIN documents d ON d.doc_id = c.doc_id
+        WHERE c.doc_id = ? AND c.chunk_id != ?
+        ORDER BY context_rank, distance
+        LIMIT ?
+        """,
+        (
+            target["page_number"],
+            target["slide_number"],
+            target["sheet_name"],
+            target["section_number"],
+            target["row_number"],
+            target["doc_id"],
+            chunk_id,
+            limit,
+        ),
+    ).fetchall()
+    return [
+        {
+            "chunk_id": row["chunk_id"],
+            "document_title": row["document_title"],
+            "source_file": row["source_file"],
+            "chunk_title": row["title"],
+            "evidence_type": row["evidence_type"],
+            "locator": row["locator"],
+            "preview": _preview(row["text"], limit=140),
+        }
+        for row in rows
     ]
 
 
@@ -1186,8 +1357,11 @@ def _number_from_name(name: str, prefix: str) -> int | None:
 def _preview(text: str, query: str = "", limit: int = 220) -> str:
     clean = _searchable_text(text)
     if query:
-        first_term = query.split()[0].casefold()
-        index = clean.casefold().find(first_term)
+        terms = _search_tokens(query) or query.split()
+        index = min(
+            (found for term in terms if (found := clean.casefold().find(term.casefold())) >= 0),
+            default=-1,
+        )
         if index > 40:
             clean = "..." + clean[index - 40 :]
     return clean[:limit].rstrip() + ("..." if len(clean) > limit else "")
@@ -1197,6 +1371,8 @@ def _search_filters(
     kinds: List[str],
     evidences: List[str],
     document: str | None,
+    output_dir: str | None,
+    entities: List[str],
     exclude_docs: List[str],
     has_locator: bool,
 ) -> tuple[str, List[Any]]:
@@ -1209,9 +1385,26 @@ def _search_filters(
         clauses.append(f"c.evidence_type IN ({', '.join('?' for _ in evidences)})")
         params.extend(evidences)
     if document:
-        clauses.append("(d.title LIKE ? OR d.source_file LIKE ?)")
+        clauses.append("(d.title LIKE ? OR d.source_file LIKE ? OR d.source_path LIKE ?)")
         like = f"%{document}%"
-        params.extend([like, like])
+        params.extend([like, like, like])
+    if output_dir:
+        clauses.append("d.output_dir LIKE ?")
+        params.append(f"%{output_dir}%")
+    for entity in entities:
+        clauses.append(
+            """
+            EXISTS (
+                SELECT 1
+                FROM entity_mentions m
+                JOIN entities e ON e.entity_id = m.entity_id
+                WHERE m.chunk_id = c.chunk_id
+                  AND (e.entity_text LIKE ? OR e.normalized_text LIKE ?)
+            )
+            """
+        )
+        like = f"%{entity}%"
+        params.extend([like, like.casefold()])
     for value in exclude_docs:
         clauses.append("d.title NOT LIKE ? AND d.source_file NOT LIKE ?")
         like = f"%{value}%"

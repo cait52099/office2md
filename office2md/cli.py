@@ -16,7 +16,7 @@ from office2md.converters.markitdown_converter import MarkItDownConverter
 from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
-from office2md.library import build_library, library_report, locate_document, search_library
+from office2md.library import build_library, library_report, locate_document, search_library, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
 from office2md.postprocess.drawing_index import build_drawing_index_chunks, extract_drawing_index
@@ -160,8 +160,12 @@ def search_library_command(
     kind: List[str] = typer.Option(None, "--kind", help="Filter by document_kind. Can be repeated."),
     evidence: List[str] = typer.Option(None, "--evidence", help="Filter by evidence_type. Can be repeated."),
     document: str = typer.Option(None, "--doc", "--document", help="Filter by document title or source_file."),
+    output_dir: str = typer.Option(None, "--output-dir", help="Filter by output directory name."),
+    entity: List[str] = typer.Option(None, "--entity", help="Filter by entity text. Can be repeated."),
     exclude_doc: List[str] = typer.Option(None, "--exclude-doc", help="Exclude document title/source_file match. Can be repeated."),
     has_locator: bool = typer.Option(False, "--has-locator", help="Only show chunks with source locators."),
+    facets: bool = typer.Option(False, "--facets", help="Print facet counts for the current query and filters."),
+    context: int = typer.Option(0, "--context", "--related", help="Show nearby chunks from the same document for each result."),
 ) -> None:
     """Search a local Knowledge Library SQLite database using FTS."""
     results = search_library(
@@ -172,12 +176,15 @@ def search_library_command(
         kinds=kind or [],
         evidences=evidence or [],
         document=document,
+        output_dir=output_dir,
+        entities=entity or [],
         exclude_docs=exclude_doc or [],
         has_locator=has_locator,
+        related=context,
     )
     total_hits = results[0].get("total_hits", 0) if results else 0
-    fallback_note = "; fallback: token" if results and results[0].get("fallback_used") else ""
-    console.print(f"total_hits: {total_hits}; showing: {len(results)}; offset: {offset}{fallback_note}")
+    mode = results[0].get("mode", "fts") if results else "fts"
+    console.print(f"mode: {mode}; total_hits: {total_hits}; showing: {len(results)}; offset: {offset}")
     table = Table(title=f"office2md search-library: {query}")
     table.add_column("Rank")
     table.add_column("Chunk ID")
@@ -203,6 +210,43 @@ def search_library_command(
             item["preview"] or "",
         )
     console.print(table)
+    if context > 0:
+        related_table = Table(title="Related chunks")
+        related_table.add_column("Result")
+        related_table.add_column("Chunk ID")
+        related_table.add_column("Evidence")
+        related_table.add_column("Locator")
+        related_table.add_column("Preview")
+        for item in results:
+            for related_item in item.get("related_chunks", []):
+                related_table.add_row(
+                    str(item["rank"]),
+                    related_item["chunk_id"] or "",
+                    related_item["evidence_type"] or "",
+                    related_item["locator"] or "",
+                    related_item["preview"] or "",
+                )
+        console.print(related_table)
+    if facets:
+        facet_data = search_library_facets(
+            library_db,
+            query,
+            kinds=kind or [],
+            evidences=evidence or [],
+            document=document,
+            output_dir=output_dir,
+            entities=entity or [],
+            exclude_docs=exclude_doc or [],
+            has_locator=has_locator,
+        )
+        facet_table = Table(title="Facets")
+        facet_table.add_column("Facet")
+        facet_table.add_column("Value")
+        facet_table.add_column("Count")
+        for facet_name, rows in facet_data.items():
+            for row in rows:
+                facet_table.add_row(facet_name, row["value"], str(row["count"]))
+        console.print(facet_table)
 
 
 @app.command("locate-document")

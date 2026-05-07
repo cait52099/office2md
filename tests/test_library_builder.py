@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from office2md.library import build_library, locate_document, search_library
+from office2md.library import build_library, locate_document, search_library, search_library_facets
 
 
 def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
@@ -178,11 +178,21 @@ def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
     assert search_library(library_dir / "library.db", "M4E")
     assert search_library(library_dir / "library.db", "SY909735")
     assert search_library(library_dir / "library.db", "VL324017")
+    assert search_library(library_dir / "library.db", "SY909735")[0]["mode"] == "fts"
     assert search_library(library_dir / "library.db", "PLC", limit=1)[0]["output_dir"]
     assert search_library(library_dir / "library.db", "PLC", kinds=["hmi_translation_xlsx"])[0]["document_kind"] == "hmi_translation_xlsx"
     assert search_library(library_dir / "library.db", "PLC", evidences=["hmi_translation_row"])[0]["evidence_type"] == "hmi_translation_row"
     assert all("Translation" not in item["source_file"] for item in search_library(library_dir / "library.db", "PLC", exclude_docs=["Translation"]))
     assert all(item["locator"] for item in search_library(library_dir / "library.db", "SY909735", has_locator=True))
+    assert search_library(library_dir / "library.db", "PLC", output_dir="hmi")[0]["output_dir"] == "hmi"
+    assert search_library(library_dir / "library.db", "PLC", entities=["HMI"])[0]["document_kind"] == "hmi_translation_xlsx"
+    facets = search_library_facets(library_dir / "library.db", "PLC")
+    assert {"document_kind", "evidence_type", "source_file", "output_dir", "has_locator", "entity"}.issubset(facets)
+    assert {"value": "hmi_translation_xlsx", "count": 2} in facets["document_kind"]
+    assert facets["has_locator"][0]["value"] == "yes"
+    related = search_library(library_dir / "library.db", "PLC", evidences=["hmi_translation_row"], related=1)
+    assert related[0]["related_chunks"]
+    assert related[0]["related_chunks"][0]["chunk_id"] == "hmi_table"
     noisy = search_library(library_dir / "library.db", "Textfeld", document="Noisy", limit=5)
     assert noisy[0]["is_noisy"]
     assert "NaN | NaN" not in noisy[0]["preview"]
@@ -261,7 +271,35 @@ def test_search_library_falls_back_for_zero_hit_multi_term_query(tmp_path):
 
     assert results
     assert results[0]["fallback_used"] is True
+    assert results[0]["mode"] == "token_fallback"
     assert {item["chunk_id"] for item in results} == {"homogenizer_chunk", "cooling_chunk"}
+
+
+def test_search_library_keeps_exact_part_numbers_and_prefers_locator_chunks(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "parts",
+        "parts-doc",
+        "Parts.pdf",
+        "generic_pdf",
+        [
+            _chunk("raw_part", "text", ["Raw"], "1V2005 spare valve raw text", None),
+            _chunk("located_part", "page", ["Parts"], "1V2005 spare valve page", "Page 4", page_number=4),
+            _chunk("motor_part", "hmi_translation_row", ["Motor"], "2M2001 homogenizer motor", "Sheet: User Texts / Row: 9"),
+        ],
+        {"equipment": ["1V2005", "2M2001"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    valve_results = search_library(library_dir, "1V2005", limit=5)
+    motor_results = search_library(library_dir, "2M2001", limit=5)
+
+    assert {item["chunk_id"] for item in valve_results} == {"raw_part", "located_part"}
+    assert valve_results[0]["chunk_id"] == "located_part"
+    assert motor_results[0]["chunk_id"] == "motor_part"
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

@@ -245,3 +245,18 @@ v0.2.0-rc7 Phase 3.0.6 full-directory validation and runner completion checkpoin
 - [ ] `-MaxFiles 3 -DryRun` reports supported files 598 and expected unique manifests 3.
 - [ ] `-FullDirectory -DryRun` reports supported files 598 and expected unique manifests 588.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, legacy `.doc` conversion, external conversion dependency, or Phase 3.1 work is included.
+
+v0.2.0-rc8 Phase 3.1a FTS search usability checkpoint evidence:
+
+- [ ] `python -m pytest` reports 62 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Default `search-library` remains SQLite/FTS based and does not require new flags.
+- [ ] Ranking adjustments prefer locator-present chunks and stronger evidence types without removing valid hits.
+- [ ] Exact lookups pass for `SY909735`, `1V2005`, and `2M2001`.
+- [ ] Token fallback still works for `homogenizer cooling` and `alarm history`.
+- [ ] Search output reports mode as `fts` or `token_fallback`.
+- [ ] Optional `--facets` works and does not affect default search.
+- [ ] Optional `--context` / `--related` works and does not affect default search.
+- [ ] Optional `--output-dir` and repeatable `--entity` filters work.
+- [ ] Smoke checks pass against the existing CML125 full-directory library for `temperature probe`, `S7-300`, `Operating Manual`, `seal`, and `CIP`.
+- [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or SQLite/FTS replacement is included.
