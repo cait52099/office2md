@@ -18,11 +18,11 @@ The behavior is intentionally conservative:
 
 Covered aliases include:
 
-- `冷却水` -> `cooling water`
-- `报警历史` -> `alarm history` / `alarm`
-- `密封液` -> `sealing liquid`
-- `操作手册` -> `operation manual`
-- `均质器` -> `homogenizer`
+- Chinese "cooling water" -> `cooling water`
+- Chinese "alarm history" -> `alarm history` / `alarm`
+- Chinese "sealing liquid" -> `sealing liquid`
+- Chinese "operation manual" -> `operation manual`
+- Chinese "homogenizer" -> `homogenizer`
 - `CIP sequence` -> `CIP`
 - `cooling circuit` -> `cooling water`
 - `user password` -> `password`
@@ -46,10 +46,10 @@ Smoke checks against the existing CML125 full-directory library passed for:
 - `2M2001`
 - `S7-300`
 - `1THLS200`
-- `冷却水`
-- `报警历史`
-- `密封液`
-- `操作手册`
+- Chinese "cooling water"
+- Chinese "alarm history"
+- Chinese "sealing liquid"
+- Chinese "operation manual"
 - `CIP sequence`
 - `cooling circuit issue`
 - `user password`

@@ -273,3 +273,13 @@ v0.2.0-rc10 Phase 3.1c conservative FTS polish checkpoint evidence:
 - [ ] Existing token fallback still works for `homogenizer cooling` and `alarm history`.
 - [ ] Known partial queries remain documented: `vacuum pump fault` and `agitator temperature problem`.
 - [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, SQLite/FTS replacement, or aggressive synonym expansion is included.
+
+v0.2.0-rc11 Phase 3.1d release-readiness docs checkpoint evidence:
+
+- [ ] `python -m pytest` reports 63 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] README reflects current v0.2.0 capabilities: Knowledge Pack, Library Builder, SQLite/FTS search, token fallback, facets/context/filters, alias/normalization, and chunked/resume runner.
+- [ ] README states no OCR, AI/MiniMax, embeddings/vector search, cloud dependency, Office image export, or legacy `.doc` conversion in the validated release path.
+- [ ] Known limitations are documented: legacy `.doc` unsupported/fragile, Docling fallback to MarkItDown, Office image export not implemented, and OneDrive full-directory conversion may require the runner.
+- [ ] rc10 release notes avoid non-ASCII alias rendering issues in Windows console output.
+- [ ] No code changes are included.

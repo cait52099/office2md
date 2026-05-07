@@ -8,7 +8,7 @@ The current pipeline has three stages:
 2. Per-document Knowledge Pack generation with metadata, chunks, entities, manifests, and source maps.
 3. Knowledge Library Builder for SQLite FTS search, JSON graph output, Markdown portal pages, and interop JSONL exports.
 
-v0.2.0-rc2 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 is the planned place for optional embedding/vector search on top of the SQLite/FTS foundation.
+v0.2.0-rc10 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 improved the SQLite/FTS search foundation with token fallback, facets, related-context results, and conservative query aliases instead of adding embeddings.
 
 ## Install
 
@@ -115,7 +115,7 @@ XLSX MPDP files can produce sheet/table provenance and phase-level `table_sectio
 
 PLC/HMI translation XLSX files, such as `*_Translation_Chinese*.xlsx`, are detected as `hmi_translation_xlsx` when they contain `Category`, `ViewPath`, `Internal ID`, `en-GB`, and `zh-CN` table headers. Their Knowledge Pack uses HMI table/group/row chunks with sheet, group, and row locators, while long Internal ID values, all-empty `ref` columns, repeated `NaN`, and repeated full ViewPath strings are kept out of searchable Markdown. HMI group chunks are scoped to screen/function areas; field/control path tokens such as `Textfeld`, `TextField`, `Bildbaustein`, and `Symbolisches EA-Feld` stay in row metadata instead of becoming group headings.
 
-Office image export is intentionally deferred to Phase 2.9B. Current Office outputs record `embedded_images_count`, `missing_assets_count`, and manifest warnings when image references are present, but embedded Office images are not exported.
+Office image export is intentionally deferred. Current Office outputs record `embedded_images_count`, `missing_assets_count`, and manifest warnings when image references are present, but embedded Office images are not exported.
 
 For large real directories, inspect first and then cap the first real run:
 
@@ -133,9 +133,11 @@ office2md convert ./input ./output --recursive --dry-run --include "*.pdf" --exc
 office2md convert ./input ./output --recursive --max-files 10
 ```
 
+For large OneDrive-backed CML125-style batches, use the chunked/resume runner documented in `docs/ops/cml125_batch_validation.md`. It runs `convert` with `--skip-existing`, redirects logs, monitors expected unique manifests, and restarts timed-out attempts without changing conversion logic.
+
 ## Knowledge Library Builder
 
-Phase 3.0 can build a local library-level database from an existing office2md output root. It does not reconvert source files and does not call AI, OCR, Marker, or external APIs.
+v0.2.0 can build a local library-level database from an existing office2md output root. It does not reconvert source files and does not call AI, OCR, Marker, or external APIs.
 
 ```bash
 office2md build-library ./output ./library
@@ -160,7 +162,7 @@ Library outputs include:
 
 Interop exports are plain JSONL files. LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
 
-v0.2.0-rc2 does not create embeddings or a vector database. Phase 3.1 may add optional embedding/vector search as a separate layer.
+v0.2.0-rc10 does not create embeddings or a vector database. Phase 3.1 reviewed embeddings and kept them deferred; current search uses SQLite/FTS, token fallback, facets, context, and conservative aliases.
 
 Use `locate-document` when a search result points to a file family and you need the source folder quickly:
 
@@ -176,7 +178,12 @@ office2md search-library ./library/library.db "PLC" --limit 20
 office2md search-library ./library/library.db "PLC" --kind hmi_translation_xlsx --limit 20
 office2md search-library ./library/library.db "PLC" --evidence drawing_index --kind technical_drawing_pdf --limit 20
 office2md search-library ./library/library.db "CIP" --exclude-doc Translation --has-locator --limit 20
+office2md search-library ./library/library.db "CIP" --facets --limit 20
+office2md search-library ./library/library.db "CIP" --context 2 --limit 5
+office2md search-library ./library/library.db "CIP" --output-dir copy-of-sy909735 --entity HMI --limit 20
 ```
+
+`--context` / `--related` requires an integer argument indicating how many nearby chunks to show. Search output reports whether it used normal `fts` mode or `token_fallback`. If the original query has 0 hits, a small deterministic alias/normalization layer can expand conservative technical queries, for example Chinese HMI terms for cooling water, alarm history, sealing liquid, operation manual, and homogenizer. Exact queries that already hit are not rewritten.
 
 Noisy chunks are retained but marked and ranked lower by default. Noise detection covers repeated `NaN`, base64-like IDs, dense Windows/HMI paths, XML/HTML tag density, missing locators, and low natural-language ratio.
 
@@ -184,7 +191,7 @@ Noisy chunks are retained but marked and ranked lower by default. Noise detectio
 
 The scanner accepts `.pdf`, `.docx`, `.doc`, `.pptx`, `.ppt`, `.xlsx`, `.xls`, `.html`, `.htm`, `.txt`, `.csv`, `.json`, and `.md`.
 
-The MVP routes PDF to Docling first, modern Office/text-like formats to MarkItDown, and old Office formats through LibreOffice when available before MarkItDown conversion. In `--engine auto` mode, a Docling PDF failure falls back to MarkItDown. Successful fallback output records `fallback_used: true` in `manifest.json`. A failed manifest is written only when all attempted engines for that file fail.
+The MVP routes PDF to Docling first, modern Office/text-like formats to MarkItDown, and old Office formats through LibreOffice when available before MarkItDown conversion. Legacy `.doc` conversion is a known limitation in the validated v0.2.0 CML125 run; unsupported `.doc` files can produce failed manifests and should be tracked as known unsupported inputs unless a later release explicitly adds legacy Word conversion. In `--engine auto` mode, a Docling PDF failure falls back to MarkItDown. Successful fallback output records `fallback_used: true` in `manifest.json`. A failed manifest is written only when all attempted engines for that file fail.
 
 ## Output Structure
 
@@ -265,7 +272,7 @@ If the MiniMax CLI is missing, `doctor-ai` reports it as an optional integration
 
 Docling and MarkItDown are external dependencies. If `doctor` reports them missing, install the project with `pip install -e ".[dev]"`.
 
-Old `.doc`, `.ppt`, and `.xls` files require LibreOffice or `soffice` on `PATH`.
+Old `.doc`, `.ppt`, and `.xls` files may require LibreOffice or `soffice` on `PATH`. Legacy `.doc` remains a known unsupported/fragile input for the v0.2.0 validated path.
 
 PDF conversion can fail if Docling needs model downloads or optional system libraries. In `--engine auto` mode, the converter tries MarkItDown as a fallback and records that fallback in the manifest. The batch converter records a failed manifest for that file only if fallback conversion also fails, then continues with the remaining files.
 
@@ -310,13 +317,15 @@ Real Symex wiring diagram single-file check:
 
 Near term:
 
-- Validate Knowledge Pack quality on representative real Symex files.
-- Phase 2.9B: real Office image extraction for embedded DOCX/PPTX assets and image reference repair.
-- Add MiniMax CLI-based AI enrichment for summaries, tags, entities, and page notes.
-- Improve memory/RAG-oriented chunk quality.
+- Keep v0.2.0 focused on local conversion, Knowledge Pack output, library building, and SQLite/FTS search.
+- Review remaining weak search cases such as `vacuum pump fault` and `agitator temperature problem`.
+- Improve memory/RAG-oriented chunk quality without adding cloud or vector dependencies.
 
 Later:
 
+- Optional offline embeddings/vector search as a separate layer, only after FTS improvements are exhausted.
+- Real Office image extraction for embedded DOCX/PPTX assets and image reference repair.
+- Optional AI enrichment through explicit opt-in adapters.
 - Marker integration.
 - OCR controls.
 - Image captioning.
