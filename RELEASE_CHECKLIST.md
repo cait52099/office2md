@@ -336,3 +336,16 @@ v0.2.1-rc3 usability polish checkpoint evidence:
 - [ ] CLI help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
 - [ ] CLI help wording changes are documentation-only and do not alter CLI behavior.
 - [ ] No search ranking, token fallback logic, aliases, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+
+v0.2.1 final release evidence:
+
+- [ ] `python -m pytest` reports 67 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Final scope includes optional `search-library --diagnostics` with default output unchanged.
+- [ ] Final scope includes bounded token fallback candidate pool, matched-token coverage ranking, and narrow fallback-only `fault_catalog_pdf` boost for failure-intent tokens.
+- [ ] Final scope includes quality report empty-state wording polish, common workflow documentation, and CLI help wording polish.
+- [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] CML125 compact smoke checks pass for `SY909735`, Chinese "cooling water", `1THLS200`, `vacuum pump fault`, and `agitator temperature problem` with diagnostics.
+- [ ] Exact FTS remains unchanged for known identifier-style queries.
+- [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, broadened aliases, or exact FTS behavior changes are included.
+- [ ] Final release notes are written in `RELEASE_NOTES_v0.2.1.md`.
