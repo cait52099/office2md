@@ -323,3 +323,16 @@ v0.2.1-rc2 narrow token fallback ranking checkpoint evidence:
 - [ ] Alias/normalization behavior remains unchanged for Chinese "cooling water" and `1THLS200`.
 - [ ] Default CLI output without `--diagnostics` remains the normal search table.
 - [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broadened aliases are included.
+
+v0.2.1-rc3 usability polish checkpoint evidence:
+
+- [ ] `python -m pytest` reports 67 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `_quality_report.md` no longer prints misleading extra `_None._` after explicit count sections.
+- [ ] Quality report cosmetic wording does not change quality metrics or scoring.
+- [ ] `docs/usage/common_workflows.md` documents single document conversion, directory conversion, `build-library`, `library-report`, search diagnostics, facets, `--context 2`, `--output-dir`, `--entity`, `locate-document`, and the CML125/OneDrive chunked runner workflow.
+- [ ] Common workflow docs note positional `convert INPUT_PATH OUTPUT` and `build-library INPUT_DIR OUTPUT_DIR` syntax.
+- [ ] Common workflow docs note PowerShell UTF-8 environment variables and that OCR, AI/MiniMax, embeddings/vector search, cloud services, and Office image export are not used by default.
+- [ ] CLI help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] CLI help wording changes are documentation-only and do not alter CLI behavior.
+- [ ] No search ranking, token fallback logic, aliases, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.

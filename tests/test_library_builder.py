@@ -248,6 +248,7 @@ def test_build_library_refines_pdf_subtypes_and_page_level_quality(tmp_path):
     assert "## Page-Level Searchable PDFs" in quality_report
     assert "- page_level_pdf_count: 1" in quality_report
     assert "## Low Structure\n\n_None._" in quality_report
+    assert "- No noisy chunks detected." in quality_report
 
 
 def test_search_library_falls_back_for_zero_hit_multi_term_query(tmp_path):

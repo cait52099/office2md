@@ -136,7 +136,7 @@ def doctor_ai() -> None:
 
 @app.command("build-library")
 def build_library_command(input_output_root: Path, library_output_dir: Path) -> None:
-    """Build a local searchable Knowledge Library from office2md output folders."""
+    """Build a local searchable Knowledge Library from INPUT_DIR into OUTPUT_DIR."""
     result = build_library(input_output_root, library_output_dir)
     table = Table(title="office2md build-library")
     table.add_column("Metric")
@@ -165,10 +165,10 @@ def search_library_command(
     exclude_doc: List[str] = typer.Option(None, "--exclude-doc", help="Exclude document title/source_file match. Can be repeated."),
     has_locator: bool = typer.Option(False, "--has-locator", help="Only show chunks with source locators."),
     facets: bool = typer.Option(False, "--facets", help="Print facet counts for the current query and filters."),
-    context: int = typer.Option(0, "--context", "--related", help="Show nearby chunks from the same document for each result."),
+    context: int = typer.Option(0, "--context", "--related", help="Show N nearby chunks from the same document for each result."),
     diagnostics: bool = typer.Option(False, "--diagnostics", help="Print query handling diagnostics without changing results."),
 ) -> None:
-    """Search a local Knowledge Library SQLite database using FTS."""
+    """Search a local Knowledge Library with SQLite FTS and optional token fallback."""
     results = search_library(
         library_db,
         query,
@@ -287,7 +287,7 @@ def search_library_command(
 
 @app.command("locate-document")
 def locate_document_command(library_db_or_output_dir: Path, query: str, limit: int = typer.Option(20, help="Maximum documents to print.")) -> None:
-    """Locate documents in a built Knowledge Library by fuzzy title/source match."""
+    """Locate source documents in a built Knowledge Library by title or source filename."""
     results = locate_document(library_db_or_output_dir, query, limit=limit)
     table = Table(title=f"office2md locate-document: {query}")
     table.add_column("Title")
@@ -310,7 +310,7 @@ def locate_document_command(library_db_or_output_dir: Path, query: str, limit: i
 
 @app.command("library-report")
 def library_report_command(library_db_or_output_dir: Path) -> None:
-    """Print a summary report for a built Knowledge Library."""
+    """Print counts, distributions, and quality metrics for a built Knowledge Library."""
     report = library_report(library_db_or_output_dir)
     table = Table(title="office2md library-report")
     table.add_column("Metric")
@@ -405,6 +405,7 @@ def convert(
     include: List[str] = typer.Option(None, help="Glob include filter. Can be provided multiple times."),
     exclude: List[str] = typer.Option(None, help="Glob exclude filter. Can be provided multiple times."),
 ) -> None:
+    """Convert INPUT_PATH into OUTPUT using the selected engine and profile."""
     options = ConvertOptions(
         engine=engine,
         profile=profile,

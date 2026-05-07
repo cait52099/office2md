@@ -8,7 +8,7 @@ The current pipeline has three stages:
 2. Per-document Knowledge Pack generation with metadata, chunks, entities, manifests, and source maps.
 3. Knowledge Library Builder for SQLite FTS search, JSON graph output, Markdown portal pages, and interop JSONL exports.
 
-v0.2.0-rc10 remains local and no-AI by default. Embedding/vector search is not included in this release; Phase 3.1 improved the SQLite/FTS search foundation with token fallback, facets, related-context results, and conservative query aliases instead of adding embeddings.
+The validated path remains local and no-AI by default. Embedding/vector search is not included; Phase 3.1 improved the SQLite/FTS search foundation with token fallback, facets, related-context results, and conservative query aliases instead of adding embeddings.
 
 ## Install
 
@@ -135,9 +135,11 @@ office2md convert ./input ./output --recursive --max-files 10
 
 For large OneDrive-backed CML125-style batches, use the chunked/resume runner documented in `docs/ops/cml125_batch_validation.md`. It runs `convert` with `--skip-existing`, redirects logs, monitors expected unique manifests, and restarts timed-out attempts without changing conversion logic.
 
+Common PowerShell workflows for conversion, library building, reporting, search diagnostics, facets, context, document location, and the CML125 OneDrive runner are collected in `docs/usage/common_workflows.md`.
+
 ## Knowledge Library Builder
 
-v0.2.0 can build a local library-level database from an existing office2md output root. It does not reconvert source files and does not call AI, OCR, Marker, or external APIs.
+office2md can build a local library-level database from an existing office2md output root. It does not reconvert source files and does not call AI, OCR, Marker, or external APIs.
 
 ```bash
 office2md build-library ./output ./library
@@ -162,7 +164,7 @@ Library outputs include:
 
 Interop exports are plain JSONL files. LlamaIndex, Haystack, txtai, and GraphRAG are not required dependencies.
 
-v0.2.0-rc10 does not create embeddings or a vector database. Phase 3.1 reviewed embeddings and kept them deferred; current search uses SQLite/FTS, token fallback, facets, context, and conservative aliases.
+office2md does not create embeddings or a vector database. Phase 3.1 reviewed embeddings and kept them deferred; current search uses SQLite/FTS, token fallback, facets, context, and conservative aliases.
 
 Use `locate-document` when a search result points to a file family and you need the source folder quickly:
 

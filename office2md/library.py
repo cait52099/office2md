@@ -1228,7 +1228,7 @@ def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
     for doc in page_level_docs[:100]:
         lines.append(f"- {doc['title']}: {doc['document_kind']}, {doc['quality_status']}, locators={doc['locator_chunks']}, assets={doc['asset_count']}")
     if not page_level_docs:
-        lines.append("_None._")
+        lines.append("- No page-level searchable PDFs detected.")
     lines.extend(["", "## Low Structure", ""])
     low = [doc for doc in rows["documents"] if doc["quality_status"] == "low_structure" and doc["doc_id"] not in page_level_doc_ids]
     lines.extend(f"- {doc['title']}" for doc in low) or lines.append("_None._")
@@ -1260,7 +1260,7 @@ def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
             doc = docs_by_id.get(doc_id, {})
             lines.append(f"- {doc.get('title', doc_id)}: {count}")
     else:
-        lines.append("_None._")
+        lines.append("- No noisy chunks detected.")
     lines.extend(["", "## HMI Translation Documents", ""])
     hmi_docs = [doc for doc in rows["documents"] if doc["document_kind"] == "hmi_translation_xlsx"]
     lines.extend(f"- {doc['title']}: {doc['output_dir']}" for doc in hmi_docs) or lines.append("_None._")
