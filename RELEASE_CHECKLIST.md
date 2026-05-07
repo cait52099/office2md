@@ -283,3 +283,16 @@ v0.2.0-rc11 Phase 3.1d release-readiness docs checkpoint evidence:
 - [ ] Known limitations are documented: legacy `.doc` unsupported/fragile, Docling fallback to MarkItDown, Office image export not implemented, and OneDrive full-directory conversion may require the runner.
 - [ ] rc10 release notes avoid non-ASCII alias rendering issues in Windows console output.
 - [ ] No code changes are included.
+
+v0.2.0 final release evidence:
+
+- [ ] `python -m pytest` reports 63 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Final validated scope includes Office/PDF/text-like conversion, per-document Knowledge Pack, Knowledge Library Builder, SQLite/FTS `library.db`, `library_index.json`, `library_graph.json`, Markdown portal, interop exports, `library-report`, `search-library`, and `locate-document`.
+- [ ] Final search scope includes FTS ranking, token fallback, facets, filters, context/related chunks, and alias/normalization for no-hit queries.
+- [ ] Chunked/resume PowerShell runner is included for large OneDrive-backed CML125-style validation.
+- [ ] CML125 full-directory validation completed with supported files 598, expected unique manifests 588, final manifests 589, success 587, and failed 2 duplicate legacy `.doc` files.
+- [ ] Full-directory validation records OCR used 0 and AI used 0.
+- [ ] Full-directory library build succeeds with documents 587, chunks 4238, entities 365, and noisy chunks 0.
+- [ ] Known limitations are documented: no OCR, no AI/MiniMax in validated path, no embeddings/vector search, no Office image export, legacy `.doc` unsupported/fragile, Docling fallback to MarkItDown, some Office-derived chunks may lack locators, and OneDrive full-directory conversion may need the runner.
+- [ ] Final release notes are written in `RELEASE_NOTES_v0.2.0.md`.
