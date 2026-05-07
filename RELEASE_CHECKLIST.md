@@ -307,3 +307,19 @@ v0.2.1-rc1 optional query diagnostics checkpoint evidence:
 - [ ] Diagnostics work with aliases, normalized queries, token fallback, `--facets`, `--context`, `--output-dir`, and `--entity`.
 - [ ] Smoke diagnostics pass against the existing CML125 full-directory library for `SY909735`, Chinese "cooling water", `1THLS200`, `vacuum pump fault`, `agitator temperature problem`, `homogenizer cooling`, and `alarm history`.
 - [ ] No default ranking change, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion is included.
+
+v0.2.1-rc2 narrow token fallback ranking checkpoint evidence:
+
+- [ ] `python -m pytest` reports 67 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Token fallback uses a bounded internal candidate pool independent of display `--limit`.
+- [ ] Token fallback ranking prefers chunks matching more query tokens.
+- [ ] Existing locator, evidence type, and noise ranking preferences are preserved after token coverage.
+- [ ] `fault_catalog_pdf` receives a narrow fallback-only boost only for failure-intent tokens such as `fault`, `error`, `alarm`, `problem`, and `trouble`.
+- [ ] Normal FTS results are not affected by the fallback-only `fault_catalog_pdf` boost.
+- [ ] `vacuum pump fault --limit 10 --diagnostics` returns `Faults and measures catalog_SY909735_AH.pdf`, Page 3 as rank 1.
+- [ ] `agitator temperature problem --limit 10 --diagnostics` returns `Faults and measures catalog_SY909735_AH.pdf`, Page 5 and Page 8 as ranks 1 and 2.
+- [ ] Exact FTS remains unchanged for `SY909735`, `1V2005`, `2M2001`, and `vacuum pump`.
+- [ ] Alias/normalization behavior remains unchanged for Chinese "cooling water" and `1THLS200`.
+- [ ] Default CLI output without `--diagnostics` remains the normal search table.
+- [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broadened aliases are included.

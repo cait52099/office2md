@@ -16,6 +16,7 @@ from office2md.postprocess.pdf_structure import classify_obvious_pdf_subtype
 
 LIBRARY_SCHEMA_VERSION = "1"
 LIBRARY_RELEASE_LABEL = "v0.2.0-rc1"
+TOKEN_FALLBACK_POOL_LIMIT = 250
 
 
 def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
@@ -202,8 +203,10 @@ def _search_rows(conn: sqlite3.Connection, query: str, filters: str, params: Lis
 
 def _fallback_token_search(conn: sqlite3.Connection, query: str, filters: str, params: List[Any], limit: int, offset: int) -> List[Dict]:
     merged: Dict[str, Dict] = {}
-    for token in _search_tokens(query):
-        for index, row in enumerate(_search_rows(conn, token, filters, params, max(limit * 3, 10), 0), start=1):
+    candidate_limit = max(TOKEN_FALLBACK_POOL_LIMIT, offset + limit)
+    tokens = _search_tokens(query)
+    for token in tokens:
+        for index, row in enumerate(_search_rows(conn, token, filters, params, candidate_limit, 0), start=1):
             item = dict(row)
             current = merged.setdefault(
                 item["chunk_id"],
@@ -215,9 +218,9 @@ def _fallback_token_search(conn: sqlite3.Connection, query: str, filters: str, p
     ranked = sorted(
         merged.values(),
         key=lambda item: (
-            -item["token_hits"],
+            -len(item["matched_tokens"]),
+            _fallback_rank_adjustment_value(item, tokens),
             item["best_rank"],
-            _rank_adjustment_value(item),
             bool(item["is_noisy"]),
             item.get("noise_score") or 0,
         ),
@@ -330,6 +333,7 @@ def _search_diagnostic_hints(
         hints.append("alias was used after the original query returned 0 hits")
     elif fallback_used:
         hints.append("token fallback was used after the original query returned 0 hits")
+        hints.append("token fallback ranking prioritized chunks matching more query tokens")
     else:
         hints.append("exact query matched")
     broad_terms = {"issue", "problem", "fault", "error", "control", "system"}
@@ -485,6 +489,14 @@ def _rank_adjustment_value(item: Dict) -> float:
         score += 10.0 + float(item.get("noise_score") or 0)
     score += -0.30 if item.get("locator") else 0.30
     score += evidence_weights.get(item.get("evidence_type"), 0)
+    return score
+
+
+def _fallback_rank_adjustment_value(item: Dict, tokens: List[str]) -> float:
+    score = _rank_adjustment_value(item)
+    failure_intent_tokens = {"alarm", "error", "fault", "problem", "trouble"}
+    if item.get("document_kind") == "fault_catalog_pdf" and any(token in failure_intent_tokens for token in tokens):
+        score -= 0.30
     return score
 
 

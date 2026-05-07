@@ -275,6 +275,132 @@ def test_search_library_falls_back_for_zero_hit_multi_term_query(tmp_path):
     assert {item["chunk_id"] for item in results} == {"homogenizer_chunk", "cooling_chunk"}
 
 
+def test_token_fallback_uses_bounded_pool_independent_of_display_limit(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    noisy_partial_chunks = [
+        _chunk(f"pump_only_{index}", "hmi_translation_row", ["HMI"], f"External pump row {index}", f"Sheet: User Texts / Row: {index}")
+        for index in range(30)
+    ]
+    noisy_partial_chunks.extend(
+        _chunk(
+            f"vacuum_only_{index}",
+            "hmi_translation_row",
+            ["HMI"],
+            f"Pressure vacuum row {index}",
+            f"Sheet: User Texts / Row: {index + 100}",
+        )
+        for index in range(30)
+    )
+    noisy_partial_chunks.extend(
+        _chunk(f"fault_only_{index}", "hmi_translation_row", ["HMI"], f"Faults row {index}", f"Sheet: User Texts / Row: {index + 200}")
+        for index in range(30)
+    )
+    _write_doc(
+        output_root / "hmi",
+        "hmi-partials",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        noisy_partial_chunks,
+        {"equipment": ["HMI"]},
+    )
+    _write_doc(
+        output_root / "faults",
+        "fault-catalog",
+        "Faults and measures catalog.pdf",
+        "fault_catalog_pdf",
+        [
+            _chunk(
+                "vacuum_pump_fault",
+                "page",
+                ["Faults"],
+                "Fault 00200: Vacuum pump motor protection switch tripped.",
+                "Page 3",
+                page_number=3,
+            )
+        ],
+        {"equipment": ["vacuum pump"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "vacuum pump fault missingterm", limit=1)
+
+    assert results[0]["chunk_id"] == "vacuum_pump_fault"
+    assert results[0]["mode"] == "token_fallback"
+    assert results[0]["matched_tokens"] == ["fault", "pump", "vacuum"]
+
+
+def test_token_fallback_prefers_chunks_matching_more_query_terms(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "search",
+        "search-doc",
+        "Search.pdf",
+        "generic_pdf",
+        [
+            _chunk("single_a", "hmi_translation_row", ["HMI"], "Alpha only", "Sheet: User Texts / Row: 1"),
+            _chunk("single_b", "hmi_translation_row", ["HMI"], "Beta only", "Sheet: User Texts / Row: 2"),
+            _chunk("double_match", "page", ["Manual"], "Alpha beta combined evidence", "Page 5", page_number=5),
+        ],
+        {"equipment": ["alpha", "beta"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "alpha beta missingterm", limit=3)
+
+    assert results[0]["chunk_id"] == "double_match"
+    assert results[0]["matched_tokens"] == ["alpha", "beta"]
+
+
+def test_token_fallback_prefers_fault_catalog_for_failure_intent_ties(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "hmi-search",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk(
+                "hmi_agitator_temperature",
+                "hmi_translation_group",
+                ["HMI"],
+                "Agitator cooling water temperature display",
+                "Sheet: User Texts / Group: Trends",
+            )
+        ],
+        {"equipment": ["HMI"]},
+    )
+    _write_doc(
+        output_root / "faults",
+        "fault-search",
+        "Faults and measures catalog.pdf",
+        "fault_catalog_pdf",
+        [
+            _chunk(
+                "fault_agitator_temperature",
+                "text_page",
+                ["Faults"],
+                "CML Central agitator VFD fault. Probe fault: agitator cooling water temperature.",
+                "Page 5",
+                page_number=5,
+            )
+        ],
+        {"equipment": ["agitator"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "agitator temperature problem missingterm", limit=2)
+
+    assert results[0]["chunk_id"] == "fault_agitator_temperature"
+    assert results[0]["document_kind"] == "fault_catalog_pdf"
+    assert results[0]["matched_tokens"] == ["agitator", "temperature"]
+
+
 def test_search_library_keeps_exact_part_numbers_and_prefers_locator_chunks(tmp_path):
     output_root = tmp_path / "output"
     output_root.mkdir()
