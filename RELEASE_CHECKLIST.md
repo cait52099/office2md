@@ -260,3 +260,16 @@ v0.2.0-rc8 Phase 3.1a FTS search usability checkpoint evidence:
 - [ ] Optional `--output-dir` and repeatable `--entity` filters work.
 - [ ] Smoke checks pass against the existing CML125 full-directory library for `temperature probe`, `S7-300`, `Operating Manual`, `seal`, and `CIP`.
 - [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or SQLite/FTS replacement is included.
+
+v0.2.0-rc10 Phase 3.1c conservative FTS polish checkpoint evidence:
+
+- [ ] `python -m pytest` reports 63 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Original `search-library` query is tried first.
+- [ ] Alias and normalization run only after the original query returns 0 hits.
+- [ ] CLI output reports alias or normalized query use.
+- [ ] Exact lookups pass without alias/normalization for `SY909735`, `1V2005`, `2M2001`, and `S7-300`.
+- [ ] Weak query smoke checks improve for `1THLS200`, `冷却水`, `报警历史`, `密封液`, `操作手册`, `CIP sequence`, `cooling circuit issue`, and `user password`.
+- [ ] Existing token fallback still works for `homogenizer cooling` and `alarm history`.
+- [ ] Known partial queries remain documented: `vacuum pump fault` and `agitator temperature problem`.
+- [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, SQLite/FTS replacement, or aggressive synonym expansion is included.

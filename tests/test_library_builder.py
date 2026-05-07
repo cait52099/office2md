@@ -299,7 +299,46 @@ def test_search_library_keeps_exact_part_numbers_and_prefers_locator_chunks(tmp_
 
     assert {item["chunk_id"] for item in valve_results} == {"raw_part", "located_part"}
     assert valve_results[0]["chunk_id"] == "located_part"
+    assert valve_results[0]["alias_used"] is None
+    assert valve_results[0]["normalized_used"] is False
     assert motor_results[0]["chunk_id"] == "motor_part"
+
+
+def test_search_library_uses_conservative_aliases_and_identifier_normalization(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "hmi-alias-doc",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk("cooling_water", "hmi_translation_row", ["Cooling"], "Cooling water pump 1M2098", "Sheet: User Texts / Row: 1"),
+            _chunk("alarm_history", "hmi_translation_row", ["Alarms"], "Alarm history active faults", "Sheet: User Texts / Row: 2"),
+            _chunk("sealing_liquid", "hmi_translation_row", ["Seal"], "Sealing liquid pump 1M2509", "Sheet: User Texts / Row: 3"),
+            _chunk("operation_manual", "page", ["Manual"], "Operation manual safety instructions", "Page 4", page_number=4),
+            _chunk("identifier", "hmi_translation_row", ["Probe"], "Sealing liquid temperature 1THS2506", "Sheet: User Texts / Row: 5"),
+        ],
+        {"equipment": ["HMI", "1THS2506"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    cooling = search_library(library_dir, "\u51b7\u5374\u6c34", limit=3)
+    alarm = search_library(library_dir, "\u62a5\u8b66\u5386\u53f2", limit=3)
+    sealing = search_library(library_dir, "\u5bc6\u5c01\u6db2", limit=3)
+    manual = search_library(library_dir, "\u64cd\u4f5c\u624b\u518c", limit=3)
+    identifier = search_library(library_dir, "1THLS200", limit=3)
+
+    assert cooling[0]["chunk_id"] == "cooling_water"
+    assert cooling[0]["alias_used"] == "\u51b7\u5374\u6c34 -> cooling water"
+    assert alarm[0]["chunk_id"] == "alarm_history"
+    assert sealing[0]["chunk_id"] == "sealing_liquid"
+    assert manual[0]["chunk_id"] == "operation_manual"
+    assert identifier[0]["chunk_id"] == "identifier"
+    assert identifier[0]["normalized_used"] is True
+    assert identifier[0]["query_used"].endswith("*")
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

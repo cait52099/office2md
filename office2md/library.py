@@ -102,16 +102,66 @@ def search_library(
     filters, params = _search_filters(kinds or [], evidences or [], document, output_dir, entities or [], exclude_docs or [], has_locator)
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
-        rows = _search_rows(conn, query, filters, params, limit, offset)
+        search_query = query
+        alias_used = None
+        normalized_used = False
+        rows = _search_rows(conn, search_query, filters, params, limit, offset)
         fallback_used = False
+        if not rows:
+            for candidate in _query_expansions(query):
+                rows = _search_rows(conn, candidate["query"], filters, params, limit, offset)
+                if not rows and candidate["kind"] == "normalized" and candidate["query"].endswith("*"):
+                    rows = _prefix_like_search_rows(conn, candidate["query"].rstrip("*"), filters, params, limit, offset)
+                if rows:
+                    search_query = candidate["query"]
+                    alias_used = candidate["label"]
+                    normalized_used = candidate["kind"] == "normalized"
+                    break
         if not rows and _is_multi_term_query(query):
             rows = _fallback_token_search(conn, query, filters, params, limit, offset)
             fallback_used = bool(rows)
-        results = _search_results(rows, query, offset, fallback_used)
+        if not rows:
+            for candidate in _query_expansions(query):
+                if _is_multi_term_query(candidate["query"]):
+                    rows = _fallback_token_search(conn, candidate["query"], filters, params, limit, offset)
+                    if rows:
+                        search_query = candidate["query"]
+                        alias_used = candidate["label"]
+                        normalized_used = candidate["kind"] == "normalized"
+                        fallback_used = True
+                        break
+        results = _search_results(rows, search_query, offset, fallback_used, alias_used, normalized_used, query)
         if related > 0:
             for result in results:
                 result["related_chunks"] = _related_chunks(conn, result["chunk_id"], related)
     return results
+
+
+def _prefix_like_search_rows(
+    conn: sqlite3.Connection,
+    prefix: str,
+    filters: str,
+    params: List[Any],
+    limit: int,
+    offset: int,
+) -> List[sqlite3.Row]:
+    if len(prefix) < 4 and not re.fullmatch(r"\d+[A-Za-z]{2,}", prefix):
+        return []
+    like = f"%{prefix}%"
+    sql = f"""
+        SELECT c.chunk_id, c.title, c.text, c.evidence_type, c.locator,
+               c.is_noisy, c.noise_score, c.noise_reasons_json,
+               d.title AS document_title, d.document_kind, d.source_file, d.output_dir,
+               0 AS score,
+               COUNT(*) OVER() AS total_hits
+        FROM chunks c
+        JOIN documents d ON d.doc_id = c.doc_id
+        WHERE (c.text LIKE ? OR c.title LIKE ? OR c.heading_path_json LIKE ? OR c.locator LIKE ?)
+        {filters}
+        ORDER BY {_rank_adjustment_sql()}
+        LIMIT ? OFFSET ?
+        """
+    return conn.execute(sql, [like, like, like, like, *params, limit, offset]).fetchall()
 
 
 def _search_rows(conn: sqlite3.Connection, query: str, filters: str, params: List[Any], limit: int, offset: int) -> List[sqlite3.Row]:
@@ -177,7 +227,15 @@ def _fallback_token_search(conn: sqlite3.Connection, query: str, filters: str, p
     return [{**item, "total_hits": total_hits} for item in selected]
 
 
-def _search_results(rows: List[Any], query: str, offset: int, fallback_used: bool = False) -> List[Dict]:
+def _search_results(
+    rows: List[Any],
+    query: str,
+    offset: int,
+    fallback_used: bool = False,
+    alias_used: str | None = None,
+    normalized_used: bool = False,
+    original_query: str | None = None,
+) -> List[Dict]:
     return [
         {
             "rank": index + 1,
@@ -195,10 +253,60 @@ def _search_results(rows: List[Any], query: str, offset: int, fallback_used: boo
             "total_hits": row["total_hits"],
             "fallback_used": fallback_used,
             "mode": "token_fallback" if fallback_used else "fts",
+            "query_used": query,
+            "original_query": original_query or query,
+            "alias_used": alias_used,
+            "normalized_used": normalized_used,
             "preview": _preview(row["text"], query),
         }
         for index, row in enumerate(rows, start=offset)
     ]
+
+
+_QUERY_ALIASES = {
+    "冷却水": ["cooling water", "cooling"],
+    "报警历史": ["alarm history", "alarm", "fault"],
+    "密封液": ["sealing liquid", "seal liquid"],
+    "操作手册": ["operation manual", "operating manual", "manual"],
+    "均质器": ["homogenizer"],
+    "cip sequence": ["CIP", "CIP process"],
+    "cooling circuit": ["cooling water", "cooling"],
+    "vacuum pump fault": ["vacuum pump alarm", "vacuum pump fault", "pump alarm", "fault pump"],
+    "user password": ["user password", "password"],
+}
+
+
+def _query_expansions(query: str) -> List[Dict[str, str]]:
+    variants = []
+    seen = {query.casefold()}
+    folded = " ".join(query.casefold().split())
+    for key, aliases in _QUERY_ALIASES.items():
+        if key.casefold() in folded:
+            for alias in aliases:
+                if alias.casefold() not in seen:
+                    variants.append({"query": alias, "label": f"{key} -> {alias}", "kind": "alias"})
+                    seen.add(alias.casefold())
+    for variant in _identifier_query_variants(query):
+        if variant.casefold() not in seen:
+            variants.append({"query": variant, "label": f"{query} -> {variant}", "kind": "normalized"})
+            seen.add(variant.casefold())
+    return variants
+
+
+def _identifier_query_variants(query: str) -> List[str]:
+    compact = re.sub(r"[^A-Za-z0-9]", "", query).upper()
+    if not re.fullmatch(r"[A-Z0-9]{6,}", compact):
+        return []
+    variants = []
+    if compact != query:
+        variants.append(compact)
+    if re.search(r"\d", compact) and re.search(r"[A-Z]", compact):
+        prefixes = [compact[:length] for length in range(min(len(compact), 6), 3, -1)]
+        variants.extend(f"{prefix}*" for prefix in prefixes)
+        th_match = re.match(r"(\d+TH)[A-Z]+", compact)
+        if th_match:
+            variants.append(f"{th_match.group(1)}*")
+    return variants
 
 
 def search_library_facets(

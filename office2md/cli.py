@@ -184,7 +184,13 @@ def search_library_command(
     )
     total_hits = results[0].get("total_hits", 0) if results else 0
     mode = results[0].get("mode", "fts") if results else "fts"
-    console.print(f"mode: {mode}; total_hits: {total_hits}; showing: {len(results)}; offset: {offset}")
+    search_notes = []
+    if results and results[0].get("alias_used"):
+        search_notes.append(f"alias: {results[0]['alias_used']}")
+    if results and results[0].get("normalized_used"):
+        search_notes.append(f"normalized_query: {results[0]['query_used']}")
+    note_text = "; " + "; ".join(search_notes) if search_notes else ""
+    console.print(f"mode: {mode}; total_hits: {total_hits}; showing: {len(results)}; offset: {offset}{note_text}")
     table = Table(title=f"office2md search-library: {query}")
     table.add_column("Rank")
     table.add_column("Chunk ID")
