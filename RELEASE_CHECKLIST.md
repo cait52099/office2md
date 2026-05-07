@@ -215,11 +215,33 @@ v0.2.0-rc6 Phase 3.0.5b operational runner checkpoint evidence:
 - [ ] Runner does not delete input files and only creates output/log directories.
 - [ ] Runner starts `office2md convert` with `--skip-existing`.
 - [ ] Runner redirects stdout and stderr to timestamped logs.
-- [ ] Runner counts generated `manifest.json` files.
+- [ ] Runner checks generated `manifest.json` files against expected output folders and compares against expected unique manifest count.
 - [ ] Runner stops only the process tree it launched when an attempt exceeds timeout.
 - [ ] Runner supports `-MaxFiles` and `-FullDirectory`.
-- [ ] Runner uses `office2md.scanner.scan_input` to calculate supported file count.
+- [ ] Runner uses `office2md.scanner.scan_input` plus output-directory naming behavior to calculate supported file count and expected unique manifest count.
 - [ ] `-MaxFiles 3 -DryRun` reports supported files 598 and expected manifests 3.
-- [ ] `-FullDirectory -DryRun` reports supported files 598 and expected manifests 598.
+- [ ] `-FullDirectory -DryRun` reports supported files 598 and expected unique manifests 588 for the CML125 full source.
 - [ ] `docs/ops/cml125_batch_validation.md` documents why the runner exists, when to use it, 300-file and full-directory examples, and OneDrive/on-demand hydration risk.
+- [ ] Legacy `.doc` failures remain documented as known unsupported files; no legacy Word conversion dependency is introduced.
 - [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, full-directory validation, or Phase 3.1 work is included.
+
+v0.2.0-rc7 Phase 3.0.6 full-directory validation and runner completion checkpoint evidence:
+
+- [ ] `python -m pytest` reports 61 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CML125 full-directory validation completes with supported files 598.
+- [ ] Runner calculates expected unique manifests 588.
+- [ ] Final conversion output contains 589 manifests.
+- [ ] Final conversion records 587 success and 2 failed.
+- [ ] Failed files are duplicate legacy `Guide to find the devices..doc` inputs.
+- [ ] Legacy `.doc` is documented as known unsupported for Phase 3.0.
+- [ ] Full-directory manifests record OCR used 0 and AI used 0.
+- [ ] `office2md build-library` succeeds.
+- [ ] Build warnings are 2, both failed legacy `.doc` manifests.
+- [ ] Full-directory library reports documents 587, chunks 4238, entities 365.
+- [ ] Full-directory quality metrics include `noisy_chunks_count: 0`.
+- [ ] Search smoke and locate-document key checks pass.
+- [ ] Runner completion fix requires expected output folders to contain `manifest.json`, not just total manifest count.
+- [ ] `-MaxFiles 3 -DryRun` reports supported files 598 and expected unique manifests 3.
+- [ ] `-FullDirectory -DryRun` reports supported files 598 and expected unique manifests 588.
+- [ ] No AI, OCR, Marker, API, embedding/vector database, Office image export, legacy `.doc` conversion, external conversion dependency, or Phase 3.1 work is included.

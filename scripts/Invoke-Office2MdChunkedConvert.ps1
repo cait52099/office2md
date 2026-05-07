@@ -30,17 +30,57 @@ function Resolve-Office2MdPath {
     return (Join-Path (Get-Location) $PathValue)
 }
 
-function Get-ScannerSupportedCount {
+function Get-ExpectedManifestCount {
     param(
         [string]$PythonPath,
-        [string]$RootPath
+        [string]$RootPath,
+        [string]$OutputRootPath,
+        [int]$MaxFileCount
     )
-    $code = "from pathlib import Path; import sys; from office2md.scanner import scan_input; print(len(scan_input(Path(sys.argv[1]), recursive=True)))"
-    $output = & $PythonPath -c $code $RootPath
+    $code = @'
+from pathlib import Path
+import sys
+from slugify import slugify
+from office2md.detector import sha256_file
+from office2md.scanner import scan_input
+
+source_root = Path(sys.argv[1])
+output_root = Path(sys.argv[2])
+max_file_count = int(sys.argv[3])
+files = scan_input(source_root, recursive=True)
+selected_files = files[:max_file_count] if max_file_count > 0 else files
+seen = {}
+targets = []
+for source in selected_files:
+    checksum = sha256_file(source)
+    slug = slugify(source.stem) or "document"
+    base_target = output_root / slug
+    source_key = (str(source.resolve()), checksum)
+    if base_target not in seen:
+        target = base_target
+    elif seen[base_target] == source_key:
+        target = base_target
+    else:
+        short_hash = checksum.split(":", 1)[-1][:8]
+        target = output_root / f"{slug}-{short_hash}"
+    seen[target] = source_key
+    targets.append(target)
+print(len(files))
+print(len(set(targets)))
+for target in sorted({target.name for target in targets}):
+    print(target)
+'@
+    $encodedCode = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($code))
+    $bootstrap = "import base64; exec(base64.b64decode('$encodedCode').decode('utf-8'))"
+    $output = & $PythonPath -c $bootstrap $RootPath $OutputRootPath $MaxFileCount
     if ($LASTEXITCODE -ne 0) {
-        throw "Failed to count supported files with office2md.scanner."
+        throw "Failed to count expected manifests with office2md.scanner."
     }
-    return [int]($output | Select-Object -Last 1)
+    return @{
+        Supported = [int]($output | Select-Object -First 1)
+        Expected = [int]($output | Select-Object -Skip 1 -First 1)
+        Names = [string[]]($output | Select-Object -Skip 2)
+    }
 }
 
 function Get-ManifestCount {
@@ -49,6 +89,24 @@ function Get-ManifestCount {
         return 0
     }
     return (Get-ChildItem -LiteralPath $RootPath -Recurse -Filter manifest.json -File -ErrorAction SilentlyContinue | Measure-Object).Count
+}
+
+function Get-ExpectedManifestPresentCount {
+    param(
+        [string]$RootPath,
+        [string[]]$ExpectedNames
+    )
+    if (-not (Test-Path -LiteralPath $RootPath)) {
+        return 0
+    }
+    $count = 0
+    foreach ($name in $ExpectedNames) {
+        $manifestPath = Join-Path (Join-Path $RootPath $name) "manifest.json"
+        if (Test-Path -LiteralPath $manifestPath) {
+            $count += 1
+        }
+    }
+    return $count
 }
 
 function Stop-ProcessTree {
@@ -97,11 +155,10 @@ if ($MaxAttempts -lt 1) {
     throw "MaxAttempts must be at least 1."
 }
 
-$supportedCount = Get-ScannerSupportedCount -PythonPath $pythonPath -RootPath $inputRoot
-$expected = $supportedCount
-if ($MaxFiles -gt 0) {
-    $expected = [Math]::Min($MaxFiles, $supportedCount)
-}
+$expectedCounts = Get-ExpectedManifestCount -PythonPath $pythonPath -RootPath $inputRoot -OutputRootPath $outputRoot -MaxFileCount $MaxFiles
+$supportedCount = $expectedCounts.Supported
+$expected = $expectedCounts.Expected
+$expectedNames = $expectedCounts.Names
 
 $baseArgs = @(
     "-m", "office2md.cli", "convert",
@@ -128,7 +185,7 @@ Write-Host "Input: $inputRoot"
 Write-Host "Output: $outputRoot"
 Write-Host "Logs: $logRoot"
 Write-Host "Supported files: $supportedCount"
-Write-Host "Expected manifests: $expected"
+Write-Host "Expected unique manifests: $expected"
 Write-Host "Timeout minutes per attempt: $TimeoutMinutes"
 Write-Host "Max attempts: $MaxAttempts"
 Write-Host "Command: `"$pythonPath`" $argumentText"
@@ -142,9 +199,10 @@ New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
 
 for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-    $manifestCount = Get-ManifestCount -RootPath $outputRoot
+    $manifestCount = Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames
+    $totalManifestCount = Get-ManifestCount -RootPath $outputRoot
     if ($manifestCount -ge $expected) {
-        Write-Host "Done: $manifestCount/$expected manifests present."
+        Write-Host "Done: $manifestCount/$expected expected manifests present ($totalManifestCount total manifests)."
         exit 0
     }
 
@@ -152,7 +210,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $stdoutLog = Join-Path $logRoot ("convert_attempt_{0:D2}_{1}.out.log" -f $attempt, $stamp)
     $stderrLog = Join-Path $logRoot ("convert_attempt_{0:D2}_{1}.err.log" -f $attempt, $stamp)
 
-    Write-Host "Attempt $attempt starting at $(Get-Date -Format o); manifests before: $manifestCount/$expected"
+    Write-Host "Attempt $attempt starting at $(Get-Date -Format o); expected manifests before: $manifestCount/$expected ($totalManifestCount total)"
     $process = Start-Process -FilePath $pythonPath `
         -ArgumentList $argumentText `
         -WorkingDirectory (Get-Location) `
@@ -173,9 +231,11 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     }
 
     Start-Sleep -Seconds 2
-    $afterCount = Get-ManifestCount -RootPath $outputRoot
-    Write-Host "Attempt $attempt complete; manifests after: $afterCount/$expected"
+    $afterCount = Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames
+    $afterTotalCount = Get-ManifestCount -RootPath $outputRoot
+    Write-Host "Attempt $attempt complete; expected manifests after: $afterCount/$expected ($afterTotalCount total)"
 }
 
-$finalCount = Get-ManifestCount -RootPath $outputRoot
-throw "Reached MaxAttempts=$MaxAttempts with $finalCount/$expected manifests."
+$finalCount = Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames
+$finalTotalCount = Get-ManifestCount -RootPath $outputRoot
+throw "Reached MaxAttempts=$MaxAttempts with $finalCount/$expected expected manifests ($finalTotalCount total manifests)."

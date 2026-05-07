@@ -19,7 +19,7 @@ The runner does not change conversion logic. It repeatedly starts:
 python -m office2md.cli convert INPUT OUTPUT --recursive --engine auto --profile kb --render-pdf-pages --max-render-pages 3 --max-text-pages 10 --no-force-ocr --no-use-ai --ai-backend none --skip-existing
 ```
 
-It redirects stdout and stderr to timestamped logs, counts generated `manifest.json` files, stops a timed-out process tree, and restarts until the expected manifest count is reached.
+It redirects stdout and stderr to timestamped logs, checks generated `manifest.json` files against expected output folders, stops a timed-out process tree, and restarts until the expected unique manifest count is reached. The expected count can be lower than the scanner-supported file count when duplicate source files map to the same output folder.
 
 ## 300-File Example
 
@@ -50,7 +50,7 @@ Then build and report:
 
 ## Full-Directory Example
 
-Use `-FullDirectory` instead of `-MaxFiles`. The runner counts scanner-supported files before starting.
+Use `-FullDirectory` instead of `-MaxFiles`. The runner counts scanner-supported files and expected unique output manifests before starting.
 
 ```powershell
 cd C:\Users\hcai\Downloads\office2md
@@ -68,7 +68,7 @@ $env:PYTHONUTF8="1"
 
 ## Dry Run
 
-Use `-DryRun` to confirm paths, supported file count, expected manifest count, and the exact command without starting conversion.
+Use `-DryRun` to confirm paths, supported file count, expected unique manifest count, and the exact command without starting conversion.
 
 ```powershell
 .\scripts\Invoke-Office2MdChunkedConvert.ps1 `
@@ -85,5 +85,6 @@ CML125 lives under OneDrive. On-demand file hydration, sync locking, and reparse
 ## Notes
 
 - Office temporary files whose names start with `~$` are skipped by the scanner.
-- The runner stops based on manifest count, not source file count.
+- The runner stops when the expected output folders contain `manifest.json`, not based on raw scanner-supported source file count.
+- Legacy `.doc` files can fail as unsupported input. Phase 3.0 keeps these documented as known unsupported files unless a later requirement demands legacy Word conversion.
 - Keep OCR, AI, embedding/vector search, and Office image export disabled for Phase 3.0 validation.

@@ -22,7 +22,9 @@ The runner automates the manual recovery pattern proven during CML125 300-file v
 - supports both `-MaxFiles` validation runs and full scanner-supported directory runs
 - supports `-DryRun`
 
-The runner uses `office2md.scanner.scan_input` to calculate the expected supported-file count, so the expected manifest count matches the converter scanner behavior.
+The runner uses `office2md.scanner.scan_input` plus output-directory naming behavior to calculate supported-file count and expected unique manifest count, then checks those expected output folders for `manifest.json`. This handles duplicate source files that map to a shared output manifest.
+
+Legacy `.doc` inputs remain documented as known unsupported files for Phase 3.0; the runner does not add legacy Word conversion or external conversion dependencies.
 
 ## Operations Documentation
 
@@ -65,7 +67,7 @@ All checks passed!
 Dry-run validation:
 
 - `-MaxFiles 3`: supported files 598, expected manifests 3
-- `-FullDirectory`: supported files 598, expected manifests 598
+- `-FullDirectory`: supported files 598, expected unique manifests 588
 
 ## Explicit Non-Goals
 
