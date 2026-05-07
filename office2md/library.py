@@ -257,10 +257,87 @@ def _search_results(
             "original_query": original_query or query,
             "alias_used": alias_used,
             "normalized_used": normalized_used,
+            "matched_tokens": sorted(row.get("matched_tokens", [])) if isinstance(row, dict) else [],
             "preview": _preview(row["text"], query),
         }
         for index, row in enumerate(rows, start=offset)
     ]
+
+
+def search_library_diagnostics(
+    query: str,
+    results: List[Dict],
+    kinds: List[str] | None = None,
+    evidences: List[str] | None = None,
+    document: str | None = None,
+    output_dir: str | None = None,
+    entities: List[str] | None = None,
+    exclude_docs: List[str] | None = None,
+    has_locator: bool = False,
+) -> Dict:
+    first = results[0] if results else {}
+    mode = first.get("mode", "fts")
+    effective_query = first.get("query_used", query)
+    fallback_used = bool(first.get("fallback_used"))
+    alias_used = first.get("alias_used")
+    normalized_query = first.get("query_used") if first.get("normalized_used") else None
+    token_list = _search_tokens(effective_query) if fallback_used else []
+    total_hits = first.get("total_hits", 0) if results else 0
+    locator_count = sum(1 for item in results if item.get("locator"))
+    return {
+        "original_query": query,
+        "effective_query": effective_query,
+        "mode": mode,
+        "alias_used": alias_used,
+        "normalized_query": normalized_query,
+        "token_fallback_used": fallback_used,
+        "fallback_tokens": token_list,
+        "filters": {
+            "kind": kinds or [],
+            "evidence": evidences or [],
+            "document": document,
+            "output_dir": output_dir,
+            "entity": entities or [],
+            "has_locator": has_locator,
+            "exclude_doc": exclude_docs or [],
+        },
+        "result_count": total_hits,
+        "shown_count": len(results),
+        "top_evidence_types": _count_facet(results, "evidence_type", 5),
+        "top_document_kinds": _count_facet(results, "document_kind", 5),
+        "locator_coverage": {
+            "shown_with_locator": locator_count,
+            "shown_count": len(results),
+        },
+        "hints": _search_diagnostic_hints(query, results, fallback_used, alias_used, normalized_query, token_list),
+    }
+
+
+def _search_diagnostic_hints(
+    query: str,
+    results: List[Dict],
+    fallback_used: bool,
+    alias_used: str | None,
+    normalized_query: str | None,
+    token_list: List[str],
+) -> List[str]:
+    if not results:
+        return ["no results found; try an identifier, known alias, or shorter terms"]
+    hints = []
+    if normalized_query:
+        hints.append("normalized identifier query was used after the original query returned 0 hits")
+    elif alias_used:
+        hints.append("alias was used after the original query returned 0 hits")
+    elif fallback_used:
+        hints.append("token fallback was used after the original query returned 0 hits")
+    else:
+        hints.append("exact query matched")
+    broad_terms = {"issue", "problem", "fault", "error", "control", "system"}
+    if any(token in broad_terms for token in token_list or _search_tokens(query)):
+        hints.append("broad terms may be causing wider results")
+    if results and not any(item.get("locator") for item in results):
+        hints.append("shown results have no locators; try --has-locator or a more specific query")
+    return hints
 
 
 _QUERY_ALIASES = {

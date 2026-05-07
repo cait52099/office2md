@@ -16,7 +16,7 @@ from office2md.converters.markitdown_converter import MarkItDownConverter
 from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
-from office2md.library import build_library, library_report, locate_document, search_library, search_library_facets
+from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
 from office2md.postprocess.drawing_index import build_drawing_index_chunks, extract_drawing_index
@@ -166,6 +166,7 @@ def search_library_command(
     has_locator: bool = typer.Option(False, "--has-locator", help="Only show chunks with source locators."),
     facets: bool = typer.Option(False, "--facets", help="Print facet counts for the current query and filters."),
     context: int = typer.Option(0, "--context", "--related", help="Show nearby chunks from the same document for each result."),
+    diagnostics: bool = typer.Option(False, "--diagnostics", help="Print query handling diagnostics without changing results."),
 ) -> None:
     """Search a local Knowledge Library SQLite database using FTS."""
     results = search_library(
@@ -216,6 +217,35 @@ def search_library_command(
             item["preview"] or "",
         )
     console.print(table)
+    if diagnostics:
+        diagnostic_data = search_library_diagnostics(
+            query,
+            results,
+            kinds=kind or [],
+            evidences=evidence or [],
+            document=document,
+            output_dir=output_dir,
+            entities=entity or [],
+            exclude_docs=exclude_doc or [],
+            has_locator=has_locator,
+        )
+        diagnostics_table = Table(title="Diagnostics")
+        diagnostics_table.add_column("Field")
+        diagnostics_table.add_column("Value")
+        diagnostics_table.add_row("original_query", str(diagnostic_data["original_query"]))
+        diagnostics_table.add_row("effective_query", str(diagnostic_data["effective_query"]))
+        diagnostics_table.add_row("mode", str(diagnostic_data["mode"]))
+        diagnostics_table.add_row("alias_used", str(diagnostic_data["alias_used"] or ""))
+        diagnostics_table.add_row("normalized_query", str(diagnostic_data["normalized_query"] or ""))
+        diagnostics_table.add_row("token_fallback_used", str(diagnostic_data["token_fallback_used"]))
+        diagnostics_table.add_row("fallback_tokens", ", ".join(diagnostic_data["fallback_tokens"]))
+        diagnostics_table.add_row("filters", str(diagnostic_data["filters"]))
+        diagnostics_table.add_row("result_count", str(diagnostic_data["result_count"]))
+        diagnostics_table.add_row("top_evidence_types", str(diagnostic_data["top_evidence_types"]))
+        diagnostics_table.add_row("top_document_kinds", str(diagnostic_data["top_document_kinds"]))
+        diagnostics_table.add_row("locator_coverage", str(diagnostic_data["locator_coverage"]))
+        diagnostics_table.add_row("hints", " | ".join(diagnostic_data["hints"]))
+        console.print(diagnostics_table)
     if context > 0:
         related_table = Table(title="Related chunks")
         related_table.add_column("Result")

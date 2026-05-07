@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from office2md.library import build_library, locate_document, search_library, search_library_facets
+from office2md.library import build_library, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
 def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
@@ -339,6 +339,44 @@ def test_search_library_uses_conservative_aliases_and_identifier_normalization(t
     assert identifier[0]["chunk_id"] == "identifier"
     assert identifier[0]["normalized_used"] is True
     assert identifier[0]["query_used"].endswith("*")
+
+
+def test_search_library_diagnostics_explain_query_handling_without_changing_results(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "diagnostics-doc",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk("cooling_water", "hmi_translation_row", ["Cooling"], "Cooling water pump 1M2098", "Sheet: User Texts / Row: 1"),
+            _chunk("alarm_history", "hmi_translation_row", ["Alarms"], "Alarm history active faults", "Sheet: User Texts / Row: 2"),
+        ],
+        {"equipment": ["HMI"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    default_results = search_library(library_dir, "alarm history", limit=5)
+    fallback_results = search_library(library_dir, "alarm history missingterm", limit=5)
+    alias_results = search_library(library_dir, "\u51b7\u5374\u6c34", limit=5)
+
+    default_diagnostics = search_library_diagnostics("alarm history", default_results)
+    fallback_diagnostics = search_library_diagnostics("alarm history missingterm", fallback_results)
+    alias_diagnostics = search_library_diagnostics("\u51b7\u5374\u6c34", alias_results, kinds=["hmi_translation_xlsx"], has_locator=True)
+
+    assert [item["chunk_id"] for item in default_results] == ["alarm_history"]
+    assert default_diagnostics["mode"] == "fts"
+    assert default_diagnostics["hints"] == ["exact query matched"]
+    assert fallback_diagnostics["token_fallback_used"] is True
+    assert fallback_diagnostics["fallback_tokens"] == ["alarm", "history", "missingterm"]
+    assert "broad terms may be causing wider results" not in fallback_diagnostics["hints"]
+    assert alias_diagnostics["alias_used"] == "\u51b7\u5374\u6c34 -> cooling water"
+    assert alias_diagnostics["filters"]["kind"] == ["hmi_translation_xlsx"]
+    assert alias_diagnostics["filters"]["has_locator"] is True
+    assert alias_diagnostics["top_evidence_types"][0] == {"value": "hmi_translation_row", "count": 1}
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

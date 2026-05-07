@@ -296,3 +296,14 @@ v0.2.0 final release evidence:
 - [ ] Full-directory library build succeeds with documents 587, chunks 4238, entities 365, and noisy chunks 0.
 - [ ] Known limitations are documented: no OCR, no AI/MiniMax in validated path, no embeddings/vector search, no Office image export, legacy `.doc` unsupported/fragile, Docling fallback to MarkItDown, some Office-derived chunks may lack locators, and OneDrive full-directory conversion may need the runner.
 - [ ] Final release notes are written in `RELEASE_NOTES_v0.2.0.md`.
+
+v0.2.1-rc1 optional query diagnostics checkpoint evidence:
+
+- [ ] `python -m pytest` reports 64 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `search-library --diagnostics` is optional.
+- [ ] Default `search-library` output without `--diagnostics` remains unchanged.
+- [ ] Diagnostics include original query, effective query, mode, alias/normalization, token fallback status, fallback tokens, filters, result count, top evidence types, top document kinds, locator coverage, and hints.
+- [ ] Diagnostics work with aliases, normalized queries, token fallback, `--facets`, `--context`, `--output-dir`, and `--entity`.
+- [ ] Smoke diagnostics pass against the existing CML125 full-directory library for `SY909735`, Chinese "cooling water", `1THLS200`, `vacuum pump fault`, `agitator temperature problem`, `homogenizer cooling`, and `alarm history`.
+- [ ] No default ranking change, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion is included.
