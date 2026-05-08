@@ -451,3 +451,16 @@ v0.2.3-rc1 library-report JSON export checkpoint evidence:
 - [ ] CML125 smoke export records documents 587, chunks 4238, entities 365, noisy chunks 0, chunks without locator 462, missing assets 0, low quality documents 85, and page-level PDF documents 493.
 - [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc1.md`.
+
+v0.2.3-rc2 demo/evidence package checkpoint evidence:
+
+- [ ] `python -m pytest` reports 70 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Changes are docs-only.
+- [ ] `docs/usage/demo_evidence_package.md` includes copy-paste PowerShell examples for environment checks, `library-report`, `library-report --export-json`, `search-library --diagnostics-json`, `search-library --export-json`, `locate-document`, and runner `-MaxFiles 3 -DryRun`.
+- [ ] `docs/usage/common_workflows.md` links to the demo evidence package.
+- [ ] CML125 reference evidence is documented: documents 587, chunks 4238, entities 365, noisy chunks 0, low quality documents 85, page-level PDF documents 493, supported files 598, and expected unique manifests 588.
+- [ ] Notes document PowerShell UTF-8 environment variables, quoting paths with spaces, `--context` requiring an integer, no OCR/AI/embedding/vector defaults, and legacy `.doc` unsupported/fragile status.
+- [ ] Smoke checks cover `library-report --export-json`, `search-library "vacuum pump fault" --limit 3 --diagnostics-json`, `locate-document "SY909735"`, and runner `-MaxFiles 3 -DryRun`.
+- [ ] No code, runtime behavior, search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc2.md`.

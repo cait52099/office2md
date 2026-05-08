@@ -14,6 +14,8 @@ $env:PYTHONUTF8 = "1"
 
 The validated default path does not use OCR, AI/MiniMax, embeddings/vector search, cloud services, or Office image export.
 
+For a compact validation script and expected CML125 reference evidence, see `docs/usage/demo_evidence_package.md`.
+
 ## Single Document Conversion
 
 ```powershell
