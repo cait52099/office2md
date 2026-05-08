@@ -349,3 +349,20 @@ v0.2.1 final release evidence:
 - [ ] Exact FTS remains unchanged for known identifier-style queries.
 - [ ] No vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, broadened aliases, or exact FTS behavior changes are included.
 - [ ] Final release notes are written in `RELEASE_NOTES_v0.2.1.md`.
+
+v0.2.2-rc1 machine-readable search diagnostics checkpoint evidence:
+
+- [ ] `python -m pytest` reports 68 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `search-library --diagnostics-json` is optional.
+- [ ] Default `search-library` output without `--diagnostics-json` remains unchanged.
+- [ ] `--diagnostics-json` prints marker line `diagnostics_json:`.
+- [ ] `--diagnostics-json` prints stable pretty JSON after normal search tables.
+- [ ] Diagnostics JSON includes original query, effective query, mode, alias/normalization fields, token fallback status, fallback tokens, filters, result count, shown count, top evidence types, top document kinds, locator coverage, and hints.
+- [ ] Diagnostics JSON includes compact result summaries with rank, chunk ID, document title, source file, document kind, evidence type, locator, and output directory.
+- [ ] Diagnostics JSON works with normal output, `--diagnostics`, `--facets`, `--context`, `--output-dir`, and `--entity`.
+- [ ] Diagnostics JSON works with alias/normalization and token fallback paths.
+- [ ] Smoke JSON checks pass against the existing CML125 full-directory library for `SY909735`, Chinese "cooling water", `1THLS200`, `vacuum pump fault`, and `agitator temperature problem`.
+- [ ] Combined smoke JSON checks pass for `SY909735 --diagnostics --diagnostics-json` and `vacuum pump fault --diagnostics --facets --context 2 --diagnostics-json`.
+- [ ] No search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc1.md`.

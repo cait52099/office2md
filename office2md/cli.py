@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import tempfile
 from typing import List
@@ -167,6 +168,7 @@ def search_library_command(
     facets: bool = typer.Option(False, "--facets", help="Print facet counts for the current query and filters."),
     context: int = typer.Option(0, "--context", "--related", help="Show N nearby chunks from the same document for each result."),
     diagnostics: bool = typer.Option(False, "--diagnostics", help="Print query handling diagnostics without changing results."),
+    diagnostics_json: bool = typer.Option(False, "--diagnostics-json", help="Print machine-readable diagnostics JSON after normal output."),
 ) -> None:
     """Search a local Knowledge Library with SQLite FTS and optional token fallback."""
     results = search_library(
@@ -217,7 +219,8 @@ def search_library_command(
             item["preview"] or "",
         )
     console.print(table)
-    if diagnostics:
+    diagnostic_data = None
+    if diagnostics or diagnostics_json:
         diagnostic_data = search_library_diagnostics(
             query,
             results,
@@ -229,6 +232,7 @@ def search_library_command(
             exclude_docs=exclude_doc or [],
             has_locator=has_locator,
         )
+    if diagnostics and diagnostic_data is not None:
         diagnostics_table = Table(title="Diagnostics")
         diagnostics_table.add_column("Field")
         diagnostics_table.add_column("Value")
@@ -283,6 +287,42 @@ def search_library_command(
             for row in rows:
                 facet_table.add_row(facet_name, row["value"], str(row["count"]))
         console.print(facet_table)
+    if diagnostics_json and diagnostic_data is not None:
+        print("diagnostics_json:")
+        print(json.dumps(_search_diagnostics_json_payload(diagnostic_data, results), ensure_ascii=False, indent=2))
+
+
+def _search_diagnostics_json_payload(diagnostics: dict, results: List[dict]) -> dict:
+    return {
+        "original_query": diagnostics["original_query"],
+        "effective_query": diagnostics["effective_query"],
+        "mode": diagnostics["mode"],
+        "alias_used": diagnostics["alias_used"],
+        "normalized_query": diagnostics["normalized_query"],
+        "token_fallback_used": diagnostics["token_fallback_used"],
+        "fallback_tokens": diagnostics["fallback_tokens"],
+        "filters": diagnostics["filters"],
+        "result_count": diagnostics["result_count"],
+        "shown_count": diagnostics["shown_count"],
+        "top_evidence_types": diagnostics["top_evidence_types"],
+        "top_document_kinds": diagnostics["top_document_kinds"],
+        "locator_coverage": diagnostics["locator_coverage"],
+        "hints": diagnostics["hints"],
+        "results": [_search_diagnostics_result_summary(item) for item in results],
+    }
+
+
+def _search_diagnostics_result_summary(item: dict) -> dict:
+    return {
+        "rank": item.get("rank"),
+        "chunk_id": item.get("chunk_id"),
+        "document_title": item.get("document_title"),
+        "source_file": item.get("source_file"),
+        "document_kind": item.get("document_kind"),
+        "evidence_type": item.get("evidence_type"),
+        "locator": item.get("locator"),
+        "output_dir": item.get("output_dir"),
+    }
 
 
 @app.command("locate-document")

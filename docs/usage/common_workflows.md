@@ -85,6 +85,16 @@ Diagnostics:
   --diagnostics
 ```
 
+Machine-readable diagnostics JSON is appended after the normal tables:
+
+```powershell
+.\.venv\Scripts\python.exe -m office2md.cli search-library `
+  "C:\path\office2md_library" `
+  "vacuum pump fault" `
+  --limit 10 `
+  --diagnostics-json
+```
+
 Facets:
 
 ```powershell

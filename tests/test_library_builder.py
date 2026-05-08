@@ -2,6 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+from office2md.cli import _search_diagnostics_json_payload
 from office2md.library import build_library, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
@@ -504,6 +505,63 @@ def test_search_library_diagnostics_explain_query_handling_without_changing_resu
     assert alias_diagnostics["filters"]["kind"] == ["hmi_translation_xlsx"]
     assert alias_diagnostics["filters"]["has_locator"] is True
     assert alias_diagnostics["top_evidence_types"][0] == {"value": "hmi_translation_row", "count": 1}
+
+
+def test_search_library_diagnostics_json_payload_is_stable_and_compact(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "diagnostics-json-doc",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk("cooling_water", "hmi_translation_row", ["Cooling"], "Cooling water pump 1M2098", "Sheet: User Texts / Row: 1"),
+            _chunk("alarm_history", "hmi_translation_row", ["Alarms"], "Alarm history active faults", "Sheet: User Texts / Row: 2"),
+        ],
+        {"equipment": ["HMI"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "\u51b7\u5374\u6c34", limit=5, kinds=["hmi_translation_xlsx"], has_locator=True)
+    diagnostics = search_library_diagnostics("\u51b7\u5374\u6c34", results, kinds=["hmi_translation_xlsx"], has_locator=True)
+    payload = _search_diagnostics_json_payload(diagnostics, results)
+
+    assert list(payload) == [
+        "original_query",
+        "effective_query",
+        "mode",
+        "alias_used",
+        "normalized_query",
+        "token_fallback_used",
+        "fallback_tokens",
+        "filters",
+        "result_count",
+        "shown_count",
+        "top_evidence_types",
+        "top_document_kinds",
+        "locator_coverage",
+        "hints",
+        "results",
+    ]
+    assert payload["original_query"] == "\u51b7\u5374\u6c34"
+    assert payload["effective_query"] == "cooling water"
+    assert payload["alias_used"] == "\u51b7\u5374\u6c34 -> cooling water"
+    assert payload["filters"]["kind"] == ["hmi_translation_xlsx"]
+    assert payload["locator_coverage"] == {"shown_with_locator": 1, "shown_count": 1}
+    assert payload["results"] == [
+        {
+            "rank": 1,
+            "chunk_id": "cooling_water",
+            "document_title": "Translation",
+            "source_file": "Translation.xlsx",
+            "document_kind": "hmi_translation_xlsx",
+            "evidence_type": "hmi_translation_row",
+            "locator": "Sheet: User Texts / Row: 1",
+            "output_dir": "hmi",
+        }
+    ]
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):
