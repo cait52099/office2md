@@ -464,3 +464,16 @@ v0.2.3-rc2 demo/evidence package checkpoint evidence:
 - [ ] Smoke checks cover `library-report --export-json`, `search-library "vacuum pump fault" --limit 3 --diagnostics-json`, `locate-document "SY909735"`, and runner `-MaxFiles 3 -DryRun`.
 - [ ] No code, runtime behavior, search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc2.md`.
+
+v0.2.3-rc3 Office-derived locator audit checkpoint evidence:
+
+- [ ] `python -m pytest` reports 70 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Changes are docs-only audit/report evidence.
+- [ ] `docs/design/v023_office_locator_audit.md` records total chunks 4238, chunks with locator 3776, and chunks without locator 462.
+- [ ] Missing locators by extension are documented as `.docx: 457`, `.xlsx: 3`, and `.pptx: 2`.
+- [ ] Missing locator sources are documented: `Symex CML125 Purchase Agreement_0405.docx` 227, `Symex CML125 Purchase Agreement_to Symex_0404.docx` 227, `CML125 Project.xlsx` 3, `CML125 Area_20171129.pptx` 1, `New Microsoft PowerPoint Presentation.pptx` 1, and three small DOCX files 1 each.
+- [ ] Cause analysis records that missing locators are already absent in `chunks.jsonl` and `source_map.json`, `source_map` provenance is `raw_markdown`, generic Office files fall through to `chunk_markdown()`, and the library builder preserves data correctly.
+- [ ] Recommendation is E: small report/diagnostic improvement only, with no XLSX/PPTX locator polish yet and no broad Office locator refactor.
+- [ ] No code, runtime behavior, conversion logic, Office locator behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc3.md`.
