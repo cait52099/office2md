@@ -492,3 +492,15 @@ v0.2.3 final release evidence:
 - [ ] Runner CML125 `-MaxFiles 3 -DryRun` reports supported files 598, expected unique manifests 3, attempts used 0, and final status `dry-run`.
 - [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, library-report metrics/scoring, Office locator behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
 - [ ] Final release notes are written in `RELEASE_NOTES_v0.2.3.md`.
+
+v0.2.4-rc1 quality / locator report detail polish checkpoint evidence:
+
+- [ ] `python -m pytest` reports 71 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `library-report` includes chunks without locator total, by document kind, by evidence type, by source extension, and top source files.
+- [ ] `library-report --export-json` keeps existing fields and adds only additive missing-locator diagnostic fields.
+- [ ] `_quality_report.md` "Chunks Without Locator" section includes the same breakdowns and Office/raw-markdown summary.
+- [ ] Report wording states missing locator data is often already absent in `source_map`/chunks and is not a library-builder loss.
+- [ ] CML125 smoke records chunks without locator 462, document kind `document: 462`, evidence type `text: 462`, extensions `docx: 457`, `xlsx: 3`, `pptx: 2`, top source `Symex CML125 Purchase Agreement_0405.docx` with 227 chunks, and Office/raw-markdown missing locator total 462.
+- [ ] No metric/scoring behavior, conversion behavior, Office locator generation behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.4-rc1.md`.

@@ -421,6 +421,11 @@ def library_report_command(
     table.add_row("low_quality_documents", str(len(report["low_quality_documents"])))
     table.add_row("page_level_pdf_documents", str(len(report.get("page_level_pdf_documents", []))))
     table.add_row("noisy_chunks_count", str(report["noisy_chunks_count"]))
+    table.add_row("chunks_without_locator", str(report.get("chunks_without_locator", 0)))
+    table.add_row("chunks_without_locator_by_document_kind", _format_counts(report.get("chunks_without_locator_by_document_kind", {})))
+    table.add_row("chunks_without_locator_by_evidence_type", _format_counts(report.get("chunks_without_locator_by_evidence_type", {})))
+    table.add_row("chunks_without_locator_by_extension", _format_counts(report.get("chunks_without_locator_by_extension", {})))
+    table.add_row("chunks_without_locator_top_sources", _format_missing_locator_sources(report.get("chunks_without_locator_top_sources", [])))
     table.add_row("noisy_documents", str(len(report["noisy_documents"])))
     table.add_row("hmi_translation_documents", str(len(report["hmi_translation_documents"])))
     table.add_row("export_files_generated", ", ".join(report["export_files_generated"]))
@@ -865,6 +870,10 @@ def _brief_error(exc: Exception) -> str:
 
 def _format_counts(values: dict) -> str:
     return ", ".join(f"{key}: {value}" for key, value in values.items())
+
+
+def _format_missing_locator_sources(values: List[dict]) -> str:
+    return "; ".join(f"{item.get('source_file', '')}: {item.get('chunks_without_locator', 0)}" for item in values[:5])
 
 
 def _clean_manual_section_title(title: str) -> bool:

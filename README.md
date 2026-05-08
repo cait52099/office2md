@@ -194,7 +194,7 @@ office2md search-library ./library/library.db "SY909735" --limit 20 --export-jso
 
 `--export-json PATH` writes UTF-8 search result JSON for scripts and validation evidence. Parent directories are created automatically. The normal console output remains unchanged except for an export path confirmation line when the option is used.
 
-`library-report --export-json PATH` writes the same report metrics as UTF-8 JSON for release evidence and automation. Parent directories are created automatically, and the normal report table still prints.
+`library-report --export-json PATH` writes the same report metrics as UTF-8 JSON for release evidence and automation. Parent directories are created automatically, and the normal report table still prints. Locator detail includes chunks without locators by document kind, evidence type, extension, top source files, and Office/raw-markdown summary fields.
 
 Noisy chunks are retained but marked and ranked lower by default. Noise detection covers repeated `NaN`, base64-like IDs, dense Windows/HMI paths, XML/HTML tag density, missing locators, and low natural-language ratio.
 

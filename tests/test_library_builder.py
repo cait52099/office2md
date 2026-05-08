@@ -656,9 +656,77 @@ def test_library_report_export_json_file_uses_report_data_and_creates_parent(tmp
     assert payload["page_level_pdf_documents"] == report["page_level_pdf_documents"]
     assert payload["noisy_chunks_count"] == report["noisy_chunks_count"] == 0
     assert payload["chunks_without_locator"] == report["chunks_without_locator"] == 0
+    assert payload["chunks_without_locator_by_document_kind"] == report["chunks_without_locator_by_document_kind"] == {}
+    assert payload["chunks_without_locator_by_evidence_type"] == report["chunks_without_locator_by_evidence_type"] == {}
+    assert payload["chunks_without_locator_by_extension"] == report["chunks_without_locator_by_extension"] == {}
+    assert payload["chunks_without_locator_top_sources"] == report["chunks_without_locator_top_sources"] == []
     assert payload["noisy_documents"] == report["noisy_documents"]
     assert payload["hmi_translation_documents"] == report["hmi_translation_documents"]
     assert payload["export_files_generated"] == report["export_files_generated"]
+
+
+def test_library_report_and_quality_report_include_missing_locator_detail(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "agreement",
+        "agreement-doc",
+        "Purchase Agreement.docx",
+        "document",
+        [
+            _chunk("agreement_text_1", "text", [], "Agreement clause 1", None, provenance_status="raw_markdown"),
+            _chunk("agreement_text_2", "text", [], "Agreement clause 2", None, provenance_status="raw_markdown"),
+        ],
+        {"document_type": ["agreement"]},
+    )
+    _write_doc(
+        output_root / "schedule",
+        "schedule-doc",
+        "CML125 Project.xlsx",
+        "document",
+        [_chunk("schedule_text", "text", ["2017-10-23"], "Project schedule", None, provenance_status="raw_markdown")],
+        {"project_number": ["CML125"]},
+    )
+    _write_doc(
+        output_root / "manual",
+        "manual-doc",
+        "Manual.pdf",
+        "manual_pdf",
+        [_chunk("manual_page", "page", ["Manual"], "Manual page", "Page 1", page_number=1)],
+        {"document_type": ["manual"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    report = library_report(library_dir)
+    quality_report = (library_dir / "_quality_report.md").read_text(encoding="utf-8")
+
+    assert report["chunks_without_locator"] == 3
+    assert report["chunks_without_locator_by_document_kind"] == {"document": 3}
+    assert report["chunks_without_locator_by_evidence_type"] == {"text": 3}
+    assert report["chunks_without_locator_by_extension"] == {"docx": 2, "xlsx": 1}
+    assert report["office_raw_markdown_missing_locator_summary"] == {
+        "chunks_without_locator": 3,
+        "by_extension": {"docx": 2, "xlsx": 1},
+        "note": "Missing locator data is already absent in source_map/chunks for raw_markdown Office chunks; the library builder preserves the available data.",
+    }
+    assert report["chunks_without_locator_top_sources"][0]["source_file"] == "Purchase Agreement.docx"
+    assert report["chunks_without_locator_top_sources"][0]["chunks_without_locator"] == 2
+    assert report["chunks_without_locator_top_sources"][0]["raw_markdown_chunks"] == 2
+
+    assert "- chunks_without_locator: 3" in quality_report
+    assert "### By Document Kind" in quality_report
+    assert "- document: 3" in quality_report
+    assert "### By Evidence Type" in quality_report
+    assert "- text: 3" in quality_report
+    assert "### By Source Extension" in quality_report
+    assert "- .docx: 2" in quality_report
+    assert "- .xlsx: 1" in quality_report
+    assert "### Top Source Files Without Locators" in quality_report
+    assert "- Purchase Agreement.docx: 2 chunks" in quality_report
+    assert "### Office Raw Markdown Missing Locator Summary" in quality_report
+    assert "- office_raw_markdown_chunks_without_locator: 3" in quality_report
+    assert "the library builder preserves available locator data" in quality_report
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

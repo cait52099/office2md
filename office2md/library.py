@@ -609,6 +609,39 @@ def library_report(path: Path) -> Dict:
         ).fetchall()
         noisy_chunks_count = conn.execute("SELECT COUNT(*) FROM chunks WHERE is_noisy = 1").fetchone()[0]
         chunks_without_locator = conn.execute("SELECT COUNT(*) FROM chunks WHERE locator IS NULL OR locator = ''").fetchone()[0]
+        chunks_without_locator_by_kind = conn.execute(
+            """
+            SELECT d.document_kind, COUNT(*) AS count
+            FROM chunks c
+            JOIN documents d ON d.doc_id = c.doc_id
+            WHERE c.locator IS NULL OR c.locator = ''
+            GROUP BY d.document_kind
+            ORDER BY count DESC, d.document_kind
+            """
+        ).fetchall()
+        chunks_without_locator_by_evidence = conn.execute(
+            """
+            SELECT c.evidence_type, COUNT(*) AS count
+            FROM chunks c
+            WHERE c.locator IS NULL OR c.locator = ''
+            GROUP BY c.evidence_type
+            ORDER BY count DESC, c.evidence_type
+            """
+        ).fetchall()
+        chunks_without_locator_sources = conn.execute(
+            """
+            SELECT d.title, d.source_file, d.output_dir, d.document_kind,
+                   COUNT(*) AS chunks_without_locator,
+                   SUM(CASE WHEN c.provenance_status = 'raw_markdown' THEN 1 ELSE 0 END) AS raw_markdown_chunks,
+                   GROUP_CONCAT(DISTINCT c.evidence_type) AS evidence_types
+            FROM chunks c
+            JOIN documents d ON d.doc_id = c.doc_id
+            WHERE c.locator IS NULL OR c.locator = ''
+            GROUP BY d.doc_id
+            ORDER BY chunks_without_locator DESC, d.source_file
+            LIMIT 20
+            """
+        ).fetchall()
         noisy_documents = conn.execute(
             """
             SELECT d.title, d.source_file, COUNT(c.chunk_id) AS noisy_chunks_count
@@ -624,6 +657,7 @@ def library_report(path: Path) -> Dict:
         ).fetchall()
     exports_dir = output_dir / "exports"
     export_files = sorted(path.name for path in exports_dir.glob("*.jsonl")) if exports_dir.exists() else []
+    missing_locator_detail = _missing_locator_detail({"documents": documents, "chunks": chunks}, top_limit=20)
     return {
         "documents_count": index.get("documents_count", 0),
         "chunks_count": index.get("chunks_count", 0),
@@ -637,10 +671,99 @@ def library_report(path: Path) -> Dict:
         "page_level_pdf_documents": page_level_docs,
         "noisy_chunks_count": noisy_chunks_count,
         "chunks_without_locator": chunks_without_locator,
+        "chunks_without_locator_by_document_kind": _count_rows_to_dict(chunks_without_locator_by_kind, "document_kind"),
+        "chunks_without_locator_by_evidence_type": _count_rows_to_dict(chunks_without_locator_by_evidence, "evidence_type"),
+        "chunks_without_locator_by_extension": missing_locator_detail["by_extension"],
+        "chunks_without_locator_top_sources": _missing_locator_sources_from_rows(chunks_without_locator_sources),
+        "office_raw_markdown_missing_locator_summary": missing_locator_detail["office_raw_markdown"],
         "noisy_documents": [dict(row) for row in noisy_documents],
         "hmi_translation_documents": [dict(row) for row in hmi_documents],
         "export_files_generated": export_files,
     }
+
+
+def _count_rows_to_dict(rows: List[sqlite3.Row], key_name: str) -> Dict[str, int]:
+    return {str(row[key_name] or ""): int(row["count"] or 0) for row in rows}
+
+
+def _missing_locator_sources_from_rows(rows: List[sqlite3.Row]) -> List[Dict]:
+    sources = []
+    for row in rows:
+        source_file = row["source_file"] or ""
+        sources.append(
+            {
+                "title": row["title"],
+                "source_file": source_file,
+                "output_dir": row["output_dir"],
+                "document_kind": row["document_kind"],
+                "extension": _source_extension(source_file),
+                "chunks_without_locator": int(row["chunks_without_locator"] or 0),
+                "raw_markdown_chunks": int(row["raw_markdown_chunks"] or 0),
+                "evidence_types": sorted(value for value in str(row["evidence_types"] or "").split(",") if value),
+            }
+        )
+    return sources
+
+
+def _missing_locator_detail(rows: Dict[str, List[Dict]], top_limit: int = 20) -> Dict:
+    docs_by_id = {doc["doc_id"]: doc for doc in rows["documents"]}
+    missing = [chunk for chunk in rows["chunks"] if not chunk.get("locator")]
+    by_kind: Counter = Counter()
+    by_evidence: Counter = Counter()
+    by_extension: Counter = Counter()
+    source_groups: Dict[str, Dict] = {}
+    office_raw_markdown = 0
+    office_raw_markdown_by_extension: Counter = Counter()
+
+    for chunk in missing:
+        doc = docs_by_id.get(chunk["doc_id"], {})
+        source_file = doc.get("source_file") or chunk.get("source_file") or ""
+        extension = _source_extension(source_file)
+        by_kind[doc.get("document_kind", "")] += 1
+        by_evidence[chunk.get("evidence_type", "")] += 1
+        by_extension[extension] += 1
+        key = doc.get("doc_id") or source_file
+        group = source_groups.setdefault(
+            key,
+            {
+                "title": doc.get("title", ""),
+                "source_file": source_file,
+                "output_dir": doc.get("output_dir", ""),
+                "document_kind": doc.get("document_kind", ""),
+                "extension": extension,
+                "chunks_without_locator": 0,
+                "raw_markdown_chunks": 0,
+                "evidence_types": set(),
+            },
+        )
+        group["chunks_without_locator"] += 1
+        group["evidence_types"].add(chunk.get("evidence_type", ""))
+        if chunk.get("provenance_status") == "raw_markdown":
+            group["raw_markdown_chunks"] += 1
+            if extension in {"docx", "xlsx", "pptx", "doc", "xls", "ppt"}:
+                office_raw_markdown += 1
+                office_raw_markdown_by_extension[extension] += 1
+
+    top_sources = sorted(source_groups.values(), key=lambda item: (-item["chunks_without_locator"], item["source_file"]))[:top_limit]
+    for item in top_sources:
+        item["evidence_types"] = sorted(value for value in item["evidence_types"] if value)
+
+    return {
+        "total": len(missing),
+        "by_document_kind": dict(by_kind.most_common()),
+        "by_evidence_type": dict(by_evidence.most_common()),
+        "by_extension": dict(by_extension.most_common()),
+        "top_sources": top_sources,
+        "office_raw_markdown": {
+            "chunks_without_locator": office_raw_markdown,
+            "by_extension": dict(office_raw_markdown_by_extension.most_common()),
+            "note": "Missing locator data is already absent in source_map/chunks for raw_markdown Office chunks; the library builder preserves the available data.",
+        },
+    }
+
+
+def _source_extension(source_file: str) -> str:
+    return Path(source_file).suffix.lower().lstrip(".")
 
 
 def _normalize_records(docs: List[Dict], input_root: Path) -> Dict[str, List[Dict]]:
@@ -1250,8 +1373,40 @@ def _quality_md(rows: Dict[str, List[Dict]], warnings: List[str]) -> str:
     if not asset_rows:
         lines.append("_None._")
     lines.extend(["", "## Chunks Without Locator", ""])
+    missing_locator_detail = _missing_locator_detail(rows, top_limit=20)
     missing_locator = [chunk for chunk in rows["chunks"] if not chunk.get("locator")]
-    lines.extend(f"- {chunk['chunk_id']}: {chunk['title']}" for chunk in missing_locator[:100]) or lines.append("_None._")
+    lines.append(f"- chunks_without_locator: {missing_locator_detail['total']}")
+    if missing_locator:
+        lines.append(
+            "- note: Missing locator data is often already absent in source_map/chunks for raw_markdown inputs; the library builder preserves available locator data and does not invent missing provenance."
+        )
+        lines.extend(["", "### By Document Kind", ""])
+        lines.extend(f"- {key}: {value}" for key, value in missing_locator_detail["by_document_kind"].items()) or lines.append("_None._")
+        lines.extend(["", "### By Evidence Type", ""])
+        lines.extend(f"- {key}: {value}" for key, value in missing_locator_detail["by_evidence_type"].items()) or lines.append("_None._")
+        lines.extend(["", "### By Source Extension", ""])
+        lines.extend(f"- .{key}: {value}" if key else f"- (none): {value}" for key, value in missing_locator_detail["by_extension"].items()) or lines.append("_None._")
+        lines.extend(["", "### Top Source Files Without Locators", ""])
+        for source in missing_locator_detail["top_sources"]:
+            lines.append(
+                "- {source_file}: {count} chunks; kind={kind}; extension=.{extension}; output_dir={output_dir}; raw_markdown_chunks={raw}".format(
+                    source_file=source["source_file"],
+                    count=source["chunks_without_locator"],
+                    kind=source["document_kind"],
+                    extension=source["extension"],
+                    output_dir=source["output_dir"],
+                    raw=source["raw_markdown_chunks"],
+                )
+            )
+        office = missing_locator_detail["office_raw_markdown"]
+        lines.extend(["", "### Office Raw Markdown Missing Locator Summary", ""])
+        lines.append(f"- office_raw_markdown_chunks_without_locator: {office['chunks_without_locator']}")
+        lines.extend(f"- .{key}: {value}" for key, value in office["by_extension"].items()) or lines.append("- _None._")
+        lines.append(f"- note: {office['note']}")
+        lines.extend(["", "### Sample Chunks Without Locator", ""])
+        lines.extend(f"- {chunk['chunk_id']}: {chunk['title']}" for chunk in missing_locator[:20])
+    else:
+        lines.append("_None._")
     lines.extend(["", "## Noisy Chunks", ""])
     noisy = [chunk for chunk in rows["chunks"] if chunk.get("is_noisy")]
     lines.append(f"- noisy_chunks_count: {len(noisy)}")
