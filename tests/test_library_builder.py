@@ -2,8 +2,8 @@ import json
 import sqlite3
 from pathlib import Path
 
-from office2md.cli import _search_diagnostics_json_payload, _write_search_export_json
-from office2md.library import build_library, locate_document, search_library, search_library_diagnostics, search_library_facets
+from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
+from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
 def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
@@ -622,6 +622,43 @@ def test_search_library_export_json_file_is_stable_and_creates_parent(tmp_path):
             "preview": "Alarm history active faults",
         }
     ]
+
+
+def test_library_report_export_json_file_uses_report_data_and_creates_parent(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "manual",
+        "report-export-doc",
+        "Operation manual.pdf",
+        "manual_pdf",
+        [_chunk("manual_page", "page", ["Manual"], "SY909735 operation manual", "Page 1", page_number=1)],
+        {"symex_number": ["SY909735"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    report = library_report(library_dir)
+    export_path = tmp_path / "nested" / "reports" / "library_report.json"
+
+    _write_library_report_export_json(export_path, report)
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+
+    assert payload["documents_count"] == report["documents_count"] == 1
+    assert payload["chunks_count"] == report["chunks_count"] == 1
+    assert payload["entities_count"] == report["entities_count"] == 1
+    assert payload["document_kind_distribution"] == report["document_kind_distribution"]
+    assert payload["evidence_type_distribution"] == report["evidence_type_distribution"]
+    assert payload["top_entities"] == report["top_entities"]
+    assert payload["top_batches"] == report["top_batches"]
+    assert payload["missing_assets_summary"] == report["missing_assets_summary"]
+    assert payload["low_quality_documents"] == report["low_quality_documents"]
+    assert payload["page_level_pdf_documents"] == report["page_level_pdf_documents"]
+    assert payload["noisy_chunks_count"] == report["noisy_chunks_count"] == 0
+    assert payload["chunks_without_locator"] == report["chunks_without_locator"] == 0
+    assert payload["noisy_documents"] == report["noisy_documents"]
+    assert payload["hmi_translation_documents"] == report["hmi_translation_documents"]
+    assert payload["export_files_generated"] == report["export_files_generated"]
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

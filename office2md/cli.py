@@ -370,6 +370,13 @@ def _write_search_export_json(path: Path, diagnostics: dict, results: List[dict]
     )
 
 
+def _write_library_report_export_json(path: Path, report: dict) -> None:
+    target = path.expanduser()
+    if target.parent != Path("."):
+        target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 @app.command("locate-document")
 def locate_document_command(library_db_or_output_dir: Path, query: str, limit: int = typer.Option(20, help="Maximum documents to print.")) -> None:
     """Locate source documents in a built Knowledge Library by title or source filename."""
@@ -394,7 +401,10 @@ def locate_document_command(library_db_or_output_dir: Path, query: str, limit: i
 
 
 @app.command("library-report")
-def library_report_command(library_db_or_output_dir: Path) -> None:
+def library_report_command(
+    library_db_or_output_dir: Path,
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 library report JSON to PATH; creates parent directories."),
+) -> None:
     """Print counts, distributions, and quality metrics for a built Knowledge Library."""
     report = library_report(library_db_or_output_dir)
     table = Table(title="office2md library-report")
@@ -415,6 +425,9 @@ def library_report_command(library_db_or_output_dir: Path) -> None:
     table.add_row("hmi_translation_documents", str(len(report["hmi_translation_documents"])))
     table.add_row("export_files_generated", ", ".join(report["export_files_generated"]))
     console.print(table)
+    if export_json is not None:
+        _write_library_report_export_json(export_json, report)
+        console.print(f"export_json: {export_json}")
 
 
 @app.command("convert-file")

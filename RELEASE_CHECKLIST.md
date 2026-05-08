@@ -432,3 +432,22 @@ v0.2.2 final release evidence:
 - [ ] Runner CML125 `-MaxFiles 3 -DryRun` reports supported files 598, expected unique manifests 3, attempts used 0, and final status `dry-run`.
 - [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, output schema, result ordering, vector search, embeddings, OCR, AI/MiniMax in the validated path, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Final release notes are written in `RELEASE_NOTES_v0.2.2.md`.
+
+v0.2.3-rc1 library-report JSON export checkpoint evidence:
+
+- [ ] `python -m pytest` reports 70 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `library-report --export-json PATH` is optional.
+- [ ] Default `library-report` output without `--export-json` remains unchanged.
+- [ ] Normal console output still prints when `--export-json` is used.
+- [ ] `--export-json` prints an `export_json: <path>` confirmation line only when the file is written.
+- [ ] Export JSON is UTF-8 pretty JSON.
+- [ ] Export JSON parent directories are created automatically.
+- [ ] Export JSON reuses the existing `library_report()` result dictionary directly.
+- [ ] Library-report metrics and scoring are not recalculated differently for JSON.
+- [ ] Export JSON includes document/chunk/entity counts, document kind and evidence type distributions, noisy chunk count, chunks without locator, missing assets summary, low quality documents, and page-level PDF documents.
+- [ ] README and `docs/usage/common_workflows.md` document `library-report --export-json PATH`.
+- [ ] CML125 smoke check confirms default `library-report` has no `export_json:` marker.
+- [ ] CML125 smoke export records documents 587, chunks 4238, entities 365, noisy chunks 0, chunks without locator 462, missing assets 0, low quality documents 85, and page-level PDF documents 493.
+- [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc1.md`.

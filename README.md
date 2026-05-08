@@ -144,6 +144,7 @@ office2md can build a local library-level database from an existing office2md ou
 ```bash
 office2md build-library ./output ./library
 office2md library-report ./library
+office2md library-report ./library --export-json library_report.json
 office2md search-library ./library/library.db "M4E viscosity"
 office2md locate-document ./library "Translation"
 ```
@@ -192,6 +193,8 @@ office2md search-library ./library/library.db "SY909735" --limit 20 --export-jso
 `--diagnostics-json` appends a stable machine-readable diagnostics JSON block after the normal search tables. It does not change search results, ranking, aliases, token fallback behavior, facets, or related-context output.
 
 `--export-json PATH` writes UTF-8 search result JSON for scripts and validation evidence. Parent directories are created automatically. The normal console output remains unchanged except for an export path confirmation line when the option is used.
+
+`library-report --export-json PATH` writes the same report metrics as UTF-8 JSON for release evidence and automation. Parent directories are created automatically, and the normal report table still prints.
 
 Noisy chunks are retained but marked and ranked lower by default. Noise detection covers repeated `NaN`, base64-like IDs, dense Windows/HMI paths, XML/HTML tag density, missing locators, and low natural-language ratio.
 

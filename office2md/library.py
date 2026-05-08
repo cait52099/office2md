@@ -608,6 +608,7 @@ def library_report(path: Path) -> Dict:
             "SELECT batch_id, COUNT(*) AS count FROM chunks WHERE batch_id IS NOT NULL AND batch_id != '' GROUP BY batch_id ORDER BY count DESC LIMIT 10"
         ).fetchall()
         noisy_chunks_count = conn.execute("SELECT COUNT(*) FROM chunks WHERE is_noisy = 1").fetchone()[0]
+        chunks_without_locator = conn.execute("SELECT COUNT(*) FROM chunks WHERE locator IS NULL OR locator = ''").fetchone()[0]
         noisy_documents = conn.execute(
             """
             SELECT d.title, d.source_file, COUNT(c.chunk_id) AS noisy_chunks_count
@@ -635,6 +636,7 @@ def library_report(path: Path) -> Dict:
         "low_quality_documents": [dict(row) for row in low_quality if row["doc_id"] not in page_level_doc_ids],
         "page_level_pdf_documents": page_level_docs,
         "noisy_chunks_count": noisy_chunks_count,
+        "chunks_without_locator": chunks_without_locator,
         "noisy_documents": [dict(row) for row in noisy_documents],
         "hmi_translation_documents": [dict(row) for row in hmi_documents],
         "export_files_generated": export_files,

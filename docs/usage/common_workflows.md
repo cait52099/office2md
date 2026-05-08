@@ -64,6 +64,14 @@ For a first pass, add `--max-files 20` or `--dry-run`.
   "C:\path\office2md_library"
 ```
 
+Export the same report metrics to UTF-8 JSON. Parent directories are created automatically:
+
+```powershell
+.\.venv\Scripts\python.exe -m office2md.cli library-report `
+  "C:\path\office2md_library" `
+  --export-json "C:\path\exports\library_report.json"
+```
+
 ## Search Examples
 
 Basic search:
