@@ -504,3 +504,15 @@ v0.2.4-rc1 quality / locator report detail polish checkpoint evidence:
 - [ ] CML125 smoke records chunks without locator 462, document kind `document: 462`, evidence type `text: 462`, extensions `docx: 457`, `xlsx: 3`, `pptx: 2`, top source `Symex CML125 Purchase Agreement_0405.docx` with 227 chunks, and Office/raw-markdown missing locator total 462.
 - [ ] No metric/scoring behavior, conversion behavior, Office locator generation behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.4-rc1.md`.
+
+v0.2.4 final release evidence:
+
+- [ ] `python -m pytest` reports 71 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] Final scope includes reporting/diagnostics polish for chunks without locators in `library-report`, `library-report --export-json`, and `_quality_report.md`.
+- [ ] `library-report --export-json` keeps existing fields and adds only additive missing-locator diagnostic fields.
+- [ ] Final CML125 smoke records documents 587, chunks 4238, entities 365, chunks without locator 462, document kind `document: 462`, evidence type `text: 462`, extensions `docx: 457`, `xlsx: 3`, `pptx: 2`, top source `Symex CML125 Purchase Agreement_0405.docx` with 227 chunks, noisy chunks 0, and page-level PDF documents 493.
+- [ ] Compact smoke checks pass for `library-report`, `library-report --export-json`, `search-library "vacuum pump fault" --limit 3 --diagnostics-json`, `search-library "vacuum pump fault" --limit 3 --export-json`, and `locate-document "SY909735"`.
+- [ ] No metric/scoring behavior, conversion behavior, Office locator generation behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
+- [ ] Final release notes are written in `RELEASE_NOTES_v0.2.4.md`.
