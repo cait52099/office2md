@@ -477,3 +477,18 @@ v0.2.3-rc3 Office-derived locator audit checkpoint evidence:
 - [ ] Recommendation is E: small report/diagnostic improvement only, with no XLSX/PPTX locator polish yet and no broad Office locator refactor.
 - [ ] No code, runtime behavior, conversion logic, Office locator behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.3-rc3.md`.
+
+v0.2.3 final release evidence:
+
+- [ ] `python -m pytest` reports 70 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] Final scope includes optional `library-report --export-json PATH` with UTF-8 pretty JSON, automatic parent directory creation, normal console output retained, and default output unchanged.
+- [ ] Library-report JSON export reuses the existing `library_report()` result dictionary directly and does not recalculate metrics/scoring differently.
+- [ ] Final scope includes docs-only demo/evidence package with copy-paste PowerShell validation examples and CML125 reference evidence.
+- [ ] Final scope includes docs-only Office-derived locator audit with recommendation E: small report/diagnostic improvement only, no XLSX/PPTX locator polish yet, and no broad Office locator refactor.
+- [ ] CML125 compact smoke checks pass for `library-report`, `library-report --export-json`, `search-library "vacuum pump fault" --limit 3 --diagnostics-json`, `search-library "vacuum pump fault" --limit 3 --export-json`, and `locate-document "SY909735"`.
+- [ ] Final library-report JSON smoke records documents 587, chunks 4238, entities 365, noisy chunks 0, chunks without locator 462, low quality documents 85, and page-level PDF documents 493.
+- [ ] Runner CML125 `-MaxFiles 3 -DryRun` reports supported files 598, expected unique manifests 3, attempts used 0, and final status `dry-run`.
+- [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, library-report metrics/scoring, Office locator behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
+- [ ] Final release notes are written in `RELEASE_NOTES_v0.2.3.md`.
