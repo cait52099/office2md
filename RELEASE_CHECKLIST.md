@@ -384,3 +384,20 @@ v0.2.2-rc2 search result export checkpoint evidence:
 - [ ] Smoke export checks pass against the existing CML125 full-directory library for `SY909735`, Chinese "cooling water", and `vacuum pump fault` with diagnostics/context combinations.
 - [ ] No search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc2.md`.
+
+v0.2.2-rc3 runner final summary checkpoint evidence:
+
+- [ ] `python -m pytest` reports 69 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Runner final summary is output-only polish.
+- [ ] Runner launch command is unchanged.
+- [ ] Runner timeout/retry behavior is unchanged.
+- [ ] Runner scanner/counting logic is unchanged.
+- [ ] Runner conversion behavior is unchanged.
+- [ ] Final summary includes input path, output path, log directory, mode, supported file count, expected unique manifest count, final manifest count, completed expected manifest count, failed manifest count, attempts used, timeout/restart count, max attempts, timeout minutes, target reached, final status, log location, and recommended `build-library` command.
+- [ ] CML125 `-MaxFiles 3 -DryRun` reports supported files 598, expected unique manifests 3, attempts used 0, and final status `dry-run`.
+- [ ] CML125 `-FullDirectory -DryRun` reports supported files 598, expected unique manifests 588, attempts used 0, and final status `dry-run`.
+- [ ] Small real `-MaxFiles 1` smoke run prints final summary with completed expected manifests 1/1, failed manifests 0, target reached true, and final status `success`.
+- [ ] Existing runner behavior is noted: the timeout branch can print even if a manifest is produced and target is reached; rc3 does not change this because it would alter process-control behavior.
+- [ ] No conversion, search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc3.md`.

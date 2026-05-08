@@ -21,6 +21,8 @@ python -m office2md.cli convert INPUT OUTPUT --recursive --engine auto --profile
 
 It redirects stdout and stderr to timestamped logs, checks generated `manifest.json` files against expected output folders, stops a timed-out process tree, and restarts until the expected unique manifest count is reached. The expected count can be lower than the scanner-supported file count when duplicate source files map to the same output folder.
 
+At the end of a dry run, successful run, or max-attempts stop, the runner prints a final summary with input/output/log paths, mode, supported file count, expected unique manifest count, final manifest count, completed expected manifest count, failed manifest count, attempt count, timeout/restart count, target status, final status, log location, and the next recommended `build-library` command. This is output-only reporting and does not change launch, timeout, retry, or resume behavior.
+
 ## 300-File Example
 
 ```powershell
@@ -77,6 +79,8 @@ Use `-DryRun` to confirm paths, supported file count, expected unique manifest c
   -MaxFiles 300 `
   -DryRun
 ```
+
+The dry-run final summary reports `Final status: dry-run` and `Attempts used: 0`.
 
 ## OneDrive Risk
 

@@ -91,6 +91,26 @@ function Get-ManifestCount {
     return (Get-ChildItem -LiteralPath $RootPath -Recurse -Filter manifest.json -File -ErrorAction SilentlyContinue | Measure-Object).Count
 }
 
+function Get-FailedManifestCount {
+    param([string]$RootPath)
+    if (-not (Test-Path -LiteralPath $RootPath)) {
+        return 0
+    }
+    $failed = 0
+    $manifests = Get-ChildItem -LiteralPath $RootPath -Recurse -Filter manifest.json -File -ErrorAction SilentlyContinue
+    foreach ($manifest in $manifests) {
+        try {
+            $data = Get-Content -LiteralPath $manifest.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($data.status -eq "failed") {
+                $failed += 1
+            }
+        } catch {
+            # Keep the summary best-effort; unreadable manifests are still counted by Get-ManifestCount.
+        }
+    }
+    return $failed
+}
+
 function Get-ExpectedManifestPresentCount {
     param(
         [string]$RootPath,
@@ -131,6 +151,47 @@ function Join-ArgumentList {
     }) -join " ")
 }
 
+function Write-FinalSummary {
+    param(
+        [string]$InputRootPath,
+        [string]$OutputRootPath,
+        [string]$LogRootPath,
+        [string]$Mode,
+        [int]$SupportedCount,
+        [int]$ExpectedCount,
+        [int]$FinalManifestCount,
+        [int]$CompletedExpectedCount,
+        [int]$FailedManifestCount,
+        [int]$AttemptCount,
+        [int]$TimeoutRestartCount,
+        [int]$MaxAttemptCount,
+        [int]$TimeoutMinuteCount,
+        [bool]$TargetReached,
+        [string]$FinalStatus,
+        [string]$PythonPath
+    )
+    Write-Host ""
+    Write-Host "office2md runner final summary"
+    Write-Host "Input: $InputRootPath"
+    Write-Host "Output: $OutputRootPath"
+    Write-Host "Logs: $LogRootPath"
+    Write-Host "Mode: $Mode"
+    Write-Host "Supported files: $SupportedCount"
+    Write-Host "Expected unique manifests: $ExpectedCount"
+    Write-Host "Final manifest count: $FinalManifestCount"
+    Write-Host "Completed expected manifests: $CompletedExpectedCount/$ExpectedCount"
+    Write-Host "Failed manifests: $FailedManifestCount"
+    Write-Host "Attempts used: $AttemptCount"
+    Write-Host "Timeout/restart count: $TimeoutRestartCount"
+    Write-Host "Max attempts: $MaxAttemptCount"
+    Write-Host "Timeout minutes per attempt: $TimeoutMinuteCount"
+    Write-Host "Target reached: $TargetReached"
+    Write-Host "Final status: $FinalStatus"
+    Write-Host "Log location: $LogRootPath"
+    Write-Host "Next recommended command:"
+    Write-Host "`"$PythonPath`" -m office2md.cli build-library `"$OutputRootPath`" `"<library_output_dir>`""
+}
+
 $pythonPath = Resolve-Office2MdPath $Python
 $inputRoot = Resolve-Office2MdPath $InputPath
 $outputRoot = Resolve-Office2MdPath $OutputPath
@@ -159,6 +220,9 @@ $expectedCounts = Get-ExpectedManifestCount -PythonPath $pythonPath -RootPath $i
 $supportedCount = $expectedCounts.Supported
 $expected = $expectedCounts.Expected
 $expectedNames = $expectedCounts.Names
+$mode = if ($FullDirectory) { "FullDirectory" } else { "MaxFiles $MaxFiles" }
+$timeoutRestartCount = 0
+$attemptsUsed = 0
 
 $baseArgs = @(
     "-m", "office2md.cli", "convert",
@@ -192,6 +256,23 @@ Write-Host "Command: `"$pythonPath`" $argumentText"
 
 if ($DryRun) {
     Write-Host "Dry run only. No conversion started."
+    Write-FinalSummary `
+        -InputRootPath $inputRoot `
+        -OutputRootPath $outputRoot `
+        -LogRootPath $logRoot `
+        -Mode "$mode (DryRun)" `
+        -SupportedCount $supportedCount `
+        -ExpectedCount $expected `
+        -FinalManifestCount (Get-ManifestCount -RootPath $outputRoot) `
+        -CompletedExpectedCount (Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames) `
+        -FailedManifestCount (Get-FailedManifestCount -RootPath $outputRoot) `
+        -AttemptCount 0 `
+        -TimeoutRestartCount 0 `
+        -MaxAttemptCount $MaxAttempts `
+        -TimeoutMinuteCount $TimeoutMinutes `
+        -TargetReached $false `
+        -FinalStatus "dry-run" `
+        -PythonPath $pythonPath
     exit 0
 }
 
@@ -199,10 +280,30 @@ New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
 
 for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    $attemptsUsed = $attempt
     $manifestCount = Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames
     $totalManifestCount = Get-ManifestCount -RootPath $outputRoot
     if ($manifestCount -ge $expected) {
+        $failedManifestCount = Get-FailedManifestCount -RootPath $outputRoot
+        $finalStatus = if ($failedManifestCount -gt 0) { "needs review" } else { "success" }
         Write-Host "Done: $manifestCount/$expected expected manifests present ($totalManifestCount total manifests)."
+        Write-FinalSummary `
+            -InputRootPath $inputRoot `
+            -OutputRootPath $outputRoot `
+            -LogRootPath $logRoot `
+            -Mode $mode `
+            -SupportedCount $supportedCount `
+            -ExpectedCount $expected `
+            -FinalManifestCount $totalManifestCount `
+            -CompletedExpectedCount $manifestCount `
+            -FailedManifestCount $failedManifestCount `
+            -AttemptCount ($attempt - 1) `
+            -TimeoutRestartCount $timeoutRestartCount `
+            -MaxAttemptCount $MaxAttempts `
+            -TimeoutMinuteCount $TimeoutMinutes `
+            -TargetReached $true `
+            -FinalStatus $finalStatus `
+            -PythonPath $pythonPath
         exit 0
     }
 
@@ -222,6 +323,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $finished = Wait-Process -Id $process.Id -Timeout ($TimeoutMinutes * 60) -ErrorAction SilentlyContinue
     if ($null -eq $finished) {
         Write-Warning "Attempt $attempt exceeded $TimeoutMinutes minutes. Stopping process tree for PID $($process.Id)."
+        $timeoutRestartCount += 1
         Stop-ProcessTree -ProcessId $process.Id
     } else {
         Write-Host "Attempt $attempt exited with code $($process.ExitCode)."
@@ -238,4 +340,24 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
 
 $finalCount = Get-ExpectedManifestPresentCount -RootPath $outputRoot -ExpectedNames $expectedNames
 $finalTotalCount = Get-ManifestCount -RootPath $outputRoot
+$finalFailedManifestCount = Get-FailedManifestCount -RootPath $outputRoot
+$targetReached = $finalCount -ge $expected
+$finalStatus = if ($targetReached) { "needs review" } else { "incomplete" }
+Write-FinalSummary `
+    -InputRootPath $inputRoot `
+    -OutputRootPath $outputRoot `
+    -LogRootPath $logRoot `
+    -Mode $mode `
+    -SupportedCount $supportedCount `
+    -ExpectedCount $expected `
+    -FinalManifestCount $finalTotalCount `
+    -CompletedExpectedCount $finalCount `
+    -FailedManifestCount $finalFailedManifestCount `
+    -AttemptCount $attemptsUsed `
+    -TimeoutRestartCount $timeoutRestartCount `
+    -MaxAttemptCount $MaxAttempts `
+    -TimeoutMinuteCount $TimeoutMinutes `
+    -TargetReached $targetReached `
+    -FinalStatus $finalStatus `
+    -PythonPath $pythonPath
 throw "Reached MaxAttempts=$MaxAttempts with $finalCount/$expected expected manifests ($finalTotalCount total manifests)."
