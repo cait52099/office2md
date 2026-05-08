@@ -418,3 +418,17 @@ v0.2.2-rc4 CLI help/output consistency checkpoint evidence:
 - [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
 - [ ] No vector search, embeddings, OCR, AI/MiniMax in the validated path, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc4.md`.
+
+v0.2.2 final release evidence:
+
+- [ ] `python -m pytest` reports 69 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] Final scope includes optional `search-library --diagnostics-json` with default output unchanged.
+- [ ] Final scope includes optional `search-library --export-json PATH` with UTF-8 pretty JSON, automatic parent directory creation, and default output unchanged.
+- [ ] Final scope includes output-only runner final summary polish with no launch, timeout/retry, scanner/counting, process-control, resume, or conversion behavior changes.
+- [ ] Final scope includes CLI help wording consistency polish only.
+- [ ] CML125 compact smoke checks pass for `SY909735`, Chinese "cooling water", `vacuum pump fault`, export JSON, diagnostics/facets/context diagnostics JSON, `locate-document`, and `library-report`.
+- [ ] Runner CML125 `-MaxFiles 3 -DryRun` reports supported files 598, expected unique manifests 3, attempts used 0, and final status `dry-run`.
+- [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, output schema, result ordering, vector search, embeddings, OCR, AI/MiniMax in the validated path, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Final release notes are written in `RELEASE_NOTES_v0.2.2.md`.
