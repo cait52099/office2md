@@ -401,3 +401,20 @@ v0.2.2-rc3 runner final summary checkpoint evidence:
 - [ ] Existing runner behavior is noted: the timeout branch can print even if a manifest is produced and target is reached; rc3 does not change this because it would alter process-control behavior.
 - [ ] No conversion, search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc3.md`.
+
+v0.2.2-rc4 CLI help/output consistency checkpoint evidence:
+
+- [ ] `python -m pytest` reports 69 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CLI changes are help wording only.
+- [ ] No runtime behavior changes are included.
+- [ ] No search core, ranking, alias, token fallback logic, conversion behavior, runner process-control behavior, output schema, or result ordering changes are included.
+- [ ] `build-library` help wording clarifies that it builds from an office2md output root.
+- [ ] `search-library --context` / `--related` help explicitly states that the option requires an integer.
+- [ ] `search-library --diagnostics-json` help states that JSON is appended after normal output.
+- [ ] `search-library --export-json` help states that it writes UTF-8 JSON and creates parent directories.
+- [ ] OCR/LLM/AI help wording clarifies that OCR/LLM are not part of the validated path and optional AI is off by default.
+- [ ] Representative output audit covers basic search, diagnostics, diagnostics JSON, export JSON, diagnostics/facets/context/export combination, locate-document, library-report, and runner dry-run output.
+- [ ] Help commands pass for `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [ ] No vector search, embeddings, OCR, AI/MiniMax in the validated path, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc4.md`.

@@ -137,7 +137,7 @@ def doctor_ai() -> None:
 
 @app.command("build-library")
 def build_library_command(input_output_root: Path, library_output_dir: Path) -> None:
-    """Build a local searchable Knowledge Library from INPUT_DIR into OUTPUT_DIR."""
+    """Build a local searchable Knowledge Library from an office2md output root."""
     result = build_library(input_output_root, library_output_dir)
     table = Table(title="office2md build-library")
     table.add_column("Metric")
@@ -166,10 +166,10 @@ def search_library_command(
     exclude_doc: List[str] = typer.Option(None, "--exclude-doc", help="Exclude document title/source_file match. Can be repeated."),
     has_locator: bool = typer.Option(False, "--has-locator", help="Only show chunks with source locators."),
     facets: bool = typer.Option(False, "--facets", help="Print facet counts for the current query and filters."),
-    context: int = typer.Option(0, "--context", "--related", help="Show N nearby chunks from the same document for each result."),
+    context: int = typer.Option(0, "--context", "--related", help="Show N nearby chunks from the same document. Requires an integer."),
     diagnostics: bool = typer.Option(False, "--diagnostics", help="Print query handling diagnostics without changing results."),
-    diagnostics_json: bool = typer.Option(False, "--diagnostics-json", help="Print machine-readable diagnostics JSON after normal output."),
-    export_json: Path = typer.Option(None, "--export-json", help="Write machine-readable search results JSON to PATH."),
+    diagnostics_json: bool = typer.Option(False, "--diagnostics-json", help="Append machine-readable diagnostics JSON after normal output."),
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 search results JSON to PATH; creates parent directories."),
 ) -> None:
     """Search a local Knowledge Library with SQLite FTS and optional token fallback."""
     results = search_library(
@@ -431,8 +431,8 @@ def convert_file_command(
     max_render_pages: int = typer.Option(3, help="Maximum PDF pages to render."),
     max_text_pages: int = typer.Option(None, help="Maximum PDF pages to extract text from."),
     extract_all_page_text: bool = typer.Option(False, help="Extract text from all PDF pages without rendering all pages."),
-    use_ai: bool = typer.Option(False, help="Enable optional AI enrichment."),
-    ai_backend: str = typer.Option("none", help="AI backend: none, http, openai-compatible, cli, or minimax."),
+    use_ai: bool = typer.Option(False, help="Enable optional AI enrichment. Off by default."),
+    ai_backend: str = typer.Option("none", help="AI backend for --use-ai: none, http, openai-compatible, cli, or minimax."),
     ai_model: str = typer.Option(None, help="AI model name."),
     ai_base_url: str = typer.Option(None, help="AI backend base URL."),
     ai_command: str = typer.Option(None, help="AI CLI command."),
@@ -473,14 +473,14 @@ def convert(
     with_chunks: bool = typer.Option(True, help="Write chunks.jsonl."),
     with_assets: bool = typer.Option(True, help="Create assets directory."),
     skip_existing: bool = typer.Option(False, help="Skip when output folder exists."),
-    force_ocr: bool = typer.Option(False, help="Reserved for Phase 2 OCR support."),
-    use_llm: bool = typer.Option(False, help="Reserved for Phase 2 LLM support."),
+    force_ocr: bool = typer.Option(False, help="Reserved; validated path does not use OCR."),
+    use_llm: bool = typer.Option(False, help="Reserved; validated path does not use LLM enrichment."),
     render_pdf_pages: bool = typer.Option(False, help="Render PDF pages to assets/page_001.png."),
     max_render_pages: int = typer.Option(3, help="Maximum PDF pages to render."),
     max_text_pages: int = typer.Option(None, help="Maximum PDF pages to extract text from."),
     extract_all_page_text: bool = typer.Option(False, help="Extract text from all PDF pages without rendering all pages."),
-    use_ai: bool = typer.Option(False, help="Enable optional AI enrichment."),
-    ai_backend: str = typer.Option("none", help="AI backend: none, http, openai-compatible, cli, or minimax."),
+    use_ai: bool = typer.Option(False, help="Enable optional AI enrichment. Off by default."),
+    ai_backend: str = typer.Option("none", help="AI backend for --use-ai: none, http, openai-compatible, cli, or minimax."),
     ai_model: str = typer.Option(None, help="AI model name."),
     ai_base_url: str = typer.Option(None, help="AI backend base URL."),
     ai_command: str = typer.Option(None, help="AI CLI command."),
