@@ -366,3 +366,21 @@ v0.2.2-rc1 machine-readable search diagnostics checkpoint evidence:
 - [ ] Combined smoke JSON checks pass for `SY909735 --diagnostics --diagnostics-json` and `vacuum pump fault --diagnostics --facets --context 2 --diagnostics-json`.
 - [ ] No search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc1.md`.
+
+v0.2.2-rc2 search result export checkpoint evidence:
+
+- [ ] `python -m pytest` reports 69 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `search-library --export-json PATH` is optional.
+- [ ] Default `search-library` output without `--export-json` remains unchanged.
+- [ ] Normal console output still prints when `--export-json` is used.
+- [ ] `--export-json` prints an `export_json: <path>` confirmation line when the file is written.
+- [ ] Export JSON is UTF-8 pretty JSON.
+- [ ] Export JSON parent directories are created automatically.
+- [ ] Export JSON includes query metadata, diagnostics summary, result count, shown count, and results.
+- [ ] Each exported result includes rank, chunk ID, document title, source file, document kind, evidence type, locator, output directory, and preview.
+- [ ] Export works with normal FTS search, token fallback, aliases/normalization, `--diagnostics`, `--diagnostics-json`, `--facets`, `--context`, `--output-dir`, and `--entity`.
+- [ ] If `--export-json` is combined with `--diagnostics-json`, diagnostics JSON remains printed last.
+- [ ] Smoke export checks pass against the existing CML125 full-directory library for `SY909735`, Chinese "cooling water", and `vacuum pump fault` with diagnostics/context combinations.
+- [ ] No search core, ranking, alias, token fallback logic, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.2.2-rc2.md`.

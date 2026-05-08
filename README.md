@@ -184,11 +184,14 @@ office2md search-library ./library/library.db "CIP" --facets --limit 20
 office2md search-library ./library/library.db "CIP" --context 2 --limit 5
 office2md search-library ./library/library.db "CIP" --output-dir copy-of-sy909735 --entity HMI --limit 20
 office2md search-library ./library/library.db "vacuum pump fault" --diagnostics-json
+office2md search-library ./library/library.db "SY909735" --limit 20 --export-json search_results.json
 ```
 
 `--context` / `--related` requires an integer argument indicating how many nearby chunks to show. Search output reports whether it used normal `fts` mode or `token_fallback`. If the original query has 0 hits, a small deterministic alias/normalization layer can expand conservative technical queries, for example Chinese HMI terms for cooling water, alarm history, sealing liquid, operation manual, and homogenizer. Exact queries that already hit are not rewritten.
 
 `--diagnostics-json` appends a stable machine-readable diagnostics JSON block after the normal search tables. It does not change search results, ranking, aliases, token fallback behavior, facets, or related-context output.
+
+`--export-json PATH` writes UTF-8 search result JSON for scripts and validation evidence. Parent directories are created automatically. The normal console output remains unchanged except for an export path confirmation line when the option is used.
 
 Noisy chunks are retained but marked and ranked lower by default. Noise detection covers repeated `NaN`, base64-like IDs, dense Windows/HMI paths, XML/HTML tag density, missing locators, and low natural-language ratio.
 

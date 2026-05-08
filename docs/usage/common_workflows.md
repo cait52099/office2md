@@ -95,6 +95,16 @@ Machine-readable diagnostics JSON is appended after the normal tables:
   --diagnostics-json
 ```
 
+Export search results to UTF-8 JSON. Parent directories are created automatically:
+
+```powershell
+.\.venv\Scripts\python.exe -m office2md.cli search-library `
+  "C:\path\office2md_library" `
+  "SY909735" `
+  --limit 20 `
+  --export-json "C:\path\exports\search_results_sy909735.json"
+```
+
 Facets:
 
 ```powershell

@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from office2md.cli import _search_diagnostics_json_payload
+from office2md.cli import _search_diagnostics_json_payload, _write_search_export_json
 from office2md.library import build_library, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
@@ -560,6 +560,66 @@ def test_search_library_diagnostics_json_payload_is_stable_and_compact(tmp_path)
             "evidence_type": "hmi_translation_row",
             "locator": "Sheet: User Texts / Row: 1",
             "output_dir": "hmi",
+        }
+    ]
+
+
+def test_search_library_export_json_file_is_stable_and_creates_parent(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "export-json-doc",
+        "Translation.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk("cooling_water", "hmi_translation_row", ["Cooling"], "Cooling water pump 1M2098", "Sheet: User Texts / Row: 1"),
+            _chunk("alarm_history", "hmi_translation_row", ["Alarms"], "Alarm history active faults", "Sheet: User Texts / Row: 2"),
+        ],
+        {"equipment": ["HMI"]},
+    )
+
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    results = search_library(library_dir, "alarm history", limit=5, kinds=["hmi_translation_xlsx"], has_locator=True)
+    diagnostics = search_library_diagnostics("alarm history", results, kinds=["hmi_translation_xlsx"], has_locator=True)
+    export_path = tmp_path / "nested" / "search" / "results.json"
+
+    _write_search_export_json(export_path, diagnostics, results)
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+
+    assert payload["query"] == {
+        "original_query": "alarm history",
+        "effective_query": "alarm history",
+        "mode": "fts",
+        "alias_used": None,
+        "normalized_query": None,
+        "token_fallback_used": False,
+        "fallback_tokens": [],
+        "filters": {
+            "kind": ["hmi_translation_xlsx"],
+            "evidence": [],
+            "document": None,
+            "output_dir": None,
+            "entity": [],
+            "has_locator": True,
+            "exclude_doc": [],
+        },
+    }
+    assert payload["result_count"] == 1
+    assert payload["shown_count"] == 1
+    assert payload["diagnostics"]["locator_coverage"] == {"shown_with_locator": 1, "shown_count": 1}
+    assert payload["results"] == [
+        {
+            "rank": 1,
+            "chunk_id": "alarm_history",
+            "document_title": "Translation",
+            "source_file": "Translation.xlsx",
+            "document_kind": "hmi_translation_xlsx",
+            "evidence_type": "hmi_translation_row",
+            "locator": "Sheet: User Texts / Row: 2",
+            "output_dir": "hmi",
+            "preview": "Alarm history active faults",
         }
     ]
 
