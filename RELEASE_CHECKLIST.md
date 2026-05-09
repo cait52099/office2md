@@ -516,3 +516,24 @@ v0.2.4 final release evidence:
 - [ ] Compact smoke checks pass for `library-report`, `library-report --export-json`, `search-library "vacuum pump fault" --limit 3 --diagnostics-json`, `search-library "vacuum pump fault" --limit 3 --export-json`, and `locate-document "SY909735"`.
 - [ ] No metric/scoring behavior, conversion behavior, Office locator generation behavior, search core, ranking, alias, token fallback logic, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, legacy `.doc` conversion, or broad Office provenance/locator refactor changes are included.
 - [ ] Final release notes are written in `RELEASE_NOTES_v0.2.4.md`.
+
+v0.3.0-rc1 GUI MVP skeleton checkpoint evidence:
+
+- [ ] `python -m pytest` reports 71 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit is optional only through `[project.optional-dependencies] gui = ["streamlit"]`.
+- [ ] Default CLI install and normal CLI use remain unchanged.
+- [ ] Optional GUI dependency install with `pip install -e ".[gui]"` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] GUI app title is `office2md GUI MVP`.
+- [ ] Sidebar accepts a Knowledge Library folder or `library.db` path.
+- [ ] Library Overview calls the existing `library_report()` functionality.
+- [ ] Library Overview displays documents, chunks, entities, noisy chunks, chunks without locator, and page-level PDF document metrics.
+- [ ] Missing or invalid library path shows a warning instead of running a workflow.
+- [ ] Search, Locate Document, Evidence Package, and Runner Dry-run are placeholders only.
+- [ ] `docs/design/v030_gui_mvp_scope.md` defines purpose, scope, phased plan, dependency strategy, validation strategy, and out-of-scope items.
+- [ ] `docs/usage/gui_mvp.md` documents optional install, launch command, first screen, current limitations, and no AI/OCR/embedding/vector defaults.
+- [ ] No conversion behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc1.md`.
