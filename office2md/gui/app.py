@@ -21,9 +21,11 @@ from office2md.gui.helpers import (
     prepare_curated_knowledge_graph,
     prepare_document_concept_graph,
     prepare_raw_provenance_graph,
+    run_build_library_command,
     run_library_search,
     run_convert_update_command,
     scan_source_folder_for_gui,
+    summarize_library_output,
 )
 
 
@@ -32,7 +34,9 @@ def main() -> None:
     st.title("office2md GUI MVP")
 
     st.sidebar.header("Library")
-    library_value = st.sidebar.text_input("Library path", value="")
+    if "library_path_value" not in st.session_state:
+        st.session_state["library_path_value"] = ""
+    library_value = st.sidebar.text_input("Library path", key="library_path_value")
     library_path = normalize_library_path(library_value)
 
     page = st.sidebar.radio(
@@ -293,12 +297,12 @@ def render_graph_fallback(graph_view: dict) -> None:
 
 def render_build_update_library() -> None:
     st.header("Build / Update Library")
-    st.caption("Scan / Dry-run and Convert / Update wrapper around the existing PowerShell runner.")
+    st.caption("Scan, convert Knowledge Packs, build the searchable library, then load the Library Output Folder.")
 
     path_columns = st.columns(2)
-    source_value = path_columns[0].text_input("Source folder", value="")
-    conversion_output_value = path_columns[1].text_input("Conversion output folder", value="")
-    library_output_value = path_columns[0].text_input("Library output folder", value="")
+    source_value = path_columns[0].text_input("Source Folder: original documents", value="")
+    conversion_output_value = path_columns[1].text_input("Conversion Output Folder: per-document Knowledge Pack outputs", value="")
+    library_output_value = path_columns[0].text_input("Library Output Folder: final searchable library with library.db", value="")
     log_value = path_columns[1].text_input("Log folder", value="")
 
     option_columns = st.columns(4)
@@ -315,8 +319,8 @@ def render_build_update_library() -> None:
     max_attempts = int(runner_columns[1].number_input("Max attempts", min_value=1, max_value=100, value=20, step=1))
 
     st.info(
-        "Validated defaults: no OCR and no AI. Scan / Dry-run reads filesystem metadata only. Convert / Update runs "
-        "the existing PowerShell runner and may take time while Streamlit waits for completion."
+        "The Conversion Output Folder is not directly readable as a Library. Run Build Library first, then load the "
+        "Library Output Folder. Validated defaults: no OCR and no AI."
     )
     if not skip_existing:
         st.warning("The validated runner workflow skips existing manifests; changing this is not implemented in the GUI dry-run.")
@@ -381,6 +385,8 @@ def render_build_update_library() -> None:
         max_render_pages=max_render_pages,
         max_text_pages=max_text_pages,
     )
+
+    render_build_library_section(conversion_output_folder, library_output_folder, build_command)
 
 
 def render_convert_update_section(
@@ -458,6 +464,59 @@ def render_convert_update_result(result: dict) -> None:
         st.error("Runner exited with a nonzero status. Review stdout, stderr, and log files.")
     if not result["summary"]["output_exists"]:
         st.warning("Conversion output folder was not found after the runner exited.")
+
+
+def render_build_library_section(conversion_output_folder: Path, library_output_folder: Path, build_command: str) -> None:
+    st.subheader("Build Library")
+    st.info(
+        "Build Library reads the Conversion Output Folder of Knowledge Packs and writes the final searchable Library "
+        "Output Folder containing library.db."
+    )
+    if library_output_folder.exists():
+        st.warning("Library Output Folder already exists. Build Library may update files there; it will not delete source files.")
+    st.code(build_command, language="powershell")
+    confirmed = st.checkbox("I understand this will build or update the Library Output Folder from the Conversion Output Folder.")
+    if st.button("Build Library", disabled=not confirmed):
+        try:
+            result = run_build_library_command(
+                conversion_output_folder,
+                library_output_folder,
+                cwd=Path.cwd(),
+            )
+        except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+            st.error(f"Build Library failed before completion: {exc}")
+        else:
+            render_build_library_result(result)
+
+    st.subheader("Load Built Library")
+    summary = summarize_library_output(library_output_folder)
+    st.write(summary)
+    if st.button("Load Built Library"):
+        if summary["is_valid_library"]:
+            st.session_state["library_path_value"] = str(library_output_folder)
+            st.success("Loaded Library Output Folder. Library Overview, Search, and Graph View will use this path.")
+            st.rerun()
+        else:
+            st.warning(
+                "This does not look like a built library. Did you select the Conversion Output Folder instead of the "
+                "Library Output Folder?"
+            )
+
+
+def render_build_library_result(result: dict) -> None:
+    st.subheader("Build Library Result")
+    st.metric("exit_code", result["exit_code"])
+    st.write(result["summary"])
+    if result["stdout"]:
+        st.caption("stdout")
+        st.code(result["stdout"], language="text")
+    if result["stderr"]:
+        st.caption("stderr")
+        st.code(result["stderr"], language="text")
+    if result["exit_code"] != 0:
+        st.error("build-library exited with a nonzero status. Review stdout and stderr.")
+    elif result["summary"]["is_valid_library"]:
+        st.success("Library build completed and library.db was found in the Library Output Folder.")
 
 
 def render_dry_run_summary(dry_run: dict) -> None:

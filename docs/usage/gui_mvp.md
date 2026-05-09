@@ -42,7 +42,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Library Overview: implemented.
 - Search: implemented as a read-only wrapper around existing library search.
 - Graph View: implemented as a read-only view of existing `library_graph.json`.
-- Build / Update Library: Scan / Dry-run and Convert / Update runner execution implemented.
+- Build / Update Library: Scan / Dry-run, Convert / Update runner execution, Build Library, and Load Built Library implemented.
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
@@ -97,19 +97,21 @@ Large graphs are bounded by the max nodes setting before rendering. The Raw Prov
 
 ## Build / Update Library
 
-Open the Build / Update Library page from the sidebar to inspect a source folder and, after confirmation, run the existing PowerShell chunked conversion runner.
+Open the Build / Update Library page from the sidebar to inspect a source folder, run conversion through the existing PowerShell chunked runner, build a searchable library, and load the built library into the GUI.
 
 Inputs:
 
-- Source folder.
-- Conversion output folder.
-- Library output folder.
+- Source Folder: original documents.
+- Conversion Output Folder: per-document Knowledge Pack outputs.
+- Library Output Folder: final searchable library with `library.db`.
 - Log folder.
 - Max files or Full directory.
 - Skip existing, shown as the validated default.
 - Render PDF pages, max render pages, and max text pages, shown as validated defaults.
 
 The `Scan / Dry-run` button uses the existing scanner logic to count supported files and estimate the expected unique manifest target. It also counts existing `manifest.json` files in the conversion output folder when that folder already exists.
+
+The Conversion Output Folder is not directly readable as a Library. It contains one Knowledge Pack per document. Run Build Library first, then load the Library Output Folder.
 
 The Scan / Dry-run action does not convert files, build a library, create output folders, delete files, or run the PowerShell runner. It shows command previews for the reviewed next steps:
 
@@ -120,12 +122,25 @@ The Scan / Dry-run action does not convert files, build a library, create output
 
 The Convert / Update section runs only after the safety confirmation checkbox is selected. It invokes `scripts/Invoke-Office2MdChunkedConvert.ps1`, captures stdout and stderr after completion, shows the exit code, shows the log folder, and summarizes final and failed manifest counts from the conversion output folder.
 
-Convert / Update does not run `build-library` and does not load a built library. Build Library remains a separate manual step in this checkpoint.
+Convert / Update does not run `build-library` and does not load a built library.
+
+The Build Library section runs only after its own safety confirmation checkbox is selected. It invokes:
+
+```powershell
+python -m office2md.cli build-library "CONVERSION_OUTPUT" "LIBRARY_OUTPUT"
+```
+
+After completion, it shows stdout, stderr, exit code, and a library summary that checks for `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, and `_quality_report.md`.
+
+The Load Built Library button sets the GUI Library path to the Library Output Folder only if `library.db` exists. If the selected folder is not a valid built library, the GUI warns that the user may have selected the Conversion Output Folder instead.
 
 Recommended practice:
 
 - Run Scan / Dry-run first.
 - Test with `MaxFiles 1` or `MaxFiles 3` before using Full directory.
+- Run Convert / Update.
+- Run Build Library.
+- Click Load Built Library.
 - Ensure OneDrive/Teams files are available offline.
 - Expect Streamlit to be busy while the runner is active.
 
@@ -134,7 +149,9 @@ Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.do
 ## Current Limitations
 
 - The GUI can run Convert / Update only through the existing PowerShell runner.
-- Build Library execution and Load Built Library are planned follow-up steps.
+- The GUI can run Build Library as a separate explicit step.
+- The GUI can load a built Library Output Folder after `library.db` exists.
+- One-click full workflow is not implemented.
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
 - The GUI does not change runner process-control behavior.

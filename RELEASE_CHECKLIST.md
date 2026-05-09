@@ -630,3 +630,30 @@ v0.3.0-rc5 GUI Convert / Update checkpoint evidence:
 - [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document the Convert / Update panel.
 - [ ] No Build Library execution, Load Built Library, one-click full workflow, runner process-control behavior, conversion behavior, scanner behavior, output directory naming behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, library builder behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc5.md`.
+
+v0.3.0-rc6 GUI Build Library and Load Built Library checkpoint evidence:
+
+- [ ] `python -m pytest` reports 76 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] Pyvis import check succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] Build / Update Library page includes a Build Library section.
+- [ ] UI labels Source Folder as original documents, Conversion Output Folder as per-document Knowledge Pack outputs, and Library Output Folder as final searchable library with `library.db`.
+- [ ] UI states that the Conversion Output Folder is not directly readable as a Library and that users should run Build Library first, then load the Library Output Folder.
+- [ ] Build Library shows exact `python -m office2md.cli build-library <conversion_output> <library_output>` command preview.
+- [ ] Build Library requires safety confirmation before execution.
+- [ ] Build Library uses existing CLI via subprocess, captures stdout/stderr and exit code, displays library output summary, and does not hide failures.
+- [ ] Successful build summary includes `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, `_quality_report.md`, and report counts when available.
+- [ ] Load Built Library validates `library.db`, sets GUI session Library path to the Library Output Folder, and warns clearly when the selected folder does not look like a built library.
+- [ ] No one-click full workflow is included.
+- [ ] Convert / Update still does not auto-run build-library.
+- [ ] Build-library internals are unchanged.
+- [ ] Conversion, runner, search, and report behavior are unchanged.
+- [ ] Safe temporary smoke converts `tests/fixtures/sample.txt` through the existing runner, then runs Build Library explicitly.
+- [ ] Safe smoke records conversion exit code 0, final manifests 1, failed manifests 0, build-library exit code 0, `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, `_quality_report.md`, and `library_report()` counts documents 1, chunks 2, entities 0.
+- [ ] CML125 preview confirms build-library command for `Symex_CML125_validation_full` to `Symex_CML125_library_full`; full CML125 was not rebuilt.
+- [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document Build Library and Load Built Library.
+- [ ] No automatic conversion before build-library, automatic deletion/overwrite behavior, conversion behavior, runner process-control behavior, build-library internals, search core, ranking, alias, token fallback logic, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc6.md`.

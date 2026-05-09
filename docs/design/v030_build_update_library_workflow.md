@@ -1,6 +1,6 @@
 # v0.3.0 Build / Update Library Workflow Design
 
-Status: P4-A design committed; P4-B Scan / Dry-run and P4-C Convert / Update runner wrapper implemented.
+Status: P4-A design committed; P4-B Scan / Dry-run, P4-C Convert / Update runner wrapper, and P4-D Build Library / Load Built Library implemented.
 
 ## Purpose
 
@@ -214,8 +214,15 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 ### P4-D Build Library and Load Built Library
 
 - Add Build Library action using existing library builder behavior.
-- Show build result and warnings.
+- Show exact `python -m office2md.cli build-library` command before execution.
+- Require a safety confirmation checkbox before execution.
+- Capture stdout, stderr, exit code, and Library Output Folder summary after completion.
+- Show whether `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, and `_quality_report.md` exist.
+- Display document, chunk, and entity counts when `library_report()` can load the built library.
 - Add Load Built Library button to set the GUI library path to the built library folder.
+- Warn clearly when the selected folder does not contain `library.db`, especially if the user selected the Conversion Output Folder instead of the Library Output Folder.
+- Do not automatically run conversion.
+- Do not implement one-click full workflow.
 
 ### P4-E Polish / Evidence Package Integration
 

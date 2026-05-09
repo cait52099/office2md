@@ -4,6 +4,7 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -361,6 +362,72 @@ def build_library_command_preview(
             str(library_output_folder),
         ]
     )
+
+
+def run_build_library_command(
+    conversion_output_folder: Path,
+    library_output_folder: Path,
+    python_path: str | None = None,
+    cwd: Path | None = None,
+    subprocess_timeout_seconds: int | None = None,
+) -> dict[str, Any]:
+    conversion_output = conversion_output_folder.expanduser()
+    library_output = library_output_folder.expanduser()
+    if not conversion_output.exists():
+        raise FileNotFoundError(f"Conversion output folder does not exist: {conversion_output}")
+    if not conversion_output.is_dir():
+        raise NotADirectoryError(f"Conversion output path is not a folder: {conversion_output}")
+    executable = python_path or sys.executable
+    command = [
+        executable,
+        "-m",
+        "office2md.cli",
+        "build-library",
+        str(conversion_output),
+        str(library_output),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=cwd or Path.cwd(),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=subprocess_timeout_seconds,
+        check=False,
+    )
+    return {
+        "command": _powershell_command(command),
+        "argv": command,
+        "exit_code": completed.returncode,
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+        "summary": summarize_library_output(library_output),
+    }
+
+
+def summarize_library_output(library_output_folder: Path) -> dict[str, Any]:
+    library_output = library_output_folder.expanduser()
+    summary: dict[str, Any] = {
+        "library_output_folder": str(library_output),
+        "output_exists": library_output.exists(),
+        "library_db_exists": (library_output / "library.db").exists(),
+        "library_index_exists": (library_output / "library_index.json").exists(),
+        "library_graph_exists": (library_output / "library_graph.json").exists(),
+        "library_markdown_exists": (library_output / "_library.md").exists(),
+        "quality_report_exists": (library_output / "_quality_report.md").exists(),
+        "is_valid_library": is_valid_library_path(library_output),
+    }
+    if summary["is_valid_library"]:
+        try:
+            report = library_report(library_output)
+        except Exception as exc:  # pragma: no cover - defensive summary only.
+            summary["library_report_error"] = str(exc)
+        else:
+            summary["documents_count"] = report.get("documents_count")
+            summary["chunks_count"] = report.get("chunks_count")
+            summary["entities_count"] = report.get("entities_count")
+    return summary
 
 
 def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -> list[str]:

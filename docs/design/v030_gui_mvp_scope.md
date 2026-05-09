@@ -1,6 +1,6 @@
 # v0.3.0 GUI MVP Scope
 
-Status: GUI MVP skeleton with Library Overview, Search panel, Graph View MVP, and Build / Update Library Scan / Dry-run plus Convert / Update runner execution.
+Status: GUI MVP skeleton with Library Overview, Search panel, Graph View MVP, and Build / Update Library workflow through Load Built Library.
 
 ## Purpose
 
@@ -18,8 +18,8 @@ Current implementation scope:
 - Library Overview page backed by existing `library_report()` data.
 - Search page backed by existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` behavior.
 - Graph View page backed by existing `library_graph.json`.
-- Build / Update Library page with Scan / Dry-run backed by existing scanner logic and Convert / Update backed by the existing PowerShell runner.
-- Placeholder pages for later locate, evidence-package, build-library, and runner workflow panels.
+- Build / Update Library page with Scan / Dry-run backed by existing scanner logic, Convert / Update backed by the existing PowerShell runner, Build Library backed by the existing CLI, and Load Built Library.
+- Placeholder pages for later locate, evidence-package, and runner workflow panels.
 
 The GUI Convert / Update path invokes the existing runner only; it does not change conversion behavior or runner process-control behavior.
 
@@ -87,9 +87,9 @@ Planned for P4. It should help generate local validation artifacts using existin
 
 ### Build / Update Library
 
-P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. P4-C Convert / Update is implemented as a conservative wrapper around the existing PowerShell chunked runner.
+P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. P4-C Convert / Update is implemented as a conservative wrapper around the existing PowerShell chunked runner. P4-D Build Library and Load Built Library are implemented as explicit user actions.
 
-- Accepts source, conversion output, library output, and log folder paths.
+- Accepts Source Folder for original documents, Conversion Output Folder for per-document Knowledge Packs, Library Output Folder for the final searchable library, and log folder paths.
 - Accepts Max files or Full directory selection.
 - Shows validated defaults for skip existing, PDF page rendering, max render pages, max text pages, no OCR, and no AI.
 - Uses existing scanner logic to count supported files.
@@ -101,9 +101,13 @@ P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. 
 - Requires a safety confirmation before running Convert / Update.
 - Runs only `scripts/Invoke-Office2MdChunkedConvert.ps1` for Convert / Update.
 - Captures stdout, stderr, exit code, log folder, final manifest count, and failed manifest count after completion.
-- Leaves Build Library execution and Load Built Library for later phases.
+- Requires a separate safety confirmation before running Build Library.
+- Runs `python -m office2md.cli build-library` from Conversion Output Folder to Library Output Folder.
+- Captures stdout, stderr, exit code, library output file presence, and library-report counts after build.
+- Load Built Library sets the GUI Library path to the Library Output Folder only when `library.db` exists.
+- Warns when a selected folder does not look like a built library, including likely Conversion Output Folder mistakes.
 
-This page does not build a library, load a built library, delete files, or change runner process-control behavior.
+This page does not implement one-click full workflow, delete files, or change runner process-control behavior.
 
 ### Runner Dry-run
 
@@ -172,7 +176,8 @@ Default install and normal CLI use must not require Streamlit or pyvis.
 
 - P4-B Scan / Dry-run status: implemented.
 - P4-C Convert / Update status: implemented as an explicit, confirmed PowerShell runner wrapper.
-- Next phases should add Build Library and Load Built Library after separate review.
+- P4-D Build Library and Load Built Library status: implemented as explicit actions.
+- One-click full workflow remains deferred.
 
 ### P6 Evidence Package
 

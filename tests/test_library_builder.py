@@ -11,16 +11,19 @@ from office2md.gui.helpers import (
     graph_node_types,
     graph_summary,
     graph_view_html,
+    is_valid_library_path,
     load_library_graph,
     load_curated_concept_index,
     prepare_curated_knowledge_graph,
     prepare_document_concept_graph,
     prepare_graph_view,
     prepare_raw_provenance_graph,
+    run_build_library_command,
     run_convert_update_command,
     run_library_search,
     scan_source_folder_for_gui,
     search_result_table_rows,
+    summarize_library_output,
     summarize_conversion_output,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
@@ -936,6 +939,42 @@ def test_gui_convert_update_helper_validates_before_runner_execution(tmp_path):
 
     assert not conversion_output.exists()
     assert not log_folder.exists()
+
+
+def test_gui_build_library_helpers_build_and_summarize_tiny_library(tmp_path):
+    conversion_output = tmp_path / "conversion output"
+    library_output = tmp_path / "library output"
+    _write_doc(
+        conversion_output / "sample",
+        "sample-doc",
+        "sample.txt",
+        "document",
+        [_chunk("sample_text", "text", [], "Sample text for GUI build library", None)],
+        {"topic": ["sample"]},
+    )
+
+    assert not is_valid_library_path(conversion_output)
+    command = build_library_command_preview(conversion_output, library_output)
+    assert "build-library" in command
+    assert f'"{conversion_output}"' in command
+    assert f'"{library_output}"' in command
+
+    before_summary = summarize_library_output(library_output)
+    assert before_summary["is_valid_library"] is False
+    assert before_summary["library_db_exists"] is False
+
+    result = run_build_library_command(conversion_output, library_output, cwd=Path.cwd(), subprocess_timeout_seconds=120)
+
+    assert result["exit_code"] == 0
+    assert result["summary"]["is_valid_library"] is True
+    assert result["summary"]["library_db_exists"] is True
+    assert result["summary"]["library_index_exists"] is True
+    assert result["summary"]["library_graph_exists"] is True
+    assert result["summary"]["library_markdown_exists"] is True
+    assert result["summary"]["quality_report_exists"] is True
+    assert result["summary"]["documents_count"] == 1
+    assert result["summary"]["chunks_count"] == 1
+    assert is_valid_library_path(library_output)
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):
