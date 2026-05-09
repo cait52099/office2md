@@ -1,6 +1,6 @@
 # v0.3.0 GUI MVP Scope
 
-Status: GUI MVP skeleton with Library Overview and Search panel.
+Status: GUI MVP skeleton with Library Overview, Search panel, and Graph View MVP.
 
 ## Purpose
 
@@ -17,6 +17,7 @@ Current implementation scope:
 - Library path entry in the sidebar.
 - Library Overview page backed by existing `library_report()` data.
 - Search page backed by existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` behavior.
+- Graph View page backed by existing `library_graph.json`.
 - Placeholder pages for later locate, evidence-package, and runner dry-run workflow panels.
 
 The GUI does not run conversion in the first step.
@@ -56,6 +57,29 @@ The panel does not change search core, ranking, aliases, token fallback, diagnos
 
 Planned for P3. It should wrap existing `locate_document()` behavior.
 
+### Graph View
+
+Implemented as a read-only MVP backed by existing `library_graph.json` output.
+
+- Loads graph nodes and edges from the selected library folder.
+- Shows node count, edge count, node type distribution, and edge type distribution.
+- Supports bounded rendering with max nodes defaulting to 150.
+- Supports graph modes:
+  - Curated Knowledge Graph: default, concept-to-concept graph built from a conservative GUI-side domain vocabulary matched against existing chunks/documents.
+  - Document-Concept Graph: document and curated concept nodes only, connected by existing document/chunk concept mentions.
+  - Raw Provenance Graph: debug view of raw `library_graph.json` relationships.
+- Supports keyword and isolated-node filters; the raw provenance mode also supports node type filtering.
+- Uses optional `pyvis` rendering when available.
+- Falls back to node and edge tables if interactive rendering is unavailable.
+
+The default Curated Knowledge Graph filters noisy raw labels such as language codes, units, pure years, generic UI/system labels, source/page/asset paths, and drawing/document codes. It hides chunk, asset, source page, locator, and raw provenance nodes. It uses curated concept labels as node labels and co-mention/co-occurrence edges with weights when available.
+
+The keyword filter searches concept labels, aliases, document titles, and chunk context captured while building the GUI-side concept index.
+
+The Raw Provenance Graph is retained for debugging library structure/provenance and may include chunks, assets, source pages, and low-level edge types such as `document_has_chunk`.
+
+The Graph View does not change library builder behavior, graph export generation, search behavior, ranking, aliases, token fallback, conversion behavior, or report scoring. It does not implement graph editing, AI graph explanation, or vector/semantic graph behavior.
+
 ### Evidence Package
 
 Planned for P4. It should help generate local validation artifacts using existing CLI/library functions and current JSON export conventions.
@@ -84,10 +108,10 @@ Streamlit is an optional GUI dependency only:
 
 ```toml
 [project.optional-dependencies]
-gui = ["streamlit"]
+gui = ["streamlit", "pyvis"]
 ```
 
-Default install and normal CLI use must not require Streamlit.
+Default install and normal CLI use must not require Streamlit or pyvis.
 
 ## Validation Strategy
 
@@ -112,16 +136,23 @@ Default install and normal CLI use must not require Streamlit.
 - Preserve existing ranking, alias, token fallback, diagnostics, and export behavior.
 - Status: implemented in v0.3.0 P2 work.
 
-### P3 Locate Document
+### P3 Graph View MVP
+
+- Add read-only Graph View page using existing `library_graph.json`.
+- Keep graph rendering bounded and local.
+- Preserve library builder and graph export behavior.
+- Status: implemented in v0.3.0 P3 work.
+
+### P4 Locate Document
 
 - Add locate-document query panel and result table using existing library functions.
 
-### P4 Evidence Package
+### P5 Evidence Package
 
 - Add controls to generate local evidence files using existing report/search export patterns.
 - Keep output local and deterministic.
 
-### P5 Runner Dry-run
+### P6 Runner Dry-run
 
 - Add a dry-run-only interface for the existing PowerShell runner command shape.
 - Do not change process-control behavior or launch real conversion from the GUI until a later review explicitly approves it.

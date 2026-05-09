@@ -41,9 +41,10 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 
 - Library Overview: implemented.
 - Search: implemented as a read-only wrapper around existing library search.
-- Locate Document: placeholder for v0.3.0 P3.
-- Evidence Package: placeholder for v0.3.0 P4.
-- Runner Dry-run: placeholder for v0.3.0 P5.
+- Graph View: implemented as a read-only view of existing `library_graph.json`.
+- Locate Document: placeholder for a future GUI step.
+- Evidence Package: placeholder for a future GUI step.
+- Runner Dry-run: placeholder for a future GUI step.
 
 ## Search Panel
 
@@ -63,12 +64,43 @@ Results are displayed in a table with rank, document title, source file, documen
 
 The search panel also provides a `Download search JSON` button for the current result set. The download uses the existing search export JSON payload shape; it does not change the CLI `--export-json` schema.
 
+## Graph View
+
+Open the Graph View page from the sidebar after entering a Knowledge Library folder or `library.db` path.
+
+The panel loads the existing `library_graph.json` file from the selected library folder. It is read-only and does not rebuild, edit, or regenerate graph data.
+
+The panel shows:
+
+- Node count.
+- Edge count.
+- Node type distribution.
+- Edge type distribution.
+
+Controls:
+
+- Graph mode.
+- Max nodes, default `150`.
+- Keyword filter.
+- Show isolated nodes toggle.
+
+Graph modes:
+
+- Curated Knowledge Graph: default. Shows higher-value domain concepts from a conservative GUI-side vocabulary matched against existing chunk and document text. It does not show chunks, assets, source pages, locators, or raw provenance edge labels by default.
+- Document-Concept Graph: shows document nodes and curated concept nodes only, connected by document-concept mention edges.
+- Raw Provenance Graph: debug view of raw `library_graph.json` relationships. This may include chunks, assets, source pages, and low-level edge types such as `document_has_chunk`.
+
+The curated graph filters noisy labels such as language codes, standalone units, pure years, generic UI/system labels, asset paths, source page labels, and low-level provenance relationships. The keyword filter searches concept labels, aliases, document titles, and chunk context, so domain terms can match even when they were not extracted as entity labels.
+
+Large graphs are bounded by the max nodes setting before rendering. The Raw Provenance Graph also has a node type filter. When optional `pyvis` is available, the page renders an interactive graph. If rendering is unavailable or fails, the page shows fallback node and edge tables.
+
 ## Current Limitations
 
 - The GUI does not run conversion.
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
 - The GUI does not change runner process-control behavior.
+- The GUI does not change library graph export generation.
 - Locate-document, evidence-package generation, and runner dry-run controls are placeholders in this MVP stage.
 
 ## Explicit Non-Goals

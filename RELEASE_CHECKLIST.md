@@ -559,3 +559,29 @@ v0.3.0-rc2 GUI Search panel checkpoint evidence:
 - [ ] Helper-level CML125 smoke checks pass for `vacuum pump fault`, Chinese `cooling water`, and `SY909735`.
 - [ ] No Locate Document GUI implementation, Evidence Package GUI implementation, Runner Dry-run GUI implementation, search core, ranking, alias, token fallback logic, diagnostics semantics, CLI export schema, conversion behavior, library-report metrics/scoring, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc2.md`.
+
+v0.3.0-rc3 GUI Graph View MVP checkpoint evidence:
+
+- [ ] `python -m pytest` reports 73 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] Pyvis import check succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] `pyvis` is optional only through the `gui` extra.
+- [ ] Default CLI install and normal CLI use remain unchanged.
+- [ ] Default graph mode is Curated Knowledge Graph.
+- [ ] Curated Knowledge Graph shows GUI-side curated concepts only.
+- [ ] Curated graph filters noisy raw labels such as language codes, standalone units, pure years, `User Texts`, source/page/asset labels, and raw provenance edge types.
+- [ ] Useful concepts are present in CML125 smoke where found, including operation manual, maintenance, fault, cooling water, PLC, agitator, cleaning, CIP, sealing liquid, vacuum pump, VFD, alarm, valve, and temperature probe.
+- [ ] Keyword filtering searches concept labels, aliases, document titles, and chunk/document context.
+- [ ] Keyword smoke works for maintenance, cooling water, vacuum pump, alarm, and operation manual.
+- [ ] Edge labels are hidden by default.
+- [ ] `Show edge labels` checkbox exists and explicitly enables edge labels.
+- [ ] Edge type and weight remain available in hover/title metadata.
+- [ ] Graph layout uses randomSeed 42, stabilization, calmer physics, capped node sizing, capped edge width, and no directed arrows.
+- [ ] Document-Concept Graph remains available.
+- [ ] Raw Provenance Graph remains available as debug/provenance mode.
+- [ ] Helper-level CML125 smoke confirms Curated Knowledge Graph 26 nodes and 194 edges, Document-Concept Graph availability, and Raw Provenance Graph bounded rendering.
+- [ ] No Build/Update Library workflow, Locate Document panel, Evidence Package panel, Runner Dry-run panel, search core, ranking, alias, token fallback logic, conversion behavior, library-report metrics/scoring, runner process-control behavior, library builder graph generation, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc3.md`.

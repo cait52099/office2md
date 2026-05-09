@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 gui = [
   "streamlit",
+  "pyvis",
 ]
 marker = [
   "marker-pdf",

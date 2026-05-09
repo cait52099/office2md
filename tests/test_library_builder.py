@@ -3,7 +3,20 @@ import sqlite3
 from pathlib import Path
 
 from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
-from office2md.gui.helpers import run_library_search, search_result_table_rows
+from office2md.gui.helpers import (
+    graph_layout_options,
+    graph_node_types,
+    graph_summary,
+    graph_view_html,
+    load_library_graph,
+    load_curated_concept_index,
+    prepare_curated_knowledge_graph,
+    prepare_document_concept_graph,
+    prepare_graph_view,
+    prepare_raw_provenance_graph,
+    run_library_search,
+    search_result_table_rows,
+)
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
@@ -680,6 +693,62 @@ def test_gui_search_helpers_reuse_existing_search_results(tmp_path):
     assert export_payload["query"]["filters"]["output_dir"] == "hmi"
     assert export_payload["query"]["filters"]["entity"] == ["HMI"]
     assert export_payload["results"][0]["preview"]
+
+
+def test_gui_graph_helpers_load_and_bound_existing_graph_export(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "manual",
+        "manual-doc",
+        "Operation manual.pdf",
+        "manual_pdf",
+        [
+            _chunk("manual_page", "page", ["Title Page"], "SY909735 operation manual maintenance cooling water vacuum pump alarm fault", "Page 1", page_number=1),
+            _chunk("manual_section", "section", ["3 Operation"], "Operation section maintenance procedure for cooling water", "Page 12", page_number=12),
+        ],
+        {"symex_number": ["SY909735"], "document_type": ["operating manual"]},
+    )
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    graph = load_library_graph(library_dir)
+    summary = graph_summary(graph)
+    raw_view = prepare_raw_provenance_graph(graph, max_nodes=3, node_type="document", keyword="manual", show_isolated=True)
+    concept_index = load_curated_concept_index(library_dir)
+    knowledge_view = prepare_curated_knowledge_graph(concept_index, max_nodes=10)
+    maintenance_view = prepare_curated_knowledge_graph(concept_index, max_nodes=10, keyword="maintenance")
+    document_concept_view = prepare_document_concept_graph(concept_index, max_nodes=10)
+
+    assert summary["node_count"] == len(graph["nodes"])
+    assert summary["edge_count"] == len(graph["edges"])
+    assert "document" in graph_node_types(graph)
+    assert len(raw_view["nodes"]) <= 3
+    assert any(node["type"] == "document" for node in raw_view["nodes"])
+    assert any(row["label"] == "Operation manual" for row in raw_view["node_rows"])
+    assert prepare_graph_view(graph, max_nodes=3, node_type="document", keyword="manual") == raw_view
+
+    assert knowledge_view["nodes"]
+    assert all(node["type"] == "concept" for node in knowledge_view["nodes"])
+    assert all(node["label"] not in {"min", "en-GB", "zh-CN", "User Texts", "2019"} for node in knowledge_view["nodes"])
+    assert all(node["type"] not in {"chunk", "asset", "source_page"} for node in knowledge_view["nodes"])
+    assert all(edge["relation_type"] not in {"document_has_chunk", "document_has_asset", "chunk_has_source_locator"} for edge in knowledge_view["edges"])
+    assert {edge["relation_type"] for edge in knowledge_view["edges"]} <= {"co_mentions", "co_occurs"}
+    assert {"cooling water", "vacuum pump", "alarm", "fault", "operation manual", "maintenance"}.issubset({node["label"] for node in knowledge_view["nodes"]})
+    assert "maintenance" in {node["label"] for node in maintenance_view["nodes"]}
+    hidden_label_html = graph_view_html(knowledge_view)
+    visible_label_html = graph_view_html(knowledge_view, show_edge_labels=True)
+    assert '"label": ""' in hidden_label_html
+    assert '"label": "co_mentions"' not in hidden_label_html
+    assert "co_mentions" in hidden_label_html
+    assert '"label": "co_mentions"' in visible_label_html
+    layout_options = json.loads(graph_layout_options())
+    assert layout_options["layout"]["randomSeed"] == 42
+    assert layout_options["physics"]["stabilization"]["enabled"] is True
+
+    assert document_concept_view["nodes"]
+    assert {node["type"] for node in document_concept_view["nodes"]} <= {"document", "concept"}
+    assert {edge["relation_type"] for edge in document_concept_view["edges"]} <= {"document_mentions_concept"}
 
 
 def test_library_report_export_json_file_uses_report_data_and_creates_parent(tmp_path):
