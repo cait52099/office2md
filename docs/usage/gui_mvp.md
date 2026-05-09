@@ -42,7 +42,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Library Overview: implemented.
 - Search: implemented as a read-only wrapper around existing library search.
 - Graph View: implemented as a read-only view of existing `library_graph.json`.
-- Build / Update Library: Scan / Dry-run implemented.
+- Build / Update Library: Scan / Dry-run and Convert / Update runner execution implemented.
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
@@ -95,9 +95,9 @@ The curated graph filters noisy labels such as language codes, standalone units,
 
 Large graphs are bounded by the max nodes setting before rendering. The Raw Provenance Graph also has a node type filter. When optional `pyvis` is available, the page renders an interactive graph. If rendering is unavailable or fails, the page shows fallback node and edge tables.
 
-## Build / Update Library Scan / Dry-run
+## Build / Update Library
 
-Open the Build / Update Library page from the sidebar to inspect a source folder before running conversion outside the GUI.
+Open the Build / Update Library page from the sidebar to inspect a source folder and, after confirmation, run the existing PowerShell chunked conversion runner.
 
 Inputs:
 
@@ -111,19 +111,30 @@ Inputs:
 
 The `Scan / Dry-run` button uses the existing scanner logic to count supported files and estimate the expected unique manifest target. It also counts existing `manifest.json` files in the conversion output folder when that folder already exists.
 
-The dry-run page does not convert files, build a library, create output folders, delete files, or run the PowerShell runner. It shows command previews for the reviewed next steps:
+The Scan / Dry-run action does not convert files, build a library, create output folders, delete files, or run the PowerShell runner. It shows command previews for the reviewed next steps:
 
 ```powershell
-.\scripts\Invoke-Office2MdChunkedConvert.ps1 -InputPath "SOURCE" -OutputPath "CONVERSION_OUTPUT" -LogDirectory "LOGS" -MaxFiles 3 -Python .\.venv\Scripts\python.exe
+.\scripts\Invoke-Office2MdChunkedConvert.ps1 -InputPath "SOURCE" -OutputPath "CONVERSION_OUTPUT" -LogDirectory "LOGS" -TimeoutMinutes 45 -MaxAttempts 20 -MaxFiles 3 -Python .\.venv\Scripts\python.exe
 .\.venv\Scripts\python.exe -m office2md.cli build-library "CONVERSION_OUTPUT" "LIBRARY_OUTPUT"
 ```
 
-Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, and the fact that this is a non-converting dry-run.
+The Convert / Update section runs only after the safety confirmation checkbox is selected. It invokes `scripts/Invoke-Office2MdChunkedConvert.ps1`, captures stdout and stderr after completion, shows the exit code, shows the log folder, and summarizes final and failed manifest counts from the conversion output folder.
+
+Convert / Update does not run `build-library` and does not load a built library. Build Library remains a separate manual step in this checkpoint.
+
+Recommended practice:
+
+- Run Scan / Dry-run first.
+- Test with `MaxFiles 1` or `MaxFiles 3` before using Full directory.
+- Ensure OneDrive/Teams files are available offline.
+- Expect Streamlit to be busy while the runner is active.
+
+Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, dry-run behavior, and no OCR/no AI defaults.
 
 ## Current Limitations
 
-- The GUI does not run conversion.
-- The Build / Update Library page only scans and previews commands; Convert / Update, Build Library, and Load Built Library are planned follow-up steps.
+- The GUI can run Convert / Update only through the existing PowerShell runner.
+- Build Library execution and Load Built Library are planned follow-up steps.
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
 - The GUI does not change runner process-control behavior.

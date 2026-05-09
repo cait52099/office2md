@@ -605,3 +605,28 @@ v0.3.0-rc4 GUI Build / Update Library Scan / Dry-run checkpoint evidence:
 - [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document the Scan / Dry-run panel.
 - [ ] No Convert / Update execution, Build Library execution, Load Built Library, conversion behavior, runner process-control behavior, scanner behavior, output directory naming behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, library builder behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc4.md`.
+
+v0.3.0-rc5 GUI Convert / Update checkpoint evidence:
+
+- [ ] `python -m pytest` reports 75 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] Pyvis import check succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] Build / Update Library page includes a Convert / Update section.
+- [ ] Convert / Update uses the existing `scripts/Invoke-Office2MdChunkedConvert.ps1` runner.
+- [ ] Explicit safety confirmation is required before execution.
+- [ ] UI shows exact PowerShell runner command, source folder, conversion output folder, log folder, MaxFiles / FullDirectory mode, timeout minutes, max attempts, skip-existing status, render options, and no OCR/no AI notes.
+- [ ] Execution captures and displays stdout, stderr, exit code, log folder, final manifest count, and failed manifest count.
+- [ ] `build-library` remains a preview/manual next command only.
+- [ ] No automatic `build-library` execution is included.
+- [ ] No automatic library loading is included.
+- [ ] Runner script is unchanged.
+- [ ] Conversion behavior is unchanged.
+- [ ] CML125 conversion was not executed.
+- [ ] Safe temporary MaxFiles 1 runner smoke exits 0, creates output/log folders through the runner, records final manifest count 1, and failed manifest count 0.
+- [ ] CML125 command preview smoke generates a MaxFiles 3 command with selected paths, `-TimeoutMinutes 45`, `-MaxAttempts 20`, and `-MaxFiles 3`.
+- [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document the Convert / Update panel.
+- [ ] No Build Library execution, Load Built Library, one-click full workflow, runner process-control behavior, conversion behavior, scanner behavior, output directory naming behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, library builder behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc5.md`.

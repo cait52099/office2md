@@ -1,6 +1,6 @@
 # v0.3.0 GUI MVP Scope
 
-Status: GUI MVP skeleton with Library Overview, Search panel, Graph View MVP, and Build / Update Library Scan / Dry-run.
+Status: GUI MVP skeleton with Library Overview, Search panel, Graph View MVP, and Build / Update Library Scan / Dry-run plus Convert / Update runner execution.
 
 ## Purpose
 
@@ -18,10 +18,10 @@ Current implementation scope:
 - Library Overview page backed by existing `library_report()` data.
 - Search page backed by existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` behavior.
 - Graph View page backed by existing `library_graph.json`.
-- Build / Update Library page with Scan / Dry-run only, backed by existing scanner logic.
-- Placeholder pages for later locate, evidence-package, convert/update, build-library, and runner workflow panels.
+- Build / Update Library page with Scan / Dry-run backed by existing scanner logic and Convert / Update backed by the existing PowerShell runner.
+- Placeholder pages for later locate, evidence-package, build-library, and runner workflow panels.
 
-The GUI does not run conversion in the first step.
+The GUI Convert / Update path invokes the existing runner only; it does not change conversion behavior or runner process-control behavior.
 
 ## Pages
 
@@ -87,7 +87,7 @@ Planned for P4. It should help generate local validation artifacts using existin
 
 ### Build / Update Library
 
-P4-B Scan / Dry-run is implemented as a read-only filesystem inspection page.
+P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. P4-C Convert / Update is implemented as a conservative wrapper around the existing PowerShell chunked runner.
 
 - Accepts source, conversion output, library output, and log folder paths.
 - Accepts Max files or Full directory selection.
@@ -97,9 +97,13 @@ P4-B Scan / Dry-run is implemented as a read-only filesystem inspection page.
 - Counts existing `manifest.json` files in the conversion output folder when present.
 - Shows whether the selected target appears complete.
 - Shows warnings for OneDrive/Teams folders, network paths, legacy `.doc`, and dry-run-only behavior.
-- Shows PowerShell runner and `build-library` command previews without executing them.
+- Shows PowerShell runner and `build-library` command previews.
+- Requires a safety confirmation before running Convert / Update.
+- Runs only `scripts/Invoke-Office2MdChunkedConvert.ps1` for Convert / Update.
+- Captures stdout, stderr, exit code, log folder, final manifest count, and failed manifest count after completion.
+- Leaves Build Library execution and Load Built Library for later phases.
 
-This page does not run conversion, build a library, create folders, delete files, or change runner process-control behavior.
+This page does not build a library, load a built library, delete files, or change runner process-control behavior.
 
 ### Runner Dry-run
 
@@ -167,7 +171,8 @@ Default install and normal CLI use must not require Streamlit or pyvis.
 ### P5 Build / Update Library
 
 - P4-B Scan / Dry-run status: implemented.
-- Next phases should add Convert / Update command execution only after a separate review, then Build Library and Load Built Library.
+- P4-C Convert / Update status: implemented as an explicit, confirmed PowerShell runner wrapper.
+- Next phases should add Build Library and Load Built Library after separate review.
 
 ### P6 Evidence Package
 

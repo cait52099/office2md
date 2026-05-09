@@ -1,7 +1,9 @@
 import itertools
 import json
 import re
+import shutil
 import sqlite3
+import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -211,23 +213,137 @@ def build_runner_command_preview(
     log_folder: Path,
     max_files: int | None = None,
     full_directory: bool = False,
+    timeout_minutes: int = 45,
+    max_attempts: int = 20,
     python_path: str = DEFAULT_RUNNER_PYTHON,
+    runner_script: Path | str = r".\scripts\Invoke-Office2MdChunkedConvert.ps1",
 ) -> str:
+    return _powershell_command(
+        build_runner_script_arguments(
+            source_folder,
+            conversion_output_folder,
+            log_folder,
+            max_files=max_files,
+            full_directory=full_directory,
+            timeout_minutes=timeout_minutes,
+            max_attempts=max_attempts,
+            python_path=python_path,
+            runner_script=runner_script,
+        )
+    )
+
+
+def build_runner_script_arguments(
+    source_folder: Path,
+    conversion_output_folder: Path,
+    log_folder: Path,
+    max_files: int | None = None,
+    full_directory: bool = False,
+    timeout_minutes: int = 45,
+    max_attempts: int = 20,
+    python_path: str = DEFAULT_RUNNER_PYTHON,
+    runner_script: Path | str = r".\scripts\Invoke-Office2MdChunkedConvert.ps1",
+) -> list[str]:
     parts = [
-        r".\scripts\Invoke-Office2MdChunkedConvert.ps1",
+        str(runner_script),
         "-InputPath",
         str(source_folder),
         "-OutputPath",
         str(conversion_output_folder),
         "-LogDirectory",
         str(log_folder),
+        "-TimeoutMinutes",
+        str(int(timeout_minutes)),
+        "-MaxAttempts",
+        str(int(max_attempts)),
     ]
     if full_directory:
         parts.append("-FullDirectory")
     elif max_files:
         parts.extend(["-MaxFiles", str(max_files)])
     parts.extend(["-Python", python_path])
-    return _powershell_command(parts)
+    return parts
+
+
+def run_convert_update_command(
+    source_folder: Path,
+    conversion_output_folder: Path,
+    log_folder: Path,
+    max_files: int | None = None,
+    full_directory: bool = False,
+    timeout_minutes: int = 45,
+    max_attempts: int = 20,
+    python_path: str = DEFAULT_RUNNER_PYTHON,
+    runner_script: Path | str = r".\scripts\Invoke-Office2MdChunkedConvert.ps1",
+    cwd: Path | None = None,
+    subprocess_timeout_seconds: int | None = None,
+) -> dict[str, Any]:
+    source = source_folder.expanduser()
+    output = conversion_output_folder.expanduser()
+    logs = log_folder.expanduser()
+    runner = Path(runner_script)
+    working_dir = cwd or Path.cwd()
+    runner_path = runner if runner.is_absolute() else working_dir / runner
+    if not source.exists():
+        raise FileNotFoundError(f"Source folder does not exist: {source}")
+    if not source.is_dir():
+        raise NotADirectoryError(f"Source path is not a folder: {source}")
+    if not runner_path.exists():
+        raise FileNotFoundError(f"Runner script does not exist: {runner_path}")
+    powershell = _find_powershell()
+    if powershell is None:
+        raise FileNotFoundError("PowerShell was not found on PATH.")
+
+    script_args = build_runner_script_arguments(
+        source,
+        output,
+        logs,
+        max_files=max_files,
+        full_directory=full_directory,
+        timeout_minutes=timeout_minutes,
+        max_attempts=max_attempts,
+        python_path=python_path,
+        runner_script=runner_path,
+    )
+    command = [
+        powershell,
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        *script_args,
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=working_dir,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=subprocess_timeout_seconds,
+        check=False,
+    )
+    summary = summarize_conversion_output(output)
+    return {
+        "command": _powershell_command(script_args),
+        "argv": command,
+        "exit_code": completed.returncode,
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+        "log_folder": str(logs),
+        "summary": summary,
+    }
+
+
+def summarize_conversion_output(conversion_output_folder: Path) -> dict[str, int | bool | str]:
+    output = conversion_output_folder.expanduser()
+    counts = count_existing_manifests(output)
+    return {
+        "conversion_output_folder": str(output),
+        "output_exists": output.exists(),
+        "final_manifest_count": counts["existing_manifest_count"],
+        "failed_manifest_count": counts["failed_manifest_count"],
+    }
 
 
 def build_library_command_preview(
@@ -259,6 +375,10 @@ def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -
     warnings.append("Legacy .doc files remain unsupported/fragile in the validated workflow.")
     warnings.append("OCR and AI are disabled by default.")
     return warnings
+
+
+def _find_powershell() -> str | None:
+    return shutil.which("powershell.exe") or shutil.which("powershell") or shutil.which("pwsh")
 
 
 def _expected_manifest_names(files: list[Path], output_root: Path) -> list[str]:

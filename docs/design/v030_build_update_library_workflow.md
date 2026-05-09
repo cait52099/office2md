@@ -1,6 +1,6 @@
 # v0.3.0 Build / Update Library Workflow Design
 
-Status: P4-A design committed; P4-B Scan / Dry-run panel implemented as GUI-side scanner/reporting only.
+Status: P4-A design committed; P4-B Scan / Dry-run and P4-C Convert / Update runner wrapper implemented.
 
 ## Purpose
 
@@ -202,10 +202,14 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 
 ### P4-C Convert / Update Panel
 
-- Add explicit Convert / Update action using the existing CLI or PowerShell runner.
-- Keep `--skip-existing` enabled by default.
-- Show live or recent log output.
+- Add explicit Convert / Update action using the existing PowerShell runner.
+- Show exact command, selected paths, mode, timeout minutes, max attempts, skip-existing status, render defaults, and no OCR/no AI notes before execution.
+- Require a safety confirmation checkbox before execution.
+- Capture stdout, stderr, exit code, log directory, final manifest count, and failed manifest count after the runner exits.
+- Keep `--skip-existing` behavior through the existing runner.
 - Preserve runner process-control behavior by invoking it rather than reimplementing it.
+- Do not automatically run `build-library`.
+- Do not automatically load a library.
 
 ### P4-D Build Library and Load Built Library
 

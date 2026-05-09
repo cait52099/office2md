@@ -17,9 +17,11 @@ from office2md.gui.helpers import (
     prepare_document_concept_graph,
     prepare_graph_view,
     prepare_raw_provenance_graph,
+    run_convert_update_command,
     run_library_search,
     scan_source_folder_for_gui,
     search_result_table_rows,
+    summarize_conversion_output,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 
@@ -894,18 +896,46 @@ def test_gui_build_update_dry_run_helpers_scan_and_preview_commands(tmp_path):
     assert full_dry_run["selected_files_count"] == 2
     assert full_dry_run["expected_unique_manifest_count"] == 2
 
-    runner_command = build_runner_command_preview(source, conversion_output, log_folder, max_files=1)
+    runner_command = build_runner_command_preview(source, conversion_output, log_folder, max_files=1, timeout_minutes=7, max_attempts=2)
     full_runner_command = build_runner_command_preview(source, conversion_output, log_folder, full_directory=True)
     build_command = build_library_command_preview(conversion_output, library_output)
+    summary = summarize_conversion_output(conversion_output)
 
     assert '-InputPath "' in runner_command
     assert "-MaxFiles 1" in runner_command
+    assert "-TimeoutMinutes 7" in runner_command
+    assert "-MaxAttempts 2" in runner_command
     assert "-DryRun" not in runner_command
     assert "-FullDirectory" in full_runner_command
     assert "-MaxFiles" not in full_runner_command
     assert "build-library" in build_command
     assert f'"{conversion_output}"' in build_command
     assert f'"{library_output}"' in build_command
+    assert summary["final_manifest_count"] == 2
+    assert summary["failed_manifest_count"] == 1
+
+
+def test_gui_convert_update_helper_validates_before_runner_execution(tmp_path):
+    missing_source = tmp_path / "missing source"
+    conversion_output = tmp_path / "conversion output"
+    log_folder = tmp_path / "dryrun logs"
+
+    try:
+        run_convert_update_command(
+            missing_source,
+            conversion_output,
+            log_folder,
+            max_files=1,
+            runner_script=tmp_path / "missing-runner.ps1",
+            cwd=tmp_path,
+        )
+    except FileNotFoundError as exc:
+        assert "Source folder does not exist" in str(exc)
+    else:
+        raise AssertionError("Expected missing source validation to fail before runner execution.")
+
+    assert not conversion_output.exists()
+    assert not log_folder.exists()
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

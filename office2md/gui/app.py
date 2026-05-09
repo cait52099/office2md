@@ -22,6 +22,7 @@ from office2md.gui.helpers import (
     prepare_document_concept_graph,
     prepare_raw_provenance_graph,
     run_library_search,
+    run_convert_update_command,
     scan_source_folder_for_gui,
 )
 
@@ -292,7 +293,7 @@ def render_graph_fallback(graph_view: dict) -> None:
 
 def render_build_update_library() -> None:
     st.header("Build / Update Library")
-    st.caption("Scan / Dry-run only. This page does not convert files or build a library.")
+    st.caption("Scan / Dry-run and Convert / Update wrapper around the existing PowerShell runner.")
 
     path_columns = st.columns(2)
     source_value = path_columns[0].text_input("Source folder", value="")
@@ -309,21 +310,21 @@ def render_build_update_library() -> None:
     page_columns = st.columns(2)
     max_render_pages = int(page_columns[0].number_input("Max render pages", min_value=1, max_value=100, value=3, step=1))
     max_text_pages = int(page_columns[1].number_input("Max text pages", min_value=1, max_value=1000, value=10, step=1))
+    runner_columns = st.columns(2)
+    timeout_minutes = int(runner_columns[0].number_input("Timeout minutes", min_value=1, max_value=1440, value=45, step=1))
+    max_attempts = int(runner_columns[1].number_input("Max attempts", min_value=1, max_value=100, value=20, step=1))
 
     st.info(
-        "Validated defaults: no OCR and no AI. The dry-run reads filesystem metadata only and does not create, "
-        "delete, convert, or build anything."
+        "Validated defaults: no OCR and no AI. Scan / Dry-run reads filesystem metadata only. Convert / Update runs "
+        "the existing PowerShell runner and may take time while Streamlit waits for completion."
     )
     if not skip_existing:
         st.warning("The validated runner workflow skips existing manifests; changing this is not implemented in the GUI dry-run.")
     if not render_pdf_pages or max_render_pages != 3 or max_text_pages != 10:
         st.warning(
             "The current PowerShell runner preview uses the validated render defaults. Custom render settings are "
-            "shown for planning but are not executed by this dry-run page."
+            "shown for planning but are not passed to the current runner command."
         )
-
-    if not st.button("Scan / Dry-run"):
-        return
 
     try:
         source_folder = _required_path(source_value, "Source folder")
@@ -332,33 +333,131 @@ def render_build_update_library() -> None:
         log_folder = _required_path(log_value, "Log folder")
         max_files = _parse_optional_int(max_files_value)
         if not full_directory and max_files is None:
-            st.error("Enter Max files or enable Full directory before scanning.")
-            return
-        dry_run = scan_source_folder_for_gui(
-            source_folder,
-            conversion_output_folder,
-            max_files=max_files,
-            full_directory=full_directory,
-        )
-    except Exception as exc:  # pragma: no cover - Streamlit UI guard.
-        st.error(f"Unable to run dry-run scan: {exc}")
-        return
-
-    render_dry_run_summary(dry_run)
-
-    st.subheader("Recommended Next Commands")
-    st.caption("Preview only. The GUI does not execute these commands in P4-B.")
-    st.code(
-        build_runner_command_preview(
+            raise ValueError("Enter Max files or enable Full directory before scanning or converting.")
+        runner_command = build_runner_command_preview(
             source_folder,
             conversion_output_folder,
             log_folder,
             max_files=max_files,
             full_directory=full_directory,
-        ),
-        language="powershell",
+            timeout_minutes=timeout_minutes,
+            max_attempts=max_attempts,
+        )
+        build_command = build_library_command_preview(conversion_output_folder, library_output_folder)
+    except Exception as exc:
+        st.error(f"Review the Build / Update Library inputs: {exc}")
+        return
+
+    st.subheader("Scan / Dry-run")
+    if st.button("Scan / Dry-run"):
+        try:
+            dry_run = scan_source_folder_for_gui(
+                source_folder,
+                conversion_output_folder,
+                max_files=max_files,
+                full_directory=full_directory,
+            )
+        except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+            st.error(f"Unable to run dry-run scan: {exc}")
+        else:
+            render_dry_run_summary(dry_run)
+
+    st.subheader("Recommended Next Commands")
+    st.caption("Preview commands. Build Library is shown for later use and is not executed by Convert / Update.")
+    st.code(runner_command, language="powershell")
+    st.code(build_command, language="powershell")
+
+    render_convert_update_section(
+        source_folder,
+        conversion_output_folder,
+        log_folder,
+        max_files=max_files,
+        full_directory=full_directory,
+        timeout_minutes=timeout_minutes,
+        max_attempts=max_attempts,
+        runner_command=runner_command,
+        skip_existing=skip_existing,
+        render_pdf_pages=render_pdf_pages,
+        max_render_pages=max_render_pages,
+        max_text_pages=max_text_pages,
     )
-    st.code(build_library_command_preview(conversion_output_folder, library_output_folder), language="powershell")
+
+
+def render_convert_update_section(
+    source_folder: Path,
+    conversion_output_folder: Path,
+    log_folder: Path,
+    max_files: int | None,
+    full_directory: bool,
+    timeout_minutes: int,
+    max_attempts: int,
+    runner_command: str,
+    skip_existing: bool,
+    render_pdf_pages: bool,
+    max_render_pages: int,
+    max_text_pages: int,
+) -> None:
+    st.subheader("Convert / Update")
+    st.warning(
+        "This runs the existing PowerShell chunked conversion runner. Streamlit may be busy until the command exits. "
+        "Use a small MaxFiles test before FullDirectory."
+    )
+    detail_columns = st.columns(2)
+    detail_columns[0].write(
+        {
+            "source_folder": str(source_folder),
+            "conversion_output_folder": str(conversion_output_folder),
+            "mode": "FullDirectory" if full_directory else "MaxFiles",
+            "max_files": None if full_directory else max_files,
+            "skip_existing": skip_existing,
+            "no_ocr": True,
+            "no_ai": True,
+        }
+    )
+    detail_columns[1].write(
+        {
+            "log_folder": str(log_folder),
+            "timeout_minutes": timeout_minutes,
+            "max_attempts": max_attempts,
+            "render_pdf_pages": render_pdf_pages,
+            "max_render_pages": max_render_pages,
+            "max_text_pages": max_text_pages,
+        }
+    )
+    st.code(runner_command, language="powershell")
+    confirmed = st.checkbox("I understand this may take time and will run the existing PowerShell runner.")
+    if st.button("Convert / Update", disabled=not confirmed):
+        try:
+            result = run_convert_update_command(
+                source_folder,
+                conversion_output_folder,
+                log_folder,
+                max_files=max_files,
+                full_directory=full_directory,
+                timeout_minutes=timeout_minutes,
+                max_attempts=max_attempts,
+                cwd=Path.cwd(),
+            )
+        except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+            st.error(f"Convert / Update failed before completion: {exc}")
+            return
+        render_convert_update_result(result)
+
+
+def render_convert_update_result(result: dict) -> None:
+    st.subheader("Runner Result")
+    st.metric("exit_code", result["exit_code"])
+    st.write({"log_folder": result["log_folder"], **result["summary"]})
+    if result["stdout"]:
+        st.caption("stdout")
+        st.code(result["stdout"], language="text")
+    if result["stderr"]:
+        st.caption("stderr")
+        st.code(result["stderr"], language="text")
+    if result["exit_code"] != 0:
+        st.error("Runner exited with a nonzero status. Review stdout, stderr, and log files.")
+    if not result["summary"]["output_exists"]:
+        st.warning("Conversion output folder was not found after the runner exited.")
 
 
 def render_dry_run_summary(dry_run: dict) -> None:
