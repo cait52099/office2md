@@ -585,3 +585,23 @@ v0.3.0-rc3 GUI Graph View MVP checkpoint evidence:
 - [ ] Helper-level CML125 smoke confirms Curated Knowledge Graph 26 nodes and 194 edges, Document-Concept Graph availability, and Raw Provenance Graph bounded rendering.
 - [ ] No Build/Update Library workflow, Locate Document panel, Evidence Package panel, Runner Dry-run panel, search core, ranking, alias, token fallback logic, conversion behavior, library-report metrics/scoring, runner process-control behavior, library builder graph generation, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc3.md`.
+
+v0.3.0-rc4 GUI Build / Update Library Scan / Dry-run checkpoint evidence:
+
+- [ ] `python -m pytest` reports 74 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] Pyvis import check succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] GUI page `Build / Update Library` exists.
+- [ ] Inputs include source folder, conversion output folder, library output folder, log folder, MaxFiles / FullDirectory selection, skip-existing default, render PDF pages default, and no OCR/no AI notes.
+- [ ] Scan / Dry-run uses existing `office2md.scanner.scan_input()` scanner logic.
+- [ ] Scan / Dry-run does not convert files, build a library, execute the runner, or create/delete output or log folders.
+- [ ] Scan / Dry-run counts supported files, applies MaxFiles / FullDirectory selection, calculates expected unique manifests, counts existing manifests, counts completed expected manifests, counts failed manifests, and reports target completion status.
+- [ ] Warnings cover OneDrive/Teams offline availability, network path slowness/locks, legacy `.doc` unsupported/fragile status, dry-run-only behavior, and no OCR/no AI defaults.
+- [ ] Command previews are generated for the PowerShell chunked runner and `build-library`, using selected paths and options, and are not executed.
+- [ ] CML125 helper smoke records supported files 598, MaxFiles 3 selected target 3, MaxFiles 3 expected unique manifests 3, full-directory expected unique manifests 588, existing manifests 589, and full-directory completed expected manifests 588.
+- [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document the Scan / Dry-run panel.
+- [ ] No Convert / Update execution, Build Library execution, Load Built Library, conversion behavior, runner process-control behavior, scanner behavior, output directory naming behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, library builder behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc4.md`.

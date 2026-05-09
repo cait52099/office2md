@@ -4,6 +4,9 @@ from pathlib import Path
 
 from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
 from office2md.gui.helpers import (
+    build_library_command_preview,
+    build_runner_command_preview,
+    count_existing_manifests,
     graph_layout_options,
     graph_node_types,
     graph_summary,
@@ -15,6 +18,7 @@ from office2md.gui.helpers import (
     prepare_graph_view,
     prepare_raw_provenance_graph,
     run_library_search,
+    scan_source_folder_for_gui,
     search_result_table_rows,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
@@ -854,6 +858,54 @@ def test_library_report_and_quality_report_include_missing_locator_detail(tmp_pa
     assert "### Office Raw Markdown Missing Locator Summary" in quality_report
     assert "- office_raw_markdown_chunks_without_locator: 3" in quality_report
     assert "the library builder preserves available locator data" in quality_report
+
+
+def test_gui_build_update_dry_run_helpers_scan_and_preview_commands(tmp_path):
+    source = tmp_path / "source files"
+    source.mkdir()
+    conversion_output = tmp_path / "conversion output"
+    library_output = tmp_path / "library output"
+    log_folder = tmp_path / "dryrun logs"
+    (source / "Manual One.pdf").write_text("manual", encoding="utf-8")
+    (source / "Notes.txt").write_text("notes", encoding="utf-8")
+    (source / "ignore.tmp").write_text("ignore", encoding="utf-8")
+    (source / "~$lock.docx").write_text("lock", encoding="utf-8")
+    completed_folder = conversion_output / "manual-one"
+    completed_folder.mkdir(parents=True)
+    (completed_folder / "manifest.json").write_text(json.dumps({"status": "success"}), encoding="utf-8")
+    failed_folder = conversion_output / "failed"
+    failed_folder.mkdir()
+    (failed_folder / "manifest.json").write_text(json.dumps({"status": "failed"}), encoding="utf-8")
+
+    dry_run = scan_source_folder_for_gui(source, conversion_output, max_files=1)
+
+    assert dry_run["supported_files_count"] == 2
+    assert dry_run["selected_files_count"] == 1
+    assert dry_run["expected_unique_manifest_count"] == 1
+    assert dry_run["existing_manifest_count"] == 2
+    assert dry_run["completed_expected_manifest_count"] == 1
+    assert dry_run["failed_manifest_count"] == 1
+    assert dry_run["target_reached"] is True
+    assert count_existing_manifests(conversion_output)["failed_manifest_count"] == 1
+    assert not library_output.exists()
+    assert not log_folder.exists()
+
+    full_dry_run = scan_source_folder_for_gui(source, conversion_output, full_directory=True)
+    assert full_dry_run["selected_files_count"] == 2
+    assert full_dry_run["expected_unique_manifest_count"] == 2
+
+    runner_command = build_runner_command_preview(source, conversion_output, log_folder, max_files=1)
+    full_runner_command = build_runner_command_preview(source, conversion_output, log_folder, full_directory=True)
+    build_command = build_library_command_preview(conversion_output, library_output)
+
+    assert '-InputPath "' in runner_command
+    assert "-MaxFiles 1" in runner_command
+    assert "-DryRun" not in runner_command
+    assert "-FullDirectory" in full_runner_command
+    assert "-MaxFiles" not in full_runner_command
+    assert "build-library" in build_command
+    assert f'"{conversion_output}"' in build_command
+    assert f'"{library_output}"' in build_command
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

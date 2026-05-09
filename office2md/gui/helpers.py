@@ -6,9 +6,13 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from slugify import slugify
+
 from office2md.cli import _search_export_json_payload
+from office2md.detector import sha256_file
 from office2md.library import library_report
 from office2md.library import search_library, search_library_diagnostics, search_library_facets
+from office2md.scanner import scan_input
 
 
 DOMAIN_CONCEPTS: list[tuple[str, list[str]]] = [
@@ -40,6 +44,8 @@ DOMAIN_CONCEPTS: list[tuple[str, list[str]]] = [
     ("password", ["password"]),
     ("user group", ["user group", "user role"]),
 ]
+
+DEFAULT_RUNNER_PYTHON = r".\.venv\Scripts\python.exe"
 
 
 def normalize_library_path(value: str) -> Path | None:
@@ -138,6 +144,154 @@ def search_result_table_rows(results: list[dict[str, Any]]) -> list[dict[str, An
 
 def search_export_download_json(diagnostics: dict[str, Any], results: list[dict[str, Any]]) -> str:
     return json.dumps(_search_export_json_payload(diagnostics, results), ensure_ascii=False, indent=2) + "\n"
+
+
+def scan_source_folder_for_gui(
+    source_folder: Path,
+    conversion_output_folder: Path,
+    max_files: int | None = None,
+    full_directory: bool = False,
+) -> dict[str, Any]:
+    source = source_folder.expanduser()
+    output = conversion_output_folder.expanduser()
+    if not source.exists():
+        raise FileNotFoundError(f"Source folder does not exist: {source}")
+    if not source.is_dir():
+        raise NotADirectoryError(f"Source path is not a folder: {source}")
+
+    files = scan_input(source, recursive=True)
+    selected_files = files if full_directory or max_files is None else files[: max(0, int(max_files))]
+    expected_names = _expected_manifest_names(selected_files, output)
+    manifest_counts = count_existing_manifests(output, expected_names)
+    warnings = dry_run_path_warnings(source, output)
+    return {
+        "source_folder": str(source),
+        "conversion_output_folder": str(output),
+        "supported_files_count": len(files),
+        "selected_files_count": len(selected_files),
+        "expected_unique_manifest_count": len(expected_names),
+        "expected_manifest_names": expected_names,
+        "existing_manifest_count": manifest_counts["existing_manifest_count"],
+        "completed_expected_manifest_count": manifest_counts["completed_expected_manifest_count"],
+        "failed_manifest_count": manifest_counts["failed_manifest_count"],
+        "target_reached": manifest_counts["completed_expected_manifest_count"] >= len(expected_names) if expected_names else False,
+        "warnings": warnings,
+    }
+
+
+def count_existing_manifests(output_folder: Path, expected_names: list[str] | None = None) -> dict[str, int]:
+    output = output_folder.expanduser()
+    if not output.exists():
+        return {
+            "existing_manifest_count": 0,
+            "completed_expected_manifest_count": 0,
+            "failed_manifest_count": 0,
+        }
+    manifests = list(output.rglob("manifest.json"))
+    failed = 0
+    for manifest_path in manifests:
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if data.get("status") == "failed":
+            failed += 1
+    expected = expected_names or []
+    completed_expected = sum(1 for name in expected if (output / name / "manifest.json").exists())
+    return {
+        "existing_manifest_count": len(manifests),
+        "completed_expected_manifest_count": completed_expected,
+        "failed_manifest_count": failed,
+    }
+
+
+def build_runner_command_preview(
+    source_folder: Path,
+    conversion_output_folder: Path,
+    log_folder: Path,
+    max_files: int | None = None,
+    full_directory: bool = False,
+    python_path: str = DEFAULT_RUNNER_PYTHON,
+) -> str:
+    parts = [
+        r".\scripts\Invoke-Office2MdChunkedConvert.ps1",
+        "-InputPath",
+        str(source_folder),
+        "-OutputPath",
+        str(conversion_output_folder),
+        "-LogDirectory",
+        str(log_folder),
+    ]
+    if full_directory:
+        parts.append("-FullDirectory")
+    elif max_files:
+        parts.extend(["-MaxFiles", str(max_files)])
+    parts.extend(["-Python", python_path])
+    return _powershell_command(parts)
+
+
+def build_library_command_preview(
+    conversion_output_folder: Path,
+    library_output_folder: Path,
+    python_path: str = DEFAULT_RUNNER_PYTHON,
+) -> str:
+    return _powershell_command(
+        [
+            python_path,
+            "-m",
+            "office2md.cli",
+            "build-library",
+            str(conversion_output_folder),
+            str(library_output_folder),
+        ]
+    )
+
+
+def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -> list[str]:
+    warnings = ["Dry-run only: no files will be converted and no library will be built."]
+    source_text = str(source_folder)
+    if re.search(r"onedrive|teams", source_text, flags=re.IGNORECASE):
+        warnings.append("OneDrive/Teams source detected: ensure files are available offline before conversion.")
+    if source_text.startswith(r"\\"):
+        warnings.append("Network/UNC source detected: paths can be slow, unavailable, or locked.")
+    if conversion_output_folder.exists():
+        warnings.append("Conversion output folder already exists; existing manifests will be counted but not modified.")
+    warnings.append("Legacy .doc files remain unsupported/fragile in the validated workflow.")
+    warnings.append("OCR and AI are disabled by default.")
+    return warnings
+
+
+def _expected_manifest_names(files: list[Path], output_root: Path) -> list[str]:
+    seen: dict[Path, tuple[str, str]] = {}
+    targets = []
+    for source in files:
+        checksum = sha256_file(source)
+        slug = slugify(source.stem) or "document"
+        base_target = output_root / slug
+        source_key = (str(source.resolve()), checksum)
+        if base_target not in seen:
+            target = base_target
+        elif seen[base_target] == source_key:
+            target = base_target
+        else:
+            short_hash = checksum.split(":", 1)[-1][:8]
+            target = output_root / f"{slug}-{short_hash}"
+        seen[target] = source_key
+        targets.append(target)
+    return sorted({target.name for target in targets})
+
+
+def _powershell_command(parts: list[str]) -> str:
+    return " ".join(_quote_powershell_arg(part) for part in parts)
+
+
+def _quote_powershell_arg(value: str) -> str:
+    text = str(value)
+    if not text:
+        return '""'
+    if re.search(r'[\s"]', text):
+        return '"' + text.replace('"', r'\"') + '"'
+    return text
 
 
 def graph_json_path(library_path: Path) -> Path:

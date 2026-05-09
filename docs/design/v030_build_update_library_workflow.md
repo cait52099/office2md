@@ -1,6 +1,6 @@
 # v0.3.0 Build / Update Library Workflow Design
 
-Status: design-only proposal for v0.3.0 P4-A.
+Status: P4-A design committed; P4-B Scan / Dry-run panel implemented as GUI-side scanner/reporting only.
 
 ## Purpose
 
@@ -194,9 +194,11 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 
 - Add Build / Update Library page shell.
 - Add path inputs and dry-run controls.
-- Generate the dry-run command.
-- Execute dry-run safely.
-- Show supported file count, expected manifest count if available, command text, and log path.
+- Use existing scanner logic to count supported files.
+- Estimate expected unique manifest targets with the runner-style slug/checksum collision convention.
+- Count existing manifests in the conversion output folder when present.
+- Show supported file count, selected target count, expected manifest count, existing manifest count, completion status, command previews, and path warnings.
+- Do not convert files, build a library, create folders, or invoke the PowerShell runner in P4-B.
 
 ### P4-C Convert / Update Panel
 

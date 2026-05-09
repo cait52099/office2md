@@ -42,6 +42,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Library Overview: implemented.
 - Search: implemented as a read-only wrapper around existing library search.
 - Graph View: implemented as a read-only view of existing `library_graph.json`.
+- Build / Update Library: Scan / Dry-run implemented.
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
@@ -94,9 +95,35 @@ The curated graph filters noisy labels such as language codes, standalone units,
 
 Large graphs are bounded by the max nodes setting before rendering. The Raw Provenance Graph also has a node type filter. When optional `pyvis` is available, the page renders an interactive graph. If rendering is unavailable or fails, the page shows fallback node and edge tables.
 
+## Build / Update Library Scan / Dry-run
+
+Open the Build / Update Library page from the sidebar to inspect a source folder before running conversion outside the GUI.
+
+Inputs:
+
+- Source folder.
+- Conversion output folder.
+- Library output folder.
+- Log folder.
+- Max files or Full directory.
+- Skip existing, shown as the validated default.
+- Render PDF pages, max render pages, and max text pages, shown as validated defaults.
+
+The `Scan / Dry-run` button uses the existing scanner logic to count supported files and estimate the expected unique manifest target. It also counts existing `manifest.json` files in the conversion output folder when that folder already exists.
+
+The dry-run page does not convert files, build a library, create output folders, delete files, or run the PowerShell runner. It shows command previews for the reviewed next steps:
+
+```powershell
+.\scripts\Invoke-Office2MdChunkedConvert.ps1 -InputPath "SOURCE" -OutputPath "CONVERSION_OUTPUT" -LogDirectory "LOGS" -MaxFiles 3 -Python .\.venv\Scripts\python.exe
+.\.venv\Scripts\python.exe -m office2md.cli build-library "CONVERSION_OUTPUT" "LIBRARY_OUTPUT"
+```
+
+Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, and the fact that this is a non-converting dry-run.
+
 ## Current Limitations
 
 - The GUI does not run conversion.
+- The Build / Update Library page only scans and previews commands; Convert / Update, Build Library, and Load Built Library are planned follow-up steps.
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
 - The GUI does not change runner process-control behavior.

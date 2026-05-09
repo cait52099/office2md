@@ -6,6 +6,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from office2md.gui.helpers import (
+    build_library_command_preview,
+    build_runner_command_preview,
     graph_json_path,
     graph_node_types,
     graph_summary,
@@ -20,6 +22,7 @@ from office2md.gui.helpers import (
     prepare_document_concept_graph,
     prepare_raw_provenance_graph,
     run_library_search,
+    scan_source_folder_for_gui,
 )
 
 
@@ -37,6 +40,7 @@ def main() -> None:
             "Library Overview",
             "Search",
             "Graph View",
+            "Build / Update Library",
             "Locate Document",
             "Evidence Package",
             "Runner Dry-run",
@@ -49,6 +53,8 @@ def main() -> None:
         render_search(library_path)
     elif page == "Graph View":
         render_graph_view(library_path)
+    elif page == "Build / Update Library":
+        render_build_update_library()
     elif page == "Locate Document":
         render_placeholder("Locate Document", "Locate-document panel is planned for v0.3.0 P3.")
     elif page == "Evidence Package":
@@ -284,6 +290,95 @@ def render_graph_fallback(graph_view: dict) -> None:
         st.dataframe(graph_view["edge_rows"], hide_index=True, use_container_width=True)
 
 
+def render_build_update_library() -> None:
+    st.header("Build / Update Library")
+    st.caption("Scan / Dry-run only. This page does not convert files or build a library.")
+
+    path_columns = st.columns(2)
+    source_value = path_columns[0].text_input("Source folder", value="")
+    conversion_output_value = path_columns[1].text_input("Conversion output folder", value="")
+    library_output_value = path_columns[0].text_input("Library output folder", value="")
+    log_value = path_columns[1].text_input("Log folder", value="")
+
+    option_columns = st.columns(4)
+    max_files_value = option_columns[0].text_input("Max files", value="3")
+    full_directory = option_columns[1].checkbox("Full directory", value=False)
+    skip_existing = option_columns[2].checkbox("Skip existing", value=True)
+    render_pdf_pages = option_columns[3].checkbox("Render PDF pages", value=True)
+
+    page_columns = st.columns(2)
+    max_render_pages = int(page_columns[0].number_input("Max render pages", min_value=1, max_value=100, value=3, step=1))
+    max_text_pages = int(page_columns[1].number_input("Max text pages", min_value=1, max_value=1000, value=10, step=1))
+
+    st.info(
+        "Validated defaults: no OCR and no AI. The dry-run reads filesystem metadata only and does not create, "
+        "delete, convert, or build anything."
+    )
+    if not skip_existing:
+        st.warning("The validated runner workflow skips existing manifests; changing this is not implemented in the GUI dry-run.")
+    if not render_pdf_pages or max_render_pages != 3 or max_text_pages != 10:
+        st.warning(
+            "The current PowerShell runner preview uses the validated render defaults. Custom render settings are "
+            "shown for planning but are not executed by this dry-run page."
+        )
+
+    if not st.button("Scan / Dry-run"):
+        return
+
+    try:
+        source_folder = _required_path(source_value, "Source folder")
+        conversion_output_folder = _required_path(conversion_output_value, "Conversion output folder")
+        library_output_folder = _required_path(library_output_value, "Library output folder")
+        log_folder = _required_path(log_value, "Log folder")
+        max_files = _parse_optional_int(max_files_value)
+        if not full_directory and max_files is None:
+            st.error("Enter Max files or enable Full directory before scanning.")
+            return
+        dry_run = scan_source_folder_for_gui(
+            source_folder,
+            conversion_output_folder,
+            max_files=max_files,
+            full_directory=full_directory,
+        )
+    except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+        st.error(f"Unable to run dry-run scan: {exc}")
+        return
+
+    render_dry_run_summary(dry_run)
+
+    st.subheader("Recommended Next Commands")
+    st.caption("Preview only. The GUI does not execute these commands in P4-B.")
+    st.code(
+        build_runner_command_preview(
+            source_folder,
+            conversion_output_folder,
+            log_folder,
+            max_files=max_files,
+            full_directory=full_directory,
+        ),
+        language="powershell",
+    )
+    st.code(build_library_command_preview(conversion_output_folder, library_output_folder), language="powershell")
+
+
+def render_dry_run_summary(dry_run: dict) -> None:
+    metric_columns = st.columns(4)
+    metric_columns[0].metric("supported_files", dry_run["supported_files_count"])
+    metric_columns[1].metric("selected_target_files", dry_run["selected_files_count"])
+    metric_columns[2].metric("expected_unique_manifests", dry_run["expected_unique_manifest_count"])
+    metric_columns[3].metric("existing_manifests", dry_run["existing_manifest_count"])
+
+    status_columns = st.columns(3)
+    status_columns[0].metric("completed_expected_manifests", dry_run["completed_expected_manifest_count"])
+    status_columns[1].metric("failed_manifests", dry_run["failed_manifest_count"])
+    status_columns[2].metric("target_reached", "yes" if dry_run["target_reached"] else "no")
+
+    if dry_run.get("warnings"):
+        st.subheader("Warnings")
+        for warning in dry_run["warnings"]:
+            st.warning(warning)
+
+
 def render_placeholder(title: str, body: str) -> None:
     st.header(title)
     st.info(body)
@@ -291,6 +386,23 @@ def render_placeholder(title: str, body: str) -> None:
 
 def _dict_rows(values: dict) -> list[dict]:
     return [{"name": key, "count": value} for key, value in values.items()]
+
+
+def _required_path(value: str, label: str) -> Path:
+    cleaned = (value or "").strip().strip('"')
+    if not cleaned:
+        raise ValueError(f"{label} is required.")
+    return Path(cleaned).expanduser()
+
+
+def _parse_optional_int(value: str) -> int | None:
+    text = (value or "").strip()
+    if not text:
+        return None
+    parsed = int(text)
+    if parsed < 1:
+        raise ValueError("Max files must be a positive integer.")
+    return parsed
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # v0.3.0 GUI MVP Scope
 
-Status: GUI MVP skeleton with Library Overview, Search panel, and Graph View MVP.
+Status: GUI MVP skeleton with Library Overview, Search panel, Graph View MVP, and Build / Update Library Scan / Dry-run.
 
 ## Purpose
 
@@ -18,7 +18,8 @@ Current implementation scope:
 - Library Overview page backed by existing `library_report()` data.
 - Search page backed by existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` behavior.
 - Graph View page backed by existing `library_graph.json`.
-- Placeholder pages for later locate, evidence-package, and runner dry-run workflow panels.
+- Build / Update Library page with Scan / Dry-run only, backed by existing scanner logic.
+- Placeholder pages for later locate, evidence-package, convert/update, build-library, and runner workflow panels.
 
 The GUI does not run conversion in the first step.
 
@@ -84,6 +85,22 @@ The Graph View does not change library builder behavior, graph export generation
 
 Planned for P4. It should help generate local validation artifacts using existing CLI/library functions and current JSON export conventions.
 
+### Build / Update Library
+
+P4-B Scan / Dry-run is implemented as a read-only filesystem inspection page.
+
+- Accepts source, conversion output, library output, and log folder paths.
+- Accepts Max files or Full directory selection.
+- Shows validated defaults for skip existing, PDF page rendering, max render pages, max text pages, no OCR, and no AI.
+- Uses existing scanner logic to count supported files.
+- Estimates expected unique manifests with the runner-style slug/checksum collision convention.
+- Counts existing `manifest.json` files in the conversion output folder when present.
+- Shows whether the selected target appears complete.
+- Shows warnings for OneDrive/Teams folders, network paths, legacy `.doc`, and dry-run-only behavior.
+- Shows PowerShell runner and `build-library` command previews without executing them.
+
+This page does not run conversion, build a library, create folders, delete files, or change runner process-control behavior.
+
 ### Runner Dry-run
 
 Planned for P5. It should expose a safe dry-run workflow for the existing PowerShell runner without changing runner process-control behavior.
@@ -147,12 +164,17 @@ Default install and normal CLI use must not require Streamlit or pyvis.
 
 - Add locate-document query panel and result table using existing library functions.
 
-### P5 Evidence Package
+### P5 Build / Update Library
+
+- P4-B Scan / Dry-run status: implemented.
+- Next phases should add Convert / Update command execution only after a separate review, then Build Library and Load Built Library.
+
+### P6 Evidence Package
 
 - Add controls to generate local evidence files using existing report/search export patterns.
 - Keep output local and deterministic.
 
-### P6 Runner Dry-run
+### P7 Runner Dry-run
 
 - Add a dry-run-only interface for the existing PowerShell runner command shape.
 - Do not change process-control behavior or launch real conversion from the GUI until a later review explicitly approves it.
