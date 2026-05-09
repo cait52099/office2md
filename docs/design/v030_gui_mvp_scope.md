@@ -1,6 +1,6 @@
 # v0.3.0 GUI MVP Scope
 
-Status: first GUI planning and skeleton step.
+Status: GUI MVP skeleton with Library Overview and Search panel.
 
 ## Purpose
 
@@ -10,13 +10,14 @@ v0.3.0 introduces a local GUI workflow shell around the stable office2md CLI/lib
 
 The MVP is a local Streamlit app that reads an existing Knowledge Library and presents workflow pages for review and validation.
 
-Initial implementation scope:
+Current implementation scope:
 
 - Optional Streamlit dependency only.
 - Minimal app shell with navigation.
 - Library path entry in the sidebar.
 - Library Overview page backed by existing `library_report()` data.
-- Placeholder pages for later workflow panels.
+- Search page backed by existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` behavior.
+- Placeholder pages for later locate, evidence-package, and runner dry-run workflow panels.
 
 The GUI does not run conversion in the first step.
 
@@ -37,7 +38,19 @@ The GUI does not run conversion in the first step.
 
 ### Search
 
-Planned for P2. It should wrap existing `search_library()` behavior without changing search core, ranking, aliases, or token fallback.
+Implemented for P2 as a read-only wrapper around existing library search functions.
+
+- Query text input.
+- Limit input.
+- Diagnostics and facets checkboxes.
+- Context integer input for related chunks.
+- Optional `output_dir` and entity filters.
+- Results table with rank, document, source file, document kind, evidence type, locator, output directory, and preview.
+- Diagnostics summary when enabled.
+- Facet tables when enabled.
+- Download button for current search JSON using the existing search export payload shape.
+
+The panel does not change search core, ranking, aliases, token fallback, diagnostics semantics, or export JSON schema.
 
 ### Locate Document
 
@@ -97,6 +110,7 @@ Default install and normal CLI use must not require Streamlit.
 
 - Add query input and result display using existing search functions.
 - Preserve existing ranking, alias, token fallback, diagnostics, and export behavior.
+- Status: implemented in v0.3.0 P2 work.
 
 ### P3 Locate Document
 

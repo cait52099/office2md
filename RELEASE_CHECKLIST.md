@@ -537,3 +537,25 @@ v0.3.0-rc1 GUI MVP skeleton checkpoint evidence:
 - [ ] `docs/usage/gui_mvp.md` documents optional install, launch command, first screen, current limitations, and no AI/OCR/embedding/vector defaults.
 - [ ] No conversion behavior, search core, ranking, alias, token fallback logic, library-report metrics/scoring, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc1.md`.
+
+v0.3.0-rc2 GUI Search panel checkpoint evidence:
+
+- [ ] `python -m pytest` reports 72 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] GUI Search panel is read-only.
+- [ ] Search controls include query, limit default 5, diagnostics checkbox, facets checkbox, context integer default 0, optional output directory filter, and optional entity filter.
+- [ ] Search panel calls existing `search_library()`, `search_library_diagnostics()`, and `search_library_facets()` functions.
+- [ ] Result table includes rank, document title, source file, document kind, evidence type, locator, output directory, and preview.
+- [ ] Diagnostics display includes mode, effective query, alias/normalization fields, token fallback status and tokens, result count, shown count, locator coverage, and hints.
+- [ ] Facets display includes document kind, evidence type, source file, and output directory facets when available.
+- [ ] Related chunks display when context is greater than 0.
+- [ ] Error handling covers invalid library path, empty query, no results, and search errors.
+- [ ] `Download search JSON` button reuses the existing CLI search export payload shape.
+- [ ] CLI `--export-json` schema is unchanged.
+- [ ] `docs/usage/gui_mvp.md` and `docs/design/v030_gui_mvp_scope.md` document the Search panel.
+- [ ] Helper-level CML125 smoke checks pass for `vacuum pump fault`, Chinese `cooling water`, and `SY909735`.
+- [ ] No Locate Document GUI implementation, Evidence Package GUI implementation, Runner Dry-run GUI implementation, search core, ranking, alias, token fallback logic, diagnostics semantics, CLI export schema, conversion behavior, library-report metrics/scoring, runner process-control behavior, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc2.md`.

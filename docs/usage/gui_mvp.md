@@ -40,10 +40,28 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 ## Current Pages
 
 - Library Overview: implemented.
-- Search: placeholder for v0.3.0 P2.
+- Search: implemented as a read-only wrapper around existing library search.
 - Locate Document: placeholder for v0.3.0 P3.
 - Evidence Package: placeholder for v0.3.0 P4.
 - Runner Dry-run: placeholder for v0.3.0 P5.
+
+## Search Panel
+
+Open the Search page from the sidebar after entering a valid Knowledge Library folder or `library.db` path.
+
+The panel supports:
+
+- Query text input.
+- Limit input, default `5`.
+- Diagnostics checkbox.
+- Facets checkbox.
+- Context integer input, default `0`.
+- Optional output directory filter.
+- Optional entity filter.
+
+Results are displayed in a table with rank, document title, source file, document kind, evidence type, locator, output directory, and preview. If diagnostics are enabled, the panel shows mode, effective query, alias or normalization information, token fallback status and tokens, result count, shown count, locator coverage, and hints. If facets are enabled, the panel shows document kind, evidence type, source file, and output directory facets when available.
+
+The search panel also provides a `Download search JSON` button for the current result set. The download uses the existing search export JSON payload shape; it does not change the CLI `--export-json` schema.
 
 ## Current Limitations
 
@@ -51,7 +69,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
 - The GUI does not change runner process-control behavior.
-- Search, locate-document, evidence-package generation, and runner dry-run controls are placeholders in this first skeleton.
+- Locate-document, evidence-package generation, and runner dry-run controls are placeholders in this MVP stage.
 
 ## Explicit Non-Goals
 

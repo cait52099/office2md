@@ -3,6 +3,7 @@ import sqlite3
 from pathlib import Path
 
 from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
+from office2md.gui.helpers import run_library_search, search_result_table_rows
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 
 
@@ -622,6 +623,63 @@ def test_search_library_export_json_file_is_stable_and_creates_parent(tmp_path):
             "preview": "Alarm history active faults",
         }
     ]
+
+
+def test_gui_search_helpers_reuse_existing_search_results(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "hmi",
+        "hmi-doc",
+        "Copy of SY909735_Translation_Chinese ver.1.xlsx",
+        "hmi_translation_xlsx",
+        [
+            _chunk(
+                "hmi_table",
+                "hmi_translation_table",
+                ["User Texts"],
+                "HMI translation table SY909735 PLC HMI",
+                "Sheet: User Texts",
+                sheet_name="User Texts",
+            ),
+            _chunk(
+                "hmi_row",
+                "hmi_translation_row",
+                ["C1 Contr_1 / Einsaugungen", "Textfeld_84"],
+                "HMI screen group PLC speed",
+                "Sheet: User Texts / Row: 2",
+                sheet_name="User Texts",
+                group_path="C1 Contr_1 / Einsaugungen",
+                row_number=2,
+            ),
+        ],
+        {"project_number": ["SY909735"], "equipment": ["PLC", "HMI"]},
+    )
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    gui_data = run_library_search(
+        library_dir,
+        "PLC",
+        limit=5,
+        diagnostics=True,
+        facets=True,
+        context=1,
+        output_dir="hmi",
+        entity="HMI",
+    )
+    direct_results = search_library(library_dir, "PLC", limit=5, output_dir="hmi", entities=["HMI"], related=1)
+
+    assert [item["chunk_id"] for item in gui_data["results"]] == [item["chunk_id"] for item in direct_results]
+    assert gui_data["rows"] == search_result_table_rows(direct_results)
+    assert gui_data["diagnostics"]["result_count"] == direct_results[0]["total_hits"]
+    assert gui_data["facets"]["document_kind"] == [{"value": "hmi_translation_xlsx", "count": 2}]
+
+    export_payload = json.loads(gui_data["export_json"])
+    assert export_payload["query"]["original_query"] == "PLC"
+    assert export_payload["query"]["filters"]["output_dir"] == "hmi"
+    assert export_payload["query"]["filters"]["entity"] == ["HMI"]
+    assert export_payload["results"][0]["preview"]
 
 
 def test_library_report_export_json_file_uses_report_data_and_creates_parent(tmp_path):
