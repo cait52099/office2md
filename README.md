@@ -141,6 +141,8 @@ office2md search-library ./library/library.db "valve" --facets --limit 20
 
 ### AI Enrichment (Optional)
 
+AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.
+
 ```bash
 # Requires --use-ai flag and CLI adapter
 office2md convert-file input.pdf ./output \

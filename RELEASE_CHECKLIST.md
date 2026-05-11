@@ -684,3 +684,20 @@ v0.3.0-rc7 Output Workspace and Library-Native Knowledge Graph quality checkpoin
 - [ ] Safe temporary workspace smoke confirms conversion exit code 0, final manifests 1, failed manifests 0, build-library exit code 0, and a valid `<workspace>\library` with documents 1, chunks 2, entities 0.
 - [ ] No one-click full workflow, automatic deletion/cleanup, conversion behavior, runner process-control behavior, build-library internals, search core, ranking, alias, token fallback logic, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc7.md`.
+
+v0.3.1 release documentation patch evidence:
+
+- [ ] `v0.3.0` exists locally.
+- [ ] `v0.3.0` exists on remote `origin`.
+- [ ] `v0.3.0` tag was not moved or recreated.
+- [ ] `README.md` contains the exact phrase `AI enrichment is opt-in`.
+- [ ] `README.md` contains the exact phrase `MiniMax CLI is not required`.
+- [ ] `RELEASE_NOTES_v0.3.0.md` exists and matches the README release notes link.
+- [ ] `RELEASE_NOTES_v0.3.1.md` records the documentation-only patch release.
+- [ ] `pyproject.toml` version is updated to `0.3.1`.
+- [ ] `python -m pytest` reports all tests passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for convert, build-library, search-library, locate-document, and library-report.
+- [ ] No conversion behavior, runner process-control behavior, build-library internals, search core/ranking/aliases/token fallback, Graph View behavior, library-report scoring, Marker integration, Obsidian export, AI/OCR/embedding/vector/cloud behavior changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.1.md`.
