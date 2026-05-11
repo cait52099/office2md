@@ -1,9 +1,24 @@
 [project]
 name = "office2md"
-version = "0.1.0"
-description = "Convert Office/PDF documents to knowledge-base-ready Markdown"
+version = "0.3.0"
+description = "Convert Office, PDF, and text documents into structured, knowledge-base-ready Markdown"
 readme = "README.md"
 requires-python = ">=3.10"
+keywords = ["office", "pdf", "markdown", "docling", "markitdown", "knowledge-base", "rag"]
+authors = [{name = "Hongwei Cai", email = "cait52099@gmail.com"}]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
 dependencies = [
   "typer>=0.12",
   "rich>=13.0",
