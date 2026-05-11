@@ -657,3 +657,30 @@ v0.3.0-rc6 GUI Build Library and Load Built Library checkpoint evidence:
 - [ ] `docs/usage/gui_mvp.md`, `docs/design/v030_gui_mvp_scope.md`, and `docs/design/v030_build_update_library_workflow.md` document Build Library and Load Built Library.
 - [ ] No automatic conversion before build-library, automatic deletion/overwrite behavior, conversion behavior, runner process-control behavior, build-library internals, search core, ranking, alias, token fallback logic, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc6.md`.
+
+v0.3.0-rc7 Output Workspace and Library-Native Knowledge Graph quality checkpoint evidence:
+
+- [ ] `python -m pytest` reports 77 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] Streamlit import check reports version 1.57.0.
+- [ ] Pyvis import check succeeds.
+- [ ] GUI helper import check succeeds for `load_library_report`.
+- [ ] Build / Update Library uses one user-facing Output Workspace Folder.
+- [ ] GUI derives `<workspace>\conversion`, `<workspace>\library`, and `<workspace>\logs`.
+- [ ] Convert / Update uses `<workspace>\conversion` and `<workspace>\logs`.
+- [ ] Build Library uses `<workspace>\conversion` to `<workspace>\library`.
+- [ ] Load Built Library loads `<workspace>\library`.
+- [ ] Load Built Library uses a pending session value and rerun flow instead of directly mutating the Library path widget key after instantiation.
+- [ ] The GUI warns when a selected Library path looks like a conversion output folder instead of a built library.
+- [ ] Default Graph View is `Knowledge Graph`.
+- [ ] Knowledge Graph extracts library-native concepts from current library data instead of a fixed equipment vocabulary.
+- [ ] Concept quality filtering removes low-value fragments such as `Cover`, `Sheet`, `Cover Sheet`, `Private confidential`, `Liang private`, `Selection new`, and `Caner sheet`.
+- [ ] Concept quality filtering avoids false splits such as `HPLC` to `PLC` and `Participated` to `CIP`.
+- [ ] Interview/resume library smoke confirms useful library-native concepts can appear when supported by the library, including Food science, Drug discovery, Quality risk, Packaging Selection, and Risk Level.
+- [ ] CML125 library smoke confirms Knowledge Graph still renders and does not show raw provenance noise in the default graph.
+- [ ] Document-Concept Graph remains available.
+- [ ] Raw Provenance Graph remains available as debug/provenance mode.
+- [ ] Safe temporary workspace smoke confirms conversion exit code 0, final manifests 1, failed manifests 0, build-library exit code 0, and a valid `<workspace>\library` with documents 1, chunks 2, entities 0.
+- [ ] No one-click full workflow, automatic deletion/cleanup, conversion behavior, runner process-control behavior, build-library internals, search core, ranking, alias, token fallback logic, library-report metrics/scoring, vector search, embeddings, OCR, AI/MiniMax, cloud/network dependency, direct Teams/SharePoint API integration, Office image export, or legacy `.doc` conversion changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.3.0-rc7.md`.

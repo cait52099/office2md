@@ -9,7 +9,7 @@ The current GUI can open and inspect an existing Knowledge Library. Users also n
 The workflow has two distinct entry points:
 
 - Open Existing Library: select an already-built `library.db` or Knowledge Library folder and inspect it with Library Overview, Search, and Graph View.
-- Build / Update Library from Source Folder: select a source folder plus explicit local output folders, convert or update the processed outputs, build the Knowledge Library, then load the built library.
+- Build / Update Library from Source Folder: select a source folder plus one output workspace, convert or update the processed outputs, build the Knowledge Library, then load the built library.
 
 The build/update workflow should wrap existing stable office2md behavior. It must not change conversion logic, search behavior, library-report scoring, runner process-control, or library graph generation.
 
@@ -30,15 +30,16 @@ Out of scope for v0.3.0:
 
 ## Output Model
 
-The GUI should ask for explicit paths instead of inventing hidden defaults:
+The GUI should ask users for one output workspace and derive internal folders from it:
 
 - Source folder: original files to scan and convert.
-- Conversion output folder: office2md per-document outputs, manifests, chunks, and source maps.
-- Library output folder: built Knowledge Library containing `library.db`, `library_index.json`, `library_graph.json`, portal Markdown, and exports.
-- Logs folder: conversion and runner logs.
+- Output workspace folder: user-facing parent folder for all generated outputs.
+- Conversion output folder: `<workspace>\conversion`, containing office2md per-document outputs, manifests, chunks, and source maps.
+- Library output folder: `<workspace>\library`, containing the built Knowledge Library with `library.db`, `library_index.json`, `library_graph.json`, portal Markdown, and exports.
+- Logs folder: `<workspace>\logs`, containing conversion and runner logs.
 - Evidence/export folder: optional later destination for reports, search exports, and validation evidence.
 
-These folders may be local, synced, or network paths, but local folders are recommended for conversion outputs and logs.
+These folders may be local, synced, or network paths, but local folders are recommended for conversion outputs and logs. Reusing a non-empty workspace is allowed but should warn users that old conversion manifests can be included. The GUI must not delete anything automatically.
 
 ## Conservative Incremental Strategy
 
@@ -73,9 +74,7 @@ Page name: Build / Update Library
 Inputs:
 
 - Source folder.
-- Conversion output folder.
-- Library output folder.
-- Log folder.
+- Output workspace folder.
 - Max files.
 - Dry-run.
 - Skip existing.
@@ -195,6 +194,7 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 - Add Build / Update Library page shell.
 - Add path inputs and dry-run controls.
 - Use existing scanner logic to count supported files.
+- Derive conversion, library, and log folders from the output workspace.
 - Estimate expected unique manifest targets with the runner-style slug/checksum collision convention.
 - Count existing manifests in the conversion output folder when present.
 - Show supported file count, selected target count, expected manifest count, existing manifest count, completion status, command previews, and path warnings.
@@ -203,7 +203,7 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 ### P4-C Convert / Update Panel
 
 - Add explicit Convert / Update action using the existing PowerShell runner.
-- Show exact command, selected paths, mode, timeout minutes, max attempts, skip-existing status, render defaults, and no OCR/no AI notes before execution.
+- Show exact command, source path, derived conversion/log paths, mode, timeout minutes, max attempts, skip-existing status, render defaults, and no OCR/no AI notes before execution.
 - Require a safety confirmation checkbox before execution.
 - Capture stdout, stderr, exit code, log directory, final manifest count, and failed manifest count after the runner exits.
 - Keep `--skip-existing` behavior through the existing runner.
@@ -215,12 +215,14 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT_FOLDER" "LIBRARY_OUTPUT
 
 - Add Build Library action using existing library builder behavior.
 - Show exact `python -m office2md.cli build-library` command before execution.
+- Use derived `<workspace>\conversion` as input and `<workspace>\library` as output.
 - Require a safety confirmation checkbox before execution.
 - Capture stdout, stderr, exit code, and Library Output Folder summary after completion.
 - Show whether `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, and `_quality_report.md` exist.
 - Display document, chunk, and entity counts when `library_report()` can load the built library.
 - Add Load Built Library button to set the GUI library path to the built library folder.
 - Warn clearly when the selected folder does not contain `library.db`, especially if the user selected the Conversion Output Folder instead of the Library Output Folder.
+- Use a pending session-state key before rerun so Load Built Library does not modify a Streamlit widget key after instantiation.
 - Do not automatically run conversion.
 - Do not implement one-click full workflow.
 

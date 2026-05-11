@@ -66,14 +66,14 @@ Implemented as a read-only MVP backed by existing `library_graph.json` output.
 - Shows node count, edge count, node type distribution, and edge type distribution.
 - Supports bounded rendering with max nodes defaulting to 150.
 - Supports graph modes:
-  - Curated Knowledge Graph: default, concept-to-concept graph built from a conservative GUI-side domain vocabulary matched against existing chunks/documents.
-  - Document-Concept Graph: document and curated concept nodes only, connected by existing document/chunk concept mentions.
+  - Knowledge Graph: default, concept-to-concept graph built from concepts detected in the current library's entities, document titles, headings, and chunk text.
+  - Document-Concept Graph: document and detected concept nodes only, connected by current-library document/chunk concept mentions.
   - Raw Provenance Graph: debug view of raw `library_graph.json` relationships.
 - Supports keyword and isolated-node filters; the raw provenance mode also supports node type filtering.
 - Uses optional `pyvis` rendering when available.
 - Falls back to node and edge tables if interactive rendering is unavailable.
 
-The default Curated Knowledge Graph filters noisy raw labels such as language codes, units, pure years, generic UI/system labels, source/page/asset paths, and drawing/document codes. It hides chunk, asset, source page, locator, and raw provenance nodes. It uses curated concept labels as node labels and co-mention/co-occurrence edges with weights when available.
+The default Knowledge Graph is library-native and does not apply a fixed equipment or domain vocabulary. It filters noisy raw labels such as language codes, units, pure years, generic UI/system labels, source/page/asset paths, contact-like fragments, generic cover/page titles, and drawing/document codes. It hides chunk, asset, source page, locator, and raw provenance nodes. It prefers explicit entities, structured headers, cleaned document titles, cleaned headings, and repeated meaningful text phrases. Low-confidence title/text fragments are filtered so sparse graphs are preferred over noisy graphs. It uses detected concept labels as node labels and co-mention/co-occurrence edges with weights when available.
 
 The keyword filter searches concept labels, aliases, document titles, and chunk context captured while building the GUI-side concept index.
 
@@ -89,7 +89,8 @@ Planned for P4. It should help generate local validation artifacts using existin
 
 P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. P4-C Convert / Update is implemented as a conservative wrapper around the existing PowerShell chunked runner. P4-D Build Library and Load Built Library are implemented as explicit user actions.
 
-- Accepts Source Folder for original documents, Conversion Output Folder for per-document Knowledge Packs, Library Output Folder for the final searchable library, and log folder paths.
+- Accepts Source Folder for original documents and one Output Workspace Folder.
+- Derives `<workspace>\conversion` for per-document Knowledge Packs, `<workspace>\library` for the final searchable library, and `<workspace>\logs` for runner logs.
 - Accepts Max files or Full directory selection.
 - Shows validated defaults for skip existing, PDF page rendering, max render pages, max text pages, no OCR, and no AI.
 - Uses existing scanner logic to count supported files.
@@ -97,15 +98,17 @@ P4-B Scan / Dry-run is implemented as a read-only filesystem inspection action. 
 - Counts existing `manifest.json` files in the conversion output folder when present.
 - Shows whether the selected target appears complete.
 - Shows warnings for OneDrive/Teams folders, network paths, legacy `.doc`, and dry-run-only behavior.
+- Warns when the Output Workspace Folder already exists and is not empty because old conversion manifests can be included.
 - Shows PowerShell runner and `build-library` command previews.
 - Requires a safety confirmation before running Convert / Update.
 - Runs only `scripts/Invoke-Office2MdChunkedConvert.ps1` for Convert / Update.
 - Captures stdout, stderr, exit code, log folder, final manifest count, and failed manifest count after completion.
 - Requires a separate safety confirmation before running Build Library.
-- Runs `python -m office2md.cli build-library` from Conversion Output Folder to Library Output Folder.
+- Runs `python -m office2md.cli build-library` from `<workspace>\conversion` to `<workspace>\library`.
 - Captures stdout, stderr, exit code, library output file presence, and library-report counts after build.
 - Load Built Library sets the GUI Library path to the Library Output Folder only when `library.db` exists.
 - Warns when a selected folder does not look like a built library, including likely Conversion Output Folder mistakes.
+- Uses a pending session key before rerun when loading a built library so Streamlit widget state is not modified after instantiation.
 
 This page does not implement one-click full workflow, delete files, or change runner process-control behavior.
 

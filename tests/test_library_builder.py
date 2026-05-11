@@ -7,10 +7,12 @@ from office2md.gui.helpers import (
     build_library_command_preview,
     build_runner_command_preview,
     count_existing_manifests,
+    derive_workspace_paths,
     graph_layout_options,
     graph_node_types,
     graph_summary,
     graph_view_html,
+    is_conversion_output_path,
     is_valid_library_path,
     load_library_graph,
     load_curated_concept_index,
@@ -23,8 +25,10 @@ from office2md.gui.helpers import (
     run_library_search,
     scan_source_folder_for_gui,
     search_result_table_rows,
+    suggest_workspace_path,
     summarize_library_output,
     summarize_conversion_output,
+    validate_workspace_paths,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 
@@ -725,9 +729,9 @@ def test_gui_graph_helpers_load_and_bound_existing_graph_export(tmp_path):
     summary = graph_summary(graph)
     raw_view = prepare_raw_provenance_graph(graph, max_nodes=3, node_type="document", keyword="manual", show_isolated=True)
     concept_index = load_curated_concept_index(library_dir)
-    knowledge_view = prepare_curated_knowledge_graph(concept_index, max_nodes=10)
-    maintenance_view = prepare_curated_knowledge_graph(concept_index, max_nodes=10, keyword="maintenance")
-    document_concept_view = prepare_document_concept_graph(concept_index, max_nodes=10)
+    knowledge_view = prepare_curated_knowledge_graph(concept_index, max_nodes=30)
+    maintenance_view = prepare_curated_knowledge_graph(concept_index, max_nodes=30, keyword="maintenance")
+    document_concept_view = prepare_document_concept_graph(concept_index, max_nodes=30)
 
     assert summary["node_count"] == len(graph["nodes"])
     assert summary["edge_count"] == len(graph["edges"])
@@ -743,8 +747,9 @@ def test_gui_graph_helpers_load_and_bound_existing_graph_export(tmp_path):
     assert all(node["type"] not in {"chunk", "asset", "source_page"} for node in knowledge_view["nodes"])
     assert all(edge["relation_type"] not in {"document_has_chunk", "document_has_asset", "chunk_has_source_locator"} for edge in knowledge_view["edges"])
     assert {edge["relation_type"] for edge in knowledge_view["edges"]} <= {"co_mentions", "co_occurs"}
-    assert {"cooling water", "vacuum pump", "alarm", "fault", "operation manual", "maintenance"}.issubset({node["label"] for node in knowledge_view["nodes"]})
-    assert "maintenance" in {node["label"] for node in maintenance_view["nodes"]}
+    knowledge_labels = {node["label"].casefold() for node in knowledge_view["nodes"]}
+    assert {"cooling water", "vacuum pump", "alarm", "fault", "operation manual", "maintenance"}.issubset(knowledge_labels)
+    assert "maintenance" in {node["label"].casefold() for node in maintenance_view["nodes"]}
     hidden_label_html = graph_view_html(knowledge_view)
     visible_label_html = graph_view_html(knowledge_view, show_edge_labels=True)
     assert '"label": ""' in hidden_label_html
@@ -758,6 +763,99 @@ def test_gui_graph_helpers_load_and_bound_existing_graph_export(tmp_path):
     assert document_concept_view["nodes"]
     assert {node["type"] for node in document_concept_view["nodes"]} <= {"document", "concept"}
     assert {edge["relation_type"] for edge in document_concept_view["edges"]} <= {"document_mentions_concept"}
+
+
+def test_gui_library_native_graph_does_not_force_equipment_vocabulary(tmp_path):
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "resume",
+        "resume-doc",
+        "Interview Resume.txt",
+        "document",
+        [
+            _chunk(
+                "resume_intro",
+                "text",
+                ["Interview Preparation"],
+                "Interview resume portfolio. Participated in HPLC analytical method validation and stakeholder collaboration.",
+                None,
+            ),
+            _chunk(
+                "resume_project",
+                "text",
+                ["Project Experience"],
+                "Built regulatory submission tracker, analytics dashboard, and cross functional project documentation.",
+                None,
+            ),
+        ],
+        {"candidate_topic": ["interview preparation"], "skill": ["regulatory submission", "HPLC"]},
+    )
+    _write_doc(
+        output_root / "assessment",
+        "assessment-doc",
+        "Assessment Form.xlsx",
+        "document",
+        [
+            _chunk(
+                "assessment_cover",
+                "text",
+                ["Cover Sheet"],
+                "Private confidential. Liang private candidate contact details and caner sheet fragment.",
+                None,
+            ),
+            _chunk(
+                "assessment_case",
+                "table",
+                ["Assessment for Case Study"],
+                "Assessment for Case Study leadership logical thinking technical background risk level quality risk.",
+                None,
+            ),
+            _chunk(
+                "assessment_business",
+                "table",
+                ["Packaging Selection"],
+                "Food Science drug discovery packaging selection new tooling cosmetic procedures quality risk.",
+                None,
+            ),
+        ],
+        {"assessment_topic": ["Assessment for Case Study"], "competency": ["Leadership", "Logical Thinking", "Technical Background"]},
+    )
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+
+    concept_index = load_curated_concept_index(library_dir)
+    knowledge_view = prepare_curated_knowledge_graph(concept_index, max_nodes=80)
+    document_concept_view = prepare_document_concept_graph(concept_index, max_nodes=80)
+    labels = {node["label"].casefold() for node in knowledge_view["nodes"]}
+
+    assert "interview preparation" in labels
+    assert "regulatory submission" in labels
+    assert "assessment for case study" in labels
+    assert "leadership" in labels
+    assert "logical thinking" in labels
+    assert "technical background" in labels
+    assert "food science" in labels
+    assert "drug discovery" in labels
+    assert "quality risk" in labels
+    assert "packaging selection" in labels
+    assert "risk level" in labels
+    assert any("hplc" in label for label in labels)
+    assert "plc" not in labels
+    assert "cip" not in labels
+    assert "vfd" not in labels
+    assert "vacuum pump" not in labels
+    assert "untitled source page" not in labels
+    assert "cover" not in labels
+    assert "sheet" not in labels
+    assert "cover sheet" not in labels
+    assert "private confidential" not in labels
+    assert "liang private" not in labels
+    assert "selection new" not in labels
+    assert "caner sheet" not in labels
+    assert all(node["type"] == "concept" for node in knowledge_view["nodes"])
+    assert all(node["type"] in {"document", "concept"} for node in document_concept_view["nodes"])
+    assert all(edge["relation_type"] == "document_mentions_concept" for edge in document_concept_view["edges"])
 
 
 def test_library_report_export_json_file_uses_report_data_and_creates_parent(tmp_path):
@@ -868,9 +966,11 @@ def test_library_report_and_quality_report_include_missing_locator_detail(tmp_pa
 def test_gui_build_update_dry_run_helpers_scan_and_preview_commands(tmp_path):
     source = tmp_path / "source files"
     source.mkdir()
-    conversion_output = tmp_path / "conversion output"
-    library_output = tmp_path / "library output"
-    log_folder = tmp_path / "dryrun logs"
+    workspace = tmp_path / "source files-office2md-output"
+    paths = derive_workspace_paths(workspace)
+    conversion_output = paths["conversion_output_folder"]
+    library_output = paths["library_output_folder"]
+    log_folder = paths["log_folder"]
     (source / "Manual One.pdf").write_text("manual", encoding="utf-8")
     (source / "Notes.txt").write_text("notes", encoding="utf-8")
     (source / "ignore.tmp").write_text("ignore", encoding="utf-8")
@@ -894,6 +994,15 @@ def test_gui_build_update_dry_run_helpers_scan_and_preview_commands(tmp_path):
     assert count_existing_manifests(conversion_output)["failed_manifest_count"] == 1
     assert not library_output.exists()
     assert not log_folder.exists()
+    assert suggest_workspace_path(source) == workspace
+    assert paths["workspace_folder"] == workspace
+    assert paths["conversion_output_folder"] == workspace / "conversion"
+    assert paths["library_output_folder"] == workspace / "library"
+    assert paths["log_folder"] == workspace / "logs"
+    assert len({paths["conversion_output_folder"], paths["library_output_folder"], paths["log_folder"]}) == 3
+    validate_workspace_paths(source, workspace)
+    assert is_conversion_output_path(conversion_output)
+    assert not is_valid_library_path(conversion_output)
 
     full_dry_run = scan_source_folder_for_gui(source, conversion_output, full_directory=True)
     assert full_dry_run["selected_files_count"] == 2
@@ -916,6 +1025,13 @@ def test_gui_build_update_dry_run_helpers_scan_and_preview_commands(tmp_path):
     assert f'"{library_output}"' in build_command
     assert summary["final_manifest_count"] == 2
     assert summary["failed_manifest_count"] == 1
+
+    try:
+        validate_workspace_paths(source, source)
+    except ValueError as exc:
+        assert "must not be the same" in str(exc)
+    else:
+        raise AssertionError("Expected workspace validation to reject source folder reuse.")
 
 
 def test_gui_convert_update_helper_validates_before_runner_execution(tmp_path):

@@ -87,11 +87,11 @@ Controls:
 
 Graph modes:
 
-- Curated Knowledge Graph: default. Shows higher-value domain concepts from a conservative GUI-side vocabulary matched against existing chunk and document text. It does not show chunks, assets, source pages, locators, or raw provenance edge labels by default.
-- Document-Concept Graph: shows document nodes and curated concept nodes only, connected by document-concept mention edges.
+- Knowledge Graph: default. Shows library-native concepts detected from the current library's entities, document titles, headings, and chunk text. It does not apply a fixed equipment vocabulary, and it does not show chunks, assets, source pages, locators, or raw provenance edge labels by default.
+- Document-Concept Graph: shows document nodes and detected concept nodes only, connected by document-concept mention edges.
 - Raw Provenance Graph: debug view of raw `library_graph.json` relationships. This may include chunks, assets, source pages, and low-level edge types such as `document_has_chunk`.
 
-The curated graph filters noisy labels such as language codes, standalone units, pure years, generic UI/system labels, asset paths, source page labels, and low-level provenance relationships. The keyword filter searches concept labels, aliases, document titles, and chunk context, so domain terms can match even when they were not extracted as entity labels.
+The default graph filters noisy labels such as language codes, standalone units, pure years, generic UI/system labels, asset paths, source page labels, contact-like fragments, cover/page titles, and low-level provenance relationships. It prefers explicit entities, structured headers, cleaned document titles, cleaned headings, and repeated meaningful text phrases. Low-confidence title/text fragments are hidden; sparse graphs are preferable to noisy graphs. The keyword filter searches concept labels, document titles, headings, and chunk context, so terms can match when they appear in library content even if they were not extracted as entity labels.
 
 Large graphs are bounded by the max nodes setting before rendering. The Raw Provenance Graph also has a node type filter. When optional `pyvis` is available, the page renders an interactive graph. If rendering is unavailable or fails, the page shows fallback node and edge tables.
 
@@ -102,16 +102,24 @@ Open the Build / Update Library page from the sidebar to inspect a source folder
 Inputs:
 
 - Source Folder: original documents.
-- Conversion Output Folder: per-document Knowledge Pack outputs.
-- Library Output Folder: final searchable library with `library.db`.
-- Log folder.
+- Output Workspace Folder: parent folder for conversion outputs, final library, and logs.
 - Max files or Full directory.
 - Skip existing, shown as the validated default.
 - Render PDF pages, max render pages, and max text pages, shown as validated defaults.
 
+The GUI derives internal folders under the Output Workspace Folder:
+
+- `conversion`: per-document Knowledge Pack outputs.
+- `library`: final searchable library with `library.db`.
+- `logs`: runner logs.
+
+For example, if Source Folder is `C:\Data\Interview` and Output Workspace Folder is `C:\Data\Interview-office2md-output`, the GUI uses `C:\Data\Interview-office2md-output\conversion`, `C:\Data\Interview-office2md-output\library`, and `C:\Data\Interview-office2md-output\logs`.
+
 The `Scan / Dry-run` button uses the existing scanner logic to count supported files and estimate the expected unique manifest target. It also counts existing `manifest.json` files in the conversion output folder when that folder already exists.
 
 The Conversion Output Folder is not directly readable as a Library. It contains one Knowledge Pack per document. Run Build Library first, then load the Library Output Folder.
+
+If the Output Workspace Folder already exists and is not empty, the GUI warns that old conversion manifests can be included when reusing an old workspace. A new empty workspace is recommended for each source collection. The GUI does not delete anything automatically.
 
 The Scan / Dry-run action does not convert files, build a library, create output folders, delete files, or run the PowerShell runner. It shows command previews for the reviewed next steps:
 
@@ -132,7 +140,7 @@ python -m office2md.cli build-library "CONVERSION_OUTPUT" "LIBRARY_OUTPUT"
 
 After completion, it shows stdout, stderr, exit code, and a library summary that checks for `library.db`, `library_index.json`, `library_graph.json`, `_library.md`, and `_quality_report.md`.
 
-The Load Built Library button sets the GUI Library path to the Library Output Folder only if `library.db` exists. If the selected folder is not a valid built library, the GUI warns that the user may have selected the Conversion Output Folder instead.
+The Load Built Library button sets the GUI Library path to `<workspace>\library` only if `library.db` exists. If the selected folder is not a valid built library, the GUI warns that the user may have selected the Conversion Output Folder instead.
 
 Recommended practice:
 

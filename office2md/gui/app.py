@@ -8,10 +8,12 @@ import streamlit.components.v1 as components
 from office2md.gui.helpers import (
     build_library_command_preview,
     build_runner_command_preview,
+    derive_workspace_paths,
     graph_json_path,
     graph_node_types,
     graph_summary,
     graph_view_html,
+    is_conversion_output_path,
     is_valid_library_path,
     load_curated_concept_index,
     load_library_overview,
@@ -26,6 +28,9 @@ from office2md.gui.helpers import (
     run_convert_update_command,
     scan_source_folder_for_gui,
     summarize_library_output,
+    suggest_workspace_path,
+    validate_workspace_paths,
+    workspace_warnings,
 )
 
 
@@ -34,6 +39,9 @@ def main() -> None:
     st.title("office2md GUI MVP")
 
     st.sidebar.header("Library")
+    pending_library_path = st.session_state.pop("pending_library_path_value", None)
+    if pending_library_path is not None:
+        st.session_state["library_path_value"] = pending_library_path
     if "library_path_value" not in st.session_state:
         st.session_state["library_path_value"] = ""
     library_value = st.sidebar.text_input("Library path", key="library_path_value")
@@ -71,6 +79,8 @@ def main() -> None:
 def render_library_overview(library_path: Path | None) -> None:
     st.header("Library Overview")
     if not is_valid_library_path(library_path):
+        if is_conversion_output_path(library_path):
+            st.warning("This looks like a conversion output folder, not a built library. Load the workspace library folder instead.")
         st.warning("Enter a valid Knowledge Library folder or library.db path in the sidebar.")
         return
 
@@ -103,6 +113,8 @@ def render_library_overview(library_path: Path | None) -> None:
 def render_search(library_path: Path | None) -> None:
     st.header("Search")
     if not is_valid_library_path(library_path):
+        if is_conversion_output_path(library_path):
+            st.warning("This looks like a conversion output folder, not a built library. Load the workspace library folder instead.")
         st.warning("Enter a valid Knowledge Library folder or library.db path in the sidebar.")
         return
 
@@ -208,6 +220,9 @@ def render_graph_view(library_path: Path | None) -> None:
     if library_path is None:
         st.warning("Enter a valid Knowledge Library folder or library.db path in the sidebar.")
         return
+    if is_conversion_output_path(library_path):
+        st.warning("This looks like a conversion output folder, not a built library. Load the workspace library folder instead.")
+        return
 
     graph_path = graph_json_path(library_path)
     if not graph_path.exists():
@@ -232,15 +247,15 @@ def render_graph_view(library_path: Path | None) -> None:
 
     graph_mode = st.selectbox(
         "Graph mode",
-        ["Curated Knowledge Graph", "Document-Concept Graph", "Raw Provenance Graph"],
+        ["Knowledge Graph", "Document-Concept Graph", "Raw Provenance Graph"],
     )
     if graph_mode == "Raw Provenance Graph":
         st.info(
             "Debug view: may include chunks, assets, source pages, and low-level edge types."
         )
-    elif graph_mode == "Curated Knowledge Graph":
+    elif graph_mode == "Knowledge Graph":
         st.info(
-            "This view filters raw entities and source/provenance nodes to show higher-value domain concepts."
+            "This library-native view detects concepts from the current library content. It does not apply a fixed equipment vocabulary."
         )
 
     node_types = ["All", *graph_node_types(graph)]
@@ -260,7 +275,7 @@ def render_graph_view(library_path: Path | None) -> None:
         )
     else:
         control_columns = st.columns(4)
-        default_max_nodes = 50 if graph_mode == "Curated Knowledge Graph" else 80
+        default_max_nodes = 50 if graph_mode == "Knowledge Graph" else 80
         max_nodes = int(control_columns[0].number_input("Max nodes", min_value=10, max_value=500, value=default_max_nodes, step=10))
         keyword = control_columns[1].text_input("Keyword filter", value="")
         show_isolated = control_columns[2].checkbox("Show isolated nodes", value=True)
@@ -268,10 +283,13 @@ def render_graph_view(library_path: Path | None) -> None:
         concept_index = load_curated_concept_index(library_path)
         graph_view = (
             prepare_curated_knowledge_graph(concept_index, max_nodes=max_nodes, keyword=keyword, show_isolated=show_isolated)
-            if graph_mode == "Curated Knowledge Graph"
+            if graph_mode == "Knowledge Graph"
             else prepare_document_concept_graph(concept_index, max_nodes=max_nodes, keyword=keyword, show_isolated=show_isolated)
         )
-        st.caption(f"Concept filter applied. Hidden noisy concept labels: {concept_index['hidden_noisy_concepts_count']}.")
+        st.caption(
+            "Library-native concept extraction applied. Low-confidence text fragments are filtered from the Knowledge Graph. "
+            f"Hidden noisy concept labels: {concept_index['hidden_noisy_concepts_count']}."
+        )
     st.caption(f"Rendering {len(graph_view['nodes'])} nodes and {len(graph_view['edges'])} edges from {graph_path}.")
 
     if graph_view["nodes"]:
@@ -297,13 +315,14 @@ def render_graph_fallback(graph_view: dict) -> None:
 
 def render_build_update_library() -> None:
     st.header("Build / Update Library")
-    st.caption("Scan, convert Knowledge Packs, build the searchable library, then load the Library Output Folder.")
+    st.caption("Select a source folder and one output workspace. The GUI keeps conversion, library, and logs separate.")
 
     path_columns = st.columns(2)
     source_value = path_columns[0].text_input("Source Folder: original documents", value="")
-    conversion_output_value = path_columns[1].text_input("Conversion Output Folder: per-document Knowledge Pack outputs", value="")
-    library_output_value = path_columns[0].text_input("Library Output Folder: final searchable library with library.db", value="")
-    log_value = path_columns[1].text_input("Log folder", value="")
+    source_preview = normalize_library_path(source_value)
+    suggested_workspace = suggest_workspace_path(source_preview)
+    workspace_default = str(suggested_workspace) if suggested_workspace else ""
+    workspace_value = path_columns[1].text_input("Output Workspace Folder", value=workspace_default)
 
     option_columns = st.columns(4)
     max_files_value = option_columns[0].text_input("Max files", value="3")
@@ -319,8 +338,8 @@ def render_build_update_library() -> None:
     max_attempts = int(runner_columns[1].number_input("Max attempts", min_value=1, max_value=100, value=20, step=1))
 
     st.info(
-        "The Conversion Output Folder is not directly readable as a Library. Run Build Library first, then load the "
-        "Library Output Folder. Validated defaults: no OCR and no AI."
+        "The workspace folder keeps conversion outputs, the final library, and logs separate. Load Built Library uses "
+        "the workspace\\library folder. Validated defaults: no OCR and no AI."
     )
     if not skip_existing:
         st.warning("The validated runner workflow skips existing manifests; changing this is not implemented in the GUI dry-run.")
@@ -332,9 +351,12 @@ def render_build_update_library() -> None:
 
     try:
         source_folder = _required_path(source_value, "Source folder")
-        conversion_output_folder = _required_path(conversion_output_value, "Conversion output folder")
-        library_output_folder = _required_path(library_output_value, "Library output folder")
-        log_folder = _required_path(log_value, "Log folder")
+        workspace_folder = _required_path(workspace_value, "Output Workspace Folder")
+        validate_workspace_paths(source_folder, workspace_folder)
+        workspace_paths = derive_workspace_paths(workspace_folder)
+        conversion_output_folder = workspace_paths["conversion_output_folder"]
+        library_output_folder = workspace_paths["library_output_folder"]
+        log_folder = workspace_paths["log_folder"]
         max_files = _parse_optional_int(max_files_value)
         if not full_directory and max_files is None:
             raise ValueError("Enter Max files or enable Full directory before scanning or converting.")
@@ -351,6 +373,18 @@ def render_build_update_library() -> None:
     except Exception as exc:
         st.error(f"Review the Build / Update Library inputs: {exc}")
         return
+
+    st.subheader("Derived Workspace Paths")
+    st.info(
+        "The Conversion Output Folder is not directly readable as a Library. Run Build Library first, then load the "
+        "Library Output Folder."
+    )
+    derived_columns = st.columns(3)
+    derived_columns[0].write({"Conversion Output Folder": str(conversion_output_folder), "purpose": "per-document Knowledge Pack outputs"})
+    derived_columns[1].write({"Library Output Folder": str(library_output_folder), "purpose": "final searchable library with library.db"})
+    derived_columns[2].write({"Log Folder": str(log_folder), "purpose": "runner logs"})
+    for warning in workspace_warnings(workspace_folder):
+        st.warning(warning)
 
     st.subheader("Scan / Dry-run")
     if st.button("Scan / Dry-run"):
@@ -493,7 +527,7 @@ def render_build_library_section(conversion_output_folder: Path, library_output_
     st.write(summary)
     if st.button("Load Built Library"):
         if summary["is_valid_library"]:
-            st.session_state["library_path_value"] = str(library_output_folder)
+            st.session_state["pending_library_path_value"] = str(library_output_folder)
             st.success("Loaded Library Output Folder. Library Overview, Search, and Graph View will use this path.")
             st.rerun()
         else:
