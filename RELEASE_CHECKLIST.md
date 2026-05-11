@@ -1,5 +1,50 @@
 # office2md Release Readiness Checklist
 
+v0.3.2-rc1 Obsidian Export CLI MVP checkpoint evidence:
+
+- [x] `python -m pytest` reports 89 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli export-obsidian --help` shows the new command.
+- [x] `export-obsidian` accepts `LIBRARY_PATH` and `VAULT_OUTPUT`.
+- [x] `export-obsidian` supports `--overwrite`.
+- [x] `export-obsidian` supports `--dry-run`.
+- [x] `export-obsidian` supports `--max-concepts`.
+- [x] `export-obsidian` supports `--max-evidence-per-concept`.
+- [x] `LIBRARY_PATH` accepts a built library folder.
+- [x] `LIBRARY_PATH` accepts a `library.db` path.
+- [x] Non-empty output folders fail unless `--overwrite` is provided.
+- [x] `--dry-run` writes no files.
+- [x] Vault output creates `00_Index.md`.
+- [x] Vault output creates `00_Library_Report.md`.
+- [x] Vault output creates `Documents/`.
+- [x] Vault output creates `Concepts/`.
+- [x] Vault output creates `_office2md/export_manifest.json`.
+- [x] Document notes include YAML frontmatter.
+- [x] Document notes include Related Concepts.
+- [x] Document notes use Obsidian `[[wikilinks]]`.
+- [x] Concept notes include YAML frontmatter.
+- [x] Concept notes include Related Documents.
+- [x] Concept notes use Obsidian `[[wikilinks]]`.
+- [x] Export manifest records export type, office2md version, library path, vault output, document count, concept count, warnings, and options.
+- [x] Concept extraction uses current-library/library-native concepts from entities, document titles, headings, and chunk text.
+- [x] Concept extraction includes noise filtering.
+- [x] Concept count is bounded by `--max-concepts`.
+- [x] No fixed equipment vocabulary is used.
+- [x] Release notes state concept quality is MVP/heuristic and may need real-use tuning.
+- [x] Assets are intentionally not copied in the MVP.
+- [x] If a source library contains assets, `export_manifest.json` records a warning.
+- [x] Tiny fixture smoke converts `tests/fixtures/sample.txt`, builds a library, exports a vault, and parses the manifest.
+- [x] No GUI export page is included.
+- [x] No Marker integration is included.
+- [x] No PDF/Word/HTML export is included.
+- [x] No AI, OCR, embedding, vector, or cloud work is included.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Library-report scoring is unchanged.
+- [x] Graph View behavior is unchanged.
+
 Core no-AI path:
 
 - [ ] `office2md --help`

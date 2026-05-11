@@ -17,6 +17,7 @@ from office2md.converters.markitdown_converter import MarkItDownConverter
 from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
+from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
@@ -433,6 +434,41 @@ def library_report_command(
     if export_json is not None:
         _write_library_report_export_json(export_json, report)
         console.print(f"export_json: {export_json}")
+
+
+@app.command("export-obsidian")
+def export_obsidian_command(
+    library_path: Path,
+    vault_output: Path,
+    overwrite: bool = typer.Option(False, "--overwrite", help="Replace an existing non-empty vault output folder."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview export counts without writing files."),
+    max_concepts: int = typer.Option(100, "--max-concepts", help="Maximum concept notes to export."),
+    max_evidence_per_concept: int = typer.Option(5, "--max-evidence-per-concept", help="Maximum evidence snippets per concept note."),
+) -> None:
+    """Export a built office2md library to an Obsidian-friendly vault folder."""
+    try:
+        result = export_obsidian(
+            library_path,
+            vault_output,
+            overwrite=overwrite,
+            dry_run=dry_run,
+            max_concepts=max_concepts,
+            max_evidence_per_concept=max_evidence_per_concept,
+        )
+    except ObsidianExportError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    table = Table(title="office2md export-obsidian")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("library_path", result["library_path"])
+    table.add_row("vault_output", result["vault_output"])
+    table.add_row("documents_exported", str(result["documents_exported"]))
+    table.add_row("concepts_exported", str(result["concepts_exported"]))
+    table.add_row("dry_run", str(result["options"]["dry_run"]))
+    table.add_row("warnings", str(len(result["warnings"])))
+    console.print(table)
+    for warning in result["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
 
 
 @app.command("convert-file")

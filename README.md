@@ -139,6 +139,16 @@ office2md search-library ./library/library.db "pump fault" \
 office2md search-library ./library/library.db "valve" --facets --limit 20
 ```
 
+### Obsidian Export
+
+Export a built Knowledge Library to an Obsidian-friendly local vault folder:
+
+```bash
+office2md export-obsidian ./library ./obsidian-vault
+```
+
+The export creates `00_Index.md`, `00_Library_Report.md`, `Documents/`, `Concepts/`, and `_office2md/export_manifest.json`. It uses library-native concepts from the existing indexed content and does not require Obsidian to be installed. Use `--dry-run` to preview counts and `--overwrite` to replace a non-empty output folder.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

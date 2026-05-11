@@ -46,6 +46,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
+- Obsidian export: CLI-only in v0.3.2 P1; a GUI export page is future work.
 
 ## Search Panel
 
@@ -165,6 +166,7 @@ Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.do
 - The GUI does not change runner process-control behavior.
 - The GUI does not change library graph export generation.
 - Locate-document, evidence-package generation, and runner dry-run controls are placeholders in this MVP stage.
+- Obsidian export is currently available through `python -m office2md.cli export-obsidian`; GUI controls are not implemented yet.
 
 ## Explicit Non-Goals
 
