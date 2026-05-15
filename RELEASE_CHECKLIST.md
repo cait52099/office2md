@@ -1,5 +1,40 @@
 # office2md Release Readiness Checklist
 
+v0.3.2 final release evidence:
+
+- [x] `python -m pytest` reports 91 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] CLI `export-obsidian` exists.
+- [x] CLI `export-obsidian` supports `--overwrite`.
+- [x] CLI `export-obsidian` supports `--dry-run`.
+- [x] CLI `export-obsidian` supports `--max-concepts`.
+- [x] CLI `export-obsidian` supports `--max-evidence-per-concept`.
+- [x] Obsidian vault output structure is documented as `00_Index.md`, `00_Library_Report.md`, `Documents/`, `Concepts/`, and `_office2md/export_manifest.json`.
+- [x] Document notes include YAML frontmatter, Related Concepts, and Obsidian `[[wikilinks]]`.
+- [x] Concept notes include YAML frontmatter, Related Documents, and Obsidian `[[wikilinks]]`.
+- [x] Export manifest records export type, office2md version, paths, counts, warnings, and options.
+- [x] Dry-run and overwrite behavior are documented and validated.
+- [x] GUI sidebar includes `Export`.
+- [x] GUI export page includes `Export to Obsidian Vault`.
+- [x] GUI Preview Export uses dry-run behavior.
+- [x] GUI Export to Obsidian reuses existing exporter logic directly.
+- [x] Obsidian installation is not required to generate the export.
+- [x] Assets are intentionally not copied in this MVP and manifests record warnings when assets exist.
+- [x] Concept extraction is heuristic/library-native and does not use a fixed equipment vocabulary.
+- [x] Tiny fixture export smoke creates the expected vault structure, manifest, document notes, and concept notes.
+- [x] Tiny fixture GUI/helper export smoke parses the manifest summary.
+- [x] CML125 dry-run export reports 587 planned documents, 20 planned concepts, uncopied asset warning, and creates no full vault.
+- [x] CML125 `search-library "vacuum pump fault" --limit 3 --diagnostics-json` uses token fallback and returns useful fault catalog results.
+- [x] No Marker integration is included.
+- [x] No AI, OCR, embedding, vector, or cloud work is included.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Library-report scoring is unchanged.
+
 v0.3.2-rc2 GUI Export to Obsidian checkpoint evidence:
 
 - [x] `python -m pytest` reports 91 passed.
