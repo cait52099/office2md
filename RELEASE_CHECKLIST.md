@@ -1,5 +1,38 @@
 # office2md Release Readiness Checklist
 
+v0.4.0-rc1 Workspace Manifest / Version Foundation checkpoint evidence:
+
+- [x] `python -m pytest` reports 98 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli workspace-init --help` shows the new command.
+- [x] `workspace-init` accepts `WORKSPACE_PATH`.
+- [x] `workspace-init` supports `--dry-run`.
+- [x] `workspace-init` supports `--overwrite-manifests`.
+- [x] Workspace skeleton creates `conversion/`, `library/`, `wiki/`, `wiki/Concepts/`, `wiki/Notes/`, `wiki/Corrections/`, `wiki/_suggestions/`, `outputs/`, `outputs/obsidian/`, `outputs/reports/`, `outputs/html/`, `outputs/_manifests/`, `logs/`, and `versions/`.
+- [x] Workspace foundation represents RAM / Wiki / Output / Version folders without requiring Git.
+- [x] `workspace_manifest.json` is created with schema version, office2md version, workspace path, created time, updated time, layers, and folders.
+- [x] `source_manifest.json` is created with schema version, source roots, sources, and generated time.
+- [x] `versions/library_versions.json` is created with schema version and `library_versions`.
+- [x] `versions/output_versions.json` is created with schema version and `output_versions`.
+- [x] Second `workspace-init` run succeeds without deleting existing files.
+- [x] Second `workspace-init` refreshes `workspace_manifest.json.updated_at`.
+- [x] Existing source/version manifests are preserved by default.
+- [x] `--overwrite-manifests` explicitly overwrites preserved source/version manifests.
+- [x] `--dry-run` prints planned directories and manifest files without writing files.
+- [x] `detect_workspace(path)` is added.
+- [x] `summarize_workspace(path)` is added.
+- [x] Temp workspace smoke confirms all planned folders and manifests exist and a test file under `wiki/Notes/` survives the second run.
+- [x] Dry-run smoke confirms no workspace files are written.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.3.2 final release evidence:
 
 - [x] `python -m pytest` reports 91 passed.

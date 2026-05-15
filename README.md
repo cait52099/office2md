@@ -37,6 +37,9 @@ pip install -e ".[dev]"
 ### Basic Usage
 
 ```bash
+# Initialize a local workspace foundation
+office2md workspace-init ./project.office2md
+
 # Convert a folder of documents
 office2md convert ./input ./output --recursive
 
@@ -148,6 +151,16 @@ office2md export-obsidian ./library ./obsidian-vault
 ```
 
 The export creates `00_Index.md`, `00_Library_Report.md`, `Documents/`, `Concepts/`, and `_office2md/export_manifest.json`. It uses library-native concepts from the existing indexed content and does not require Obsidian to be installed. Use `--dry-run` to preview counts and `--overwrite` to replace a non-empty output folder.
+
+### Workspace Foundation
+
+Create a conservative local workspace skeleton for future RAM / Wiki / Output / Version workflows:
+
+```bash
+office2md workspace-init ./project.office2md
+```
+
+The command creates workspace folders plus manifest/version files without converting documents or requiring Git. Use `--dry-run` to preview changes. Existing source/version manifests are preserved unless `--overwrite-manifests` is explicitly provided.
 
 ### AI Enrichment (Optional)
 

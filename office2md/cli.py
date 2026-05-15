@@ -62,6 +62,7 @@ from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
 from office2md.utils import ensure_directory, utc_now_iso
+from office2md.workspace import init_workspace
 
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
@@ -134,6 +135,38 @@ def doctor_ai() -> None:
     for name, status in run_ai_checks().items():
         table.add_row(name, status)
     console.print(table)
+
+
+@app.command("workspace-init")
+def workspace_init_command(
+    workspace_path: Path,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview directories and manifests without writing files."),
+    overwrite_manifests: bool = typer.Option(
+        False,
+        "--overwrite-manifests",
+        help="Replace source/version manifests if they already exist. workspace_manifest.json always refreshes updated_at.",
+    ),
+) -> None:
+    """Create the conservative office2md workspace folder foundation."""
+    result = init_workspace(workspace_path, dry_run=dry_run, overwrite_manifests=overwrite_manifests)
+    table = Table(title="office2md workspace-init")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("workspace_path", result["workspace_path"])
+    table.add_row("dry_run", str(result["dry_run"]))
+    table.add_row("planned_directories", str(len(result["directories"])))
+    table.add_row("planned_manifests", str(len(result["manifest_files"])))
+    table.add_row("created_directories", str(len(result["created_directories"])))
+    table.add_row("written_manifests", str(len(result["written_manifests"])))
+    table.add_row("preserved_manifests", str(len(result["preserved_manifests"])))
+    console.print(table)
+    if dry_run:
+        console.print("planned_directories:")
+        for item in result["directories"]:
+            console.print(item)
+        console.print("planned_manifest_files:")
+        for item in result["manifest_files"]:
+            console.print(item)
 
 
 @app.command("build-library")

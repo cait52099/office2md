@@ -326,3 +326,14 @@ Migration principles:
 - Preserve compatibility with existing `build-library`, search, export, and GUI workflows while the new layers are introduced.
 
 This lets office2md grow toward a layered workspace without forcing current users to abandon the stable v0.3.x operating model.
+
+## P1 Foundation Note
+
+v0.4.0 P1 may initialize only the workspace skeleton and manifest/version files:
+
+- `workspace_manifest.json`
+- `source_manifest.json`
+- `versions/library_versions.json`
+- `versions/output_versions.json`
+
+This foundation step should be idempotent, should not require Git, and should not implement Wiki editing, AI suggestions, automatic migration, or deletion behavior.
