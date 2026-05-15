@@ -2,8 +2,11 @@ import json
 import sqlite3
 from pathlib import Path
 
+import pytest
+
 from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
 from office2md.gui.helpers import (
+    build_obsidian_export_command_preview,
     build_library_command_preview,
     build_runner_command_preview,
     count_existing_manifests,
@@ -23,10 +26,12 @@ from office2md.gui.helpers import (
     run_build_library_command,
     run_convert_update_command,
     run_library_search,
+    run_obsidian_export_for_gui,
     scan_source_folder_for_gui,
     search_result_table_rows,
     suggest_workspace_path,
     summarize_library_output,
+    summarize_obsidian_export_output,
     summarize_conversion_output,
     validate_workspace_paths,
 )
@@ -1091,6 +1096,67 @@ def test_gui_build_library_helpers_build_and_summarize_tiny_library(tmp_path):
     assert result["summary"]["documents_count"] == 1
     assert result["summary"]["chunks_count"] == 1
     assert is_valid_library_path(library_output)
+
+
+def test_gui_obsidian_export_helpers_preview_dry_run_and_summary(tmp_path):
+    library_dir = _tiny_gui_export_library(tmp_path)
+    vault = tmp_path / "vault"
+
+    command = build_obsidian_export_command_preview(
+        library_dir,
+        vault,
+        overwrite=True,
+        dry_run=True,
+        max_concepts=20,
+        max_evidence_per_concept=3,
+    )
+    assert "export-obsidian" in command
+    assert "--overwrite" in command
+    assert "--dry-run" in command
+    assert "--max-concepts 20" in command
+    assert "--max-evidence-per-concept 3" in command
+
+    preview = run_obsidian_export_for_gui(library_dir, vault, dry_run=True, max_concepts=20)
+    assert preview["documents_exported"] == 1
+    assert not vault.exists()
+
+    result = run_obsidian_export_for_gui(library_dir, vault, max_concepts=20)
+    summary = summarize_obsidian_export_output(vault)
+    assert result["documents_exported"] == 1
+    assert summary["manifest_exists"] is True
+    assert summary["manifest"]["export_type"] == "obsidian"
+    assert summary["documents_exported"] == 1
+    assert summary["index_exists"] is True
+
+
+def test_gui_obsidian_export_helper_validates_library_and_overwrite(tmp_path):
+    library_dir = _tiny_gui_export_library(tmp_path)
+    vault = tmp_path / "vault"
+    vault.mkdir()
+    (vault / "existing.md").write_text("keep", encoding="utf-8")
+
+    with pytest.raises(FileNotFoundError, match="Built library folder"):
+        run_obsidian_export_for_gui(tmp_path / "missing-library", tmp_path / "missing-vault")
+    with pytest.raises(RuntimeError, match="non-empty"):
+        run_obsidian_export_for_gui(library_dir, vault)
+
+
+def _tiny_gui_export_library(tmp_path: Path) -> Path:
+    conversion_output = tmp_path / "conversion"
+    _write_doc(
+        conversion_output / "sample",
+        "sample-doc",
+        "sample.txt",
+        "document",
+        [
+            _chunk("sample_overview", "text", ["Overview"], "Knowledge Retrieval overview.", "Section: Overview"),
+            _chunk("sample_evidence", "text", ["Evidence"], "Knowledge Retrieval evidence.", "Section: Evidence"),
+        ],
+        {"topic": ["Knowledge Retrieval"]},
+    )
+    library_dir = tmp_path / "library"
+    build_library(conversion_output, library_dir)
+    return library_dir
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

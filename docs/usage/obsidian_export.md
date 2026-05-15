@@ -48,3 +48,19 @@ Concepts are extracted from the built library content itself, using entities, do
 Assets are not copied in this MVP. If the library has assets, `_office2md/export_manifest.json` records a warning.
 
 Obsidian does not need to be installed to run the export.
+
+## GUI Export
+
+The optional Streamlit GUI also provides an Export page for the same local workflow.
+
+The GUI page:
+
+- defaults Current Library Path from the loaded GUI library path;
+- previews the equivalent `export-obsidian` command;
+- supports dry-run preview, overwrite, max concepts, and max evidence per concept;
+- shows exported document and concept counts;
+- parses `_office2md/export_manifest.json` after a real export.
+
+Obsidian still does not need to be installed to generate the vault folder. Open the exported folder in Obsidian later if desired.
+
+The GUI uses the same exporter as the CLI. Assets are still not copied in this MVP, and concept quality remains heuristic/library-native and may need real-use tuning.

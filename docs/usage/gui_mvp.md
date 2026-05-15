@@ -43,10 +43,10 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Search: implemented as a read-only wrapper around existing library search.
 - Graph View: implemented as a read-only view of existing `library_graph.json`.
 - Build / Update Library: Scan / Dry-run, Convert / Update runner execution, Build Library, and Load Built Library implemented.
+- Export: Obsidian vault export implemented using the existing local exporter.
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
-- Obsidian export: CLI-only in v0.3.2 P1; a GUI export page is future work.
 
 ## Search Panel
 
@@ -155,6 +155,34 @@ Recommended practice:
 
 Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, dry-run behavior, and no OCR/no AI defaults.
 
+## Export
+
+Open the Export page from the sidebar after loading a valid Knowledge Library folder or `library.db` path.
+
+The Export page generates an Obsidian-compatible local vault folder. Obsidian does not need to be installed to run the export; the generated folder can be opened in Obsidian later.
+
+Inputs:
+
+- Current Library Path, defaulted from the loaded GUI library path.
+- Obsidian Vault Output Folder.
+- Max Concepts, default `100`.
+- Max Evidence Per Concept, default `5`.
+- Overwrite existing output.
+- Dry-run.
+
+Actions:
+
+- Preview Export: always runs dry-run behavior and shows planned document count, concept count, warnings, and the expected output structure without writing files.
+- Export to Obsidian: calls the existing exporter and displays counts plus the parsed `_office2md/export_manifest.json` summary after a real export.
+
+The page shows the equivalent CLI command for review:
+
+```powershell
+python -m office2md.cli export-obsidian "LIBRARY_PATH" "VAULT_OUTPUT"
+```
+
+The MVP does not copy assets. Concept extraction is heuristic and library-native, so real-use tuning may still be needed.
+
 ## Current Limitations
 
 - The GUI can run Convert / Update only through the existing PowerShell runner.
@@ -166,7 +194,7 @@ Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.do
 - The GUI does not change runner process-control behavior.
 - The GUI does not change library graph export generation.
 - Locate-document, evidence-package generation, and runner dry-run controls are placeholders in this MVP stage.
-- Obsidian export is currently available through `python -m office2md.cli export-obsidian`; GUI controls are not implemented yet.
+- Obsidian export uses the existing exporter; it does not require Obsidian to be installed and does not copy assets in this MVP.
 
 ## Explicit Non-Goals
 

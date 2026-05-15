@@ -14,6 +14,7 @@ from slugify import slugify
 
 from office2md.cli import _search_export_json_payload
 from office2md.detector import sha256_file
+from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.library import library_report
 from office2md.library import search_library, search_library_diagnostics, search_library_facets
 from office2md.scanner import scan_input
@@ -511,6 +512,83 @@ def summarize_library_output(library_output_folder: Path) -> dict[str, Any]:
             summary["documents_count"] = report.get("documents_count")
             summary["chunks_count"] = report.get("chunks_count")
             summary["entities_count"] = report.get("entities_count")
+    return summary
+
+
+def build_obsidian_export_command_preview(
+    library_path: Path,
+    vault_output_folder: Path,
+    overwrite: bool = False,
+    dry_run: bool = False,
+    max_concepts: int = 100,
+    max_evidence_per_concept: int = 5,
+    python_path: str = DEFAULT_RUNNER_PYTHON,
+) -> str:
+    parts = [
+        python_path,
+        "-m",
+        "office2md.cli",
+        "export-obsidian",
+        str(library_path),
+        str(vault_output_folder),
+        "--max-concepts",
+        str(int(max_concepts)),
+        "--max-evidence-per-concept",
+        str(int(max_evidence_per_concept)),
+    ]
+    if overwrite:
+        parts.append("--overwrite")
+    if dry_run:
+        parts.append("--dry-run")
+    return _powershell_command(parts)
+
+
+def run_obsidian_export_for_gui(
+    library_path: Path,
+    vault_output_folder: Path,
+    overwrite: bool = False,
+    dry_run: bool = False,
+    max_concepts: int = 100,
+    max_evidence_per_concept: int = 5,
+) -> dict[str, Any]:
+    library = library_path.expanduser()
+    if not is_valid_library_path(library):
+        raise FileNotFoundError(f"Built library folder or library.db was not found: {library}")
+    try:
+        return export_obsidian(
+            library,
+            vault_output_folder.expanduser(),
+            overwrite=overwrite,
+            dry_run=dry_run,
+            max_concepts=max_concepts,
+            max_evidence_per_concept=max_evidence_per_concept,
+        )
+    except ObsidianExportError:
+        raise
+
+
+def summarize_obsidian_export_output(vault_output_folder: Path) -> dict[str, Any]:
+    vault = vault_output_folder.expanduser()
+    manifest_path = vault / "_office2md" / "export_manifest.json"
+    summary: dict[str, Any] = {
+        "vault_output_folder": str(vault),
+        "output_exists": vault.exists(),
+        "index_exists": (vault / "00_Index.md").exists(),
+        "library_report_exists": (vault / "00_Library_Report.md").exists(),
+        "documents_dir_exists": (vault / "Documents").is_dir(),
+        "concepts_dir_exists": (vault / "Concepts").is_dir(),
+        "manifest_exists": manifest_path.exists(),
+    }
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            summary["manifest_error"] = str(exc)
+        else:
+            summary["manifest"] = manifest
+            summary["documents_exported"] = manifest.get("documents_exported")
+            summary["concepts_exported"] = manifest.get("concepts_exported")
+            summary["warnings"] = manifest.get("warnings") or []
     return summary
 
 

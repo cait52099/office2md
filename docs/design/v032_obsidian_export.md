@@ -1,6 +1,6 @@
 # v0.3.2 P1 Obsidian Export CLI MVP
 
-Status: CLI MVP scope.
+Status: CLI MVP implemented in P1; GUI wrapper implemented in P2.
 
 ## Purpose
 
@@ -69,9 +69,19 @@ The MVP does not require Obsidian to be installed.
 
 Assets are not copied in P1. If the source library contains assets, the export manifest records a warning.
 
+## GUI Wrapper
+
+v0.3.2 P2 adds an optional Streamlit GUI Export page around the same local exporter.
+
+- Obsidian does not need to be installed to generate the vault folder.
+- The page exposes Preview Export and Export to Obsidian actions.
+- Preview Export uses dry-run behavior.
+- The GUI shows the equivalent CLI command, counts, warnings, output structure, and parsed export manifest after a real export.
+- Concept quality remains heuristic/library-native and may need real-use tuning.
+- Assets remain intentionally uncopied in the MVP.
+
 ## Out Of Scope
 
-- GUI export page.
 - Marker integration.
 - PDF, Word, or HTML export.
 - AI, OCR, embeddings, vector search, or cloud features.

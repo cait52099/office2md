@@ -6,6 +6,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from office2md.gui.helpers import (
+    build_obsidian_export_command_preview,
     build_library_command_preview,
     build_runner_command_preview,
     derive_workspace_paths,
@@ -24,10 +25,12 @@ from office2md.gui.helpers import (
     prepare_document_concept_graph,
     prepare_raw_provenance_graph,
     run_build_library_command,
+    run_obsidian_export_for_gui,
     run_library_search,
     run_convert_update_command,
     scan_source_folder_for_gui,
     summarize_library_output,
+    summarize_obsidian_export_output,
     suggest_workspace_path,
     validate_workspace_paths,
     workspace_warnings,
@@ -54,6 +57,7 @@ def main() -> None:
             "Search",
             "Graph View",
             "Build / Update Library",
+            "Export",
             "Locate Document",
             "Evidence Package",
             "Runner Dry-run",
@@ -68,6 +72,8 @@ def main() -> None:
         render_graph_view(library_path)
     elif page == "Build / Update Library":
         render_build_update_library()
+    elif page == "Export":
+        render_export(library_path)
     elif page == "Locate Document":
         render_placeholder("Locate Document", "Locate-document panel is planned for v0.3.0 P3.")
     elif page == "Evidence Package":
@@ -421,6 +427,110 @@ def render_build_update_library() -> None:
     )
 
     render_build_library_section(conversion_output_folder, library_output_folder, build_command)
+
+
+def render_export(library_path: Path | None) -> None:
+    st.header("Export")
+    st.subheader("Export to Obsidian Vault")
+    st.info(
+        "Obsidian does not need to be installed for export. The output folder can later be opened as an Obsidian vault. "
+        "Assets are not copied in this MVP. Concept extraction is heuristic and library-native, so real-use tuning may still be needed."
+    )
+
+    library_default = str(library_path) if library_path is not None else ""
+    input_columns = st.columns(2)
+    library_value = input_columns[0].text_input("Current Library Path", value=library_default)
+    vault_value = input_columns[1].text_input("Obsidian Vault Output Folder", value="")
+
+    option_columns = st.columns(4)
+    max_concepts = int(option_columns[0].number_input("Max Concepts", min_value=0, max_value=10000, value=100, step=10))
+    max_evidence = int(option_columns[1].number_input("Max Evidence Per Concept", min_value=0, max_value=100, value=5, step=1))
+    overwrite = option_columns[2].checkbox("Overwrite existing output", value=False)
+    dry_run = option_columns[3].checkbox("Dry-run", value=False)
+
+    try:
+        selected_library = _required_path(library_value, "Current Library Path")
+        vault_output = _required_path(vault_value, "Obsidian Vault Output Folder")
+        preview_command = build_obsidian_export_command_preview(
+            selected_library,
+            vault_output,
+            overwrite=overwrite,
+            dry_run=dry_run,
+            max_concepts=max_concepts,
+            max_evidence_per_concept=max_evidence,
+        )
+    except Exception as exc:
+        st.error(f"Review the Export inputs: {exc}")
+        return
+
+    st.subheader("Command Preview")
+    st.code(preview_command, language="powershell")
+
+    button_columns = st.columns(2)
+    if button_columns[0].button("Preview Export"):
+        try:
+            preview = run_obsidian_export_for_gui(
+                selected_library,
+                vault_output,
+                overwrite=overwrite,
+                dry_run=True,
+                max_concepts=max_concepts,
+                max_evidence_per_concept=max_evidence,
+            )
+        except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+            st.error(f"Unable to preview export: {exc}")
+        else:
+            render_obsidian_export_result(preview, dry_run=True)
+
+    if button_columns[1].button("Export to Obsidian"):
+        try:
+            result = run_obsidian_export_for_gui(
+                selected_library,
+                vault_output,
+                overwrite=overwrite,
+                dry_run=dry_run,
+                max_concepts=max_concepts,
+                max_evidence_per_concept=max_evidence,
+            )
+        except Exception as exc:  # pragma: no cover - Streamlit UI guard.
+            st.error(f"Obsidian export failed: {exc}")
+        else:
+            render_obsidian_export_result(result, dry_run=dry_run)
+            if not dry_run:
+                render_obsidian_export_summary(vault_output)
+
+
+def render_obsidian_export_result(result: dict, dry_run: bool) -> None:
+    title = "Export Preview" if dry_run else "Export Result"
+    st.subheader(title)
+    metrics = st.columns(3)
+    metrics[0].metric("documents_exported", result.get("documents_exported", 0))
+    metrics[1].metric("concepts_exported", result.get("concepts_exported", 0))
+    metrics[2].metric("warnings", len(result.get("warnings") or []))
+    st.write({"vault_output": result.get("vault_output"), "dry_run": result.get("options", {}).get("dry_run")})
+    st.subheader("Generated Structure")
+    st.code(
+        "\n".join(
+            [
+                "00_Index.md",
+                "00_Library_Report.md",
+                "Documents/",
+                "Concepts/",
+                "_office2md/export_manifest.json",
+            ]
+        ),
+        language="text",
+    )
+    for warning in result.get("warnings") or []:
+        st.warning(warning)
+
+
+def render_obsidian_export_summary(vault_output: Path) -> None:
+    summary = summarize_obsidian_export_output(vault_output)
+    st.subheader("Export Manifest Summary")
+    st.write({key: value for key, value in summary.items() if key != "manifest"})
+    if summary.get("manifest"):
+        st.json(summary["manifest"])
 
 
 def render_convert_update_section(

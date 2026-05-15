@@ -1,5 +1,43 @@
 # office2md Release Readiness Checklist
 
+v0.3.2-rc2 GUI Export to Obsidian checkpoint evidence:
+
+- [x] `python -m pytest` reports 91 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] Streamlit sidebar includes `Export`.
+- [x] Export page includes `Export to Obsidian Vault`.
+- [x] Export page includes Current Library Path defaulted from the loaded GUI library path.
+- [x] Export page includes Obsidian Vault Output Folder.
+- [x] Export page includes Max Concepts.
+- [x] Export page includes Max Evidence Per Concept.
+- [x] Export page includes Overwrite existing output.
+- [x] Export page includes Dry-run.
+- [x] Export page includes Preview Export.
+- [x] Export page includes Export to Obsidian.
+- [x] Preview Export uses dry-run behavior and does not write output files.
+- [x] Export to Obsidian calls the existing `office2md.exports.obsidian.export_obsidian()` implementation directly.
+- [x] GUI export does not duplicate exporter logic.
+- [x] GUI shows output path, counts, warnings, generated structure, and parsed export manifest after real export.
+- [x] User-facing text states Obsidian is not required.
+- [x] User-facing text states the exported folder can later be opened as an Obsidian vault.
+- [x] User-facing text states assets are not copied in this MVP.
+- [x] User-facing text states concept quality is heuristic/library-native.
+- [x] CLI behavior remains `python -m office2md.cli export-obsidian LIBRARY_PATH VAULT_OUTPUT`.
+- [x] Tiny fixture GUI/helper smoke exports a vault and parses `export_manifest.json` with `export_type: obsidian`.
+- [x] CML125 helper dry-run records 587 planned documents, 20 planned concepts, uncopied asset warning, and creates no full vault.
+- [x] No asset copy support is included.
+- [x] No Marker integration is included.
+- [x] No PDF/Word/HTML export is included.
+- [x] No AI, OCR, embedding, vector, or cloud work is included.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Library-report scoring is unchanged.
+- [x] v0.4 RAM/Wiki/Output layers are not implemented.
+
 v0.3.2-rc1 Obsidian Export CLI MVP checkpoint evidence:
 
 - [x] `python -m pytest` reports 89 passed.
