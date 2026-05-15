@@ -1,5 +1,44 @@
 # office2md Release Readiness Checklist
 
+v0.4.0-rc2 workspace-scan / source manifest population checkpoint evidence:
+
+- [x] `python -m pytest` reports 105 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli workspace-scan --help` shows the new command.
+- [x] `workspace-scan` accepts `WORKSPACE_PATH` and `SOURCE_PATH`.
+- [x] `workspace-scan` supports `--dry-run`.
+- [x] `workspace-scan` supports `--include-hidden`.
+- [x] `workspace-scan` supports `--hash / --no-hash`.
+- [x] `workspace-scan` supports `--max-files`.
+- [x] `workspace-scan` supports `--relative-paths / --absolute-paths`.
+- [x] `workspace-scan` validates that `WORKSPACE_PATH` is an office2md workspace and recommends `workspace-init` when it is not.
+- [x] `workspace-scan` only updates `source_manifest.json`.
+- [x] `workspace-scan` does not run conversion, run `build-library`, create Knowledge Packs, or modify source files.
+- [x] `source_manifest.json` includes `schema_version`, `generated_at`, `source_roots`, `sources`, `counts`, and `last_scan`.
+- [x] Source manifest counts include `total_sources`, `active_sources`, `new_sources`, `changed_sources`, and `missing_sources`.
+- [x] Source records include stable ID, root, absolute path, relative path, file name, extension, size, modified time, checksum, status, previous status, changed flag, and scan time.
+- [x] First discovery is recorded as `new`.
+- [x] Unchanged second scan becomes `active`.
+- [x] Modified size, modified time, or checksum becomes `changed`.
+- [x] Missing historical files are preserved and marked `missing`.
+- [x] `--max-files` records a limited scan without marking unscanned historical records as missing.
+- [x] `--dry-run` computes planned counts, writes nothing, and prints that `source_manifest.json` was not written.
+- [x] Dot-prefixed hidden paths are excluded by default.
+- [x] `--include-hidden` includes hidden paths supported by the scanner flow where feasible.
+- [x] Temp source smoke records two sources and two SHA-256 values.
+- [x] Changed-file smoke records `changed_sources = 1`.
+- [x] Missing-file smoke preserves the old record with `status = missing`.
+- [x] Dry-run smoke confirms `source_manifest.json` content is unchanged.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.0-rc1 Workspace Manifest / Version Foundation checkpoint evidence:
 
 - [x] `python -m pytest` reports 98 passed.

@@ -337,3 +337,15 @@ v0.4.0 P1 may initialize only the workspace skeleton and manifest/version files:
 - `versions/output_versions.json`
 
 This foundation step should be idempotent, should not require Git, and should not implement Wiki editing, AI suggestions, automatic migration, or deletion behavior.
+
+## P2 Source Manifest Note
+
+v0.4.0 P2 may populate `source_manifest.json` through a conservative source registration command:
+
+- register one or more source roots;
+- record supported source files, relative paths, modified times, sizes, and SHA-256 checksums;
+- preserve historical records and mark missing files instead of deleting them;
+- detect changed files without running conversion or rebuilding the library;
+- support dry-run and clearly record limited scans.
+
+This keeps source discovery in the RAM/traceability layer. It does not change source files, create Knowledge Packs, or advance Wiki editing behavior.

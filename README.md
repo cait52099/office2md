@@ -40,6 +40,9 @@ pip install -e ".[dev]"
 # Initialize a local workspace foundation
 office2md workspace-init ./project.office2md
 
+# Register source files and checksums without converting them
+office2md workspace-scan ./project.office2md ./input
+
 # Convert a folder of documents
 office2md convert ./input ./output --recursive
 
@@ -161,6 +164,8 @@ office2md workspace-init ./project.office2md
 ```
 
 The command creates workspace folders plus manifest/version files without converting documents or requiring Git. Use `--dry-run` to preview changes. Existing source/version manifests are preserved unless `--overwrite-manifests` is explicitly provided.
+
+`workspace-scan` then registers supported source files and SHA-256 checksums in `source_manifest.json`. It is a traceability step only: it does not convert files or build a library.
 
 ### AI Enrichment (Optional)
 

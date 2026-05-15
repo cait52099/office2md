@@ -62,7 +62,7 @@ from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
 from office2md.utils import ensure_directory, utc_now_iso
-from office2md.workspace import init_workspace
+from office2md.workspace import init_workspace, scan_workspace_sources
 
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
@@ -167,6 +167,52 @@ def workspace_init_command(
         console.print("planned_manifest_files:")
         for item in result["manifest_files"]:
             console.print(item)
+
+
+@app.command("workspace-scan")
+def workspace_scan_command(
+    workspace_path: Path,
+    source_path: Path,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview source manifest changes without writing files."),
+    include_hidden: bool = typer.Option(False, "--include-hidden", help="Include supported files under dot-prefixed paths."),
+    hash_files: bool = typer.Option(True, "--hash/--no-hash", help="Compute SHA-256 checksums for scanned files."),
+    max_files: int = typer.Option(None, "--max-files", help="Limit the number of selected source files scanned."),
+    relative_paths: bool = typer.Option(True, "--relative-paths/--absolute-paths", help="Store relative paths when safe."),
+) -> None:
+    """Register source files and checksums in a workspace source manifest."""
+    try:
+        result = scan_workspace_sources(
+            workspace_path,
+            source_path,
+            dry_run=dry_run,
+            include_hidden=include_hidden,
+            hash_files=hash_files,
+            max_files=max_files,
+            relative_paths=relative_paths,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    counts = result["counts"]
+    table = Table(title="office2md workspace-scan")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("workspace_path", result["workspace_path"])
+    table.add_row("source_path", result["source_path"])
+    table.add_row("dry_run", str(result["dry_run"]))
+    table.add_row("discovered_files", str(result["discovered_files"]))
+    table.add_row("scanned_files", str(result["scanned_files"]))
+    table.add_row("scan_limited", str(result["scan_limited"]))
+    table.add_row("total_sources", str(counts["total_sources"]))
+    table.add_row("active_sources", str(counts["active_sources"]))
+    table.add_row("new_sources", str(counts["new_sources"]))
+    table.add_row("changed_sources", str(counts["changed_sources"]))
+    table.add_row("missing_sources", str(counts["missing_sources"]))
+    console.print(table)
+    if result["scan_limited"]:
+        console.print(f"[yellow]limited scan:[/yellow] max_files={result['max_files']}")
+    if dry_run:
+        console.print("Dry run: source_manifest.json was not written.")
 
 
 @app.command("build-library")
