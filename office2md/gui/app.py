@@ -16,6 +16,7 @@ from office2md.gui.helpers import (
     graph_view_html,
     is_conversion_output_path,
     is_valid_library_path,
+    load_workspace_status_for_gui,
     load_curated_concept_index,
     load_library_overview,
     load_library_graph,
@@ -33,6 +34,7 @@ from office2md.gui.helpers import (
     summarize_obsidian_export_output,
     suggest_workspace_path,
     validate_workspace_paths,
+    workspace_status_json_for_download,
     workspace_warnings,
 )
 
@@ -57,6 +59,7 @@ def main() -> None:
             "Search",
             "Graph View",
             "Build / Update Library",
+            "Workspace",
             "Export",
             "Locate Document",
             "Evidence Package",
@@ -72,6 +75,8 @@ def main() -> None:
         render_graph_view(library_path)
     elif page == "Build / Update Library":
         render_build_update_library()
+    elif page == "Workspace":
+        render_workspace()
     elif page == "Export":
         render_export(library_path)
     elif page == "Locate Document":
@@ -498,6 +503,136 @@ def render_export(library_path: Path | None) -> None:
             render_obsidian_export_result(result, dry_run=dry_run)
             if not dry_run:
                 render_obsidian_export_summary(vault_output)
+
+
+def render_workspace() -> None:
+    st.header("Workspace")
+    st.info(
+        "Read-only workspace status. This page displays the same traceability summary as workspace-status. "
+        "It does not scan, convert, build, export, or modify files."
+    )
+    control_columns = st.columns(3)
+    workspace_value = control_columns[0].text_input("Workspace Path", value="")
+    show_history = control_columns[1].checkbox("Show history", value=False)
+    history_limit = int(control_columns[2].number_input("History limit", min_value=0, max_value=100, value=5, step=1))
+
+    if not workspace_value.strip():
+        st.warning("Enter an office2md workspace folder path.")
+        return
+
+    try:
+        workspace_path = _required_path(workspace_value, "Workspace Path")
+        status = load_workspace_status_for_gui(workspace_path, show_history=show_history, limit=history_limit)
+    except Exception as exc:
+        st.error("Workspace not detected")
+        st.error(f"Unable to load workspace status: {exc}")
+        return
+
+    workspace = status["workspace"]
+    source = status["source_manifest"]
+    library = status["library_versions"]
+    output = status["output_versions"]
+    traceability = status["traceability"]
+
+    st.subheader("Workspace Status")
+    st.success("Workspace detected")
+    workspace_columns = st.columns(3)
+    workspace_columns[0].write({"workspace_path": workspace["workspace_path"]})
+    workspace_columns[1].write({"created_at": workspace.get("created_at"), "updated_at": workspace.get("updated_at")})
+    workspace_columns[2].write(
+        {
+            "missing_folders": len(workspace.get("missing_expected_folders") or []),
+            "missing_manifests": len(workspace.get("missing_expected_manifests") or []),
+        }
+    )
+    if workspace.get("missing_expected_folders"):
+        st.warning("Missing expected folders: " + ", ".join(workspace["missing_expected_folders"]))
+    if workspace.get("missing_expected_manifests"):
+        st.error("Missing expected manifests: " + ", ".join(workspace["missing_expected_manifests"]))
+
+    st.subheader("Source Manifest")
+    source_columns = st.columns(6)
+    for index, key in enumerate(["total_sources", "active_sources", "new_sources", "changed_sources", "missing_sources", "source_roots_count"]):
+        source_columns[index].metric(key, source.get(key, 0))
+    if source.get("last_scan"):
+        st.write({"last_scan": source["last_scan"]})
+    for warning in source.get("warnings") or []:
+        st.warning(warning)
+
+    st.subheader("Library Versions")
+    st.metric("total library versions", library.get("total_versions", 0))
+    if library.get("latest"):
+        latest_library = library["latest"]
+        metrics = latest_library.get("metrics") or {}
+        st.write(
+            {
+                "latest_library_version_id": latest_library.get("library_version_id"),
+                "latest_registered_at": latest_library.get("registered_at"),
+                "latest_label": latest_library.get("label"),
+                "latest_source_manifest_hash": latest_library.get("source_manifest_hash"),
+            }
+        )
+        metric_columns = st.columns(4)
+        for index, key in enumerate(["documents_count", "chunks_count", "entities_count", "chunks_without_locator"]):
+            metric_columns[index].metric(key, metrics.get(key) or 0)
+        for warning in latest_library.get("warnings") or []:
+            st.warning(warning)
+    else:
+        st.info("No library versions registered.")
+
+    st.subheader("Output Versions")
+    st.metric("total output versions", output.get("total_versions", 0))
+    if output.get("latest"):
+        latest_output = output["latest"]
+        output_files = latest_output.get("output_files") or {}
+        st.write(
+            {
+                "latest_output_version_id": latest_output.get("output_version_id"),
+                "latest_registered_at": latest_output.get("registered_at"),
+                "latest_output_type": latest_output.get("output_type"),
+                "latest_label": latest_output.get("label"),
+                "linked_library_version_id": latest_output.get("library_version_id"),
+                "source_manifest_hash": latest_output.get("source_manifest_hash"),
+                "file_count": output_files.get("file_count"),
+                "total_size_bytes": output_files.get("total_size_bytes"),
+            }
+        )
+        if latest_output.get("export_manifest"):
+            st.caption("Export manifest summary")
+            st.json(latest_output["export_manifest"])
+        for warning in latest_output.get("warnings") or []:
+            st.warning(warning)
+    else:
+        st.info("No output versions registered.")
+
+    st.subheader("Traceability")
+    st.code(
+        f"{traceability.get('source_manifest_hash') or ''} -> "
+        f"{traceability.get('library_version_id') or ''} -> "
+        f"{traceability.get('output_version_id') or ''}",
+        language="text",
+    )
+
+    for warning in status.get("warnings") or []:
+        st.warning(warning)
+    for error in status.get("errors") or []:
+        st.error(error)
+
+    if show_history:
+        st.subheader("History")
+        if library.get("history"):
+            st.caption("Library versions")
+            st.dataframe(library["history"], hide_index=True, use_container_width=True)
+        if output.get("history"):
+            st.caption("Output versions")
+            st.dataframe(output["history"], hide_index=True, use_container_width=True)
+
+    st.download_button(
+        "Download workspace status JSON",
+        data=workspace_status_json_for_download(status),
+        file_name="office2md_workspace_status.json",
+        mime="application/json",
+    )
 
 
 def render_obsidian_export_result(result: dict, dry_run: bool) -> None:

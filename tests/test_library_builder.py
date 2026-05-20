@@ -17,6 +17,7 @@ from office2md.gui.helpers import (
     graph_view_html,
     is_conversion_output_path,
     is_valid_library_path,
+    load_workspace_status_for_gui,
     load_library_graph,
     load_curated_concept_index,
     prepare_curated_knowledge_graph,
@@ -34,8 +35,10 @@ from office2md.gui.helpers import (
     summarize_obsidian_export_output,
     summarize_conversion_output,
     validate_workspace_paths,
+    workspace_status_json_for_download,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
+from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources
 
 
 def test_build_library_database_graph_exports_search_and_warnings(tmp_path):
@@ -1141,6 +1144,51 @@ def test_gui_obsidian_export_helper_validates_library_and_overwrite(tmp_path):
         run_obsidian_export_for_gui(library_dir, vault)
 
 
+def test_gui_workspace_status_helper_loads_init_only_workspace(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+
+    status = load_workspace_status_for_gui(workspace)
+    payload = json.loads(workspace_status_json_for_download(status))
+
+    assert status["workspace"]["workspace_path"] == str(workspace.resolve())
+    assert status["source_manifest"]["total_sources"] == 0
+    assert status["library_versions"]["total_versions"] == 0
+    assert status["output_versions"]["total_versions"] == 0
+    assert payload["traceability"]["source_manifest_hash"].startswith("sha256:")
+
+
+def test_gui_workspace_status_helper_handles_invalid_workspace_path(tmp_path):
+    with pytest.raises(ValueError, match="workspace-init"):
+        load_workspace_status_for_gui(tmp_path / "missing.office2md")
+
+
+def test_gui_workspace_status_helper_loads_full_traceability_workspace(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source = tmp_path / "sources"
+    source.mkdir()
+    (source / "sample.txt").write_text("sample", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source)
+    library_dir = _tiny_gui_export_library(tmp_path)
+    library_record = register_library_version(workspace, library_dir, label="tiny-library")["record"]
+    vault = _write_tiny_gui_obsidian_vault(tmp_path / "vault")
+    output_record = register_output_version(workspace, vault, label="tiny-output")["record"]
+
+    status = load_workspace_status_for_gui(workspace, show_history=True, limit=1)
+    payload = json.loads(workspace_status_json_for_download(status))
+
+    assert status["source_manifest"]["total_sources"] == 1
+    assert status["library_versions"]["latest"]["library_version_id"] == library_record["library_version_id"]
+    assert status["output_versions"]["latest"]["output_version_id"] == output_record["output_version_id"]
+    assert status["traceability"]["library_version_id"] == library_record["library_version_id"]
+    assert status["traceability"]["output_version_id"] == output_record["output_version_id"]
+    assert status["output_versions"]["latest"]["export_manifest"]["export_type"] == "obsidian"
+    assert len(status["library_versions"]["history"]) == 1
+    assert len(status["output_versions"]["history"]) == 1
+    assert payload["workspace"]["workspace_path"] == str(workspace.resolve())
+
+
 def _tiny_gui_export_library(tmp_path: Path) -> Path:
     conversion_output = tmp_path / "conversion"
     _write_doc(
@@ -1157,6 +1205,28 @@ def _tiny_gui_export_library(tmp_path: Path) -> Path:
     library_dir = tmp_path / "library"
     build_library(conversion_output, library_dir)
     return library_dir
+
+
+def _write_tiny_gui_obsidian_vault(path: Path) -> Path:
+    path.mkdir(parents=True)
+    (path / "00_Index.md").write_text("# Index\n", encoding="utf-8")
+    (path / "00_Library_Report.md").write_text("# Report\n", encoding="utf-8")
+    (path / "Documents").mkdir()
+    (path / "Concepts").mkdir()
+    manifest_dir = path / "_office2md"
+    manifest_dir.mkdir()
+    (manifest_dir / "export_manifest.json").write_text(
+        json.dumps(
+            {
+                "export_type": "obsidian",
+                "documents_exported": 1,
+                "concepts_exported": 1,
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):

@@ -160,3 +160,11 @@ python -m office2md.cli workspace-status "C:\path\to\project.office2md" --strict
 - `--strict` exits non-zero when required manifests are missing or the latest output links to a missing library version.
 
 Warnings are informational by default. For example, `workspace-status` warns if the latest library or output was registered against a different `source_manifest.json` hash than the current workspace state.
+
+## GUI Workspace Page
+
+The optional Streamlit GUI includes a `Workspace` page that displays the same read-only status information as `workspace-status`.
+
+It shows workspace, source, library version, output version, warning/error, and traceability chain summaries. It also provides a JSON download for the current status payload.
+
+The GUI page does not initialize workspaces, scan sources, convert files, build libraries, generate exports, edit manifests, or modify source/output files.

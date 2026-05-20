@@ -18,6 +18,7 @@ from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.library import library_report
 from office2md.library import search_library, search_library_diagnostics, search_library_facets
 from office2md.scanner import scan_input
+from office2md.workspace import summarize_workspace_status
 
 
 DEFAULT_RUNNER_PYTHON = r".\.venv\Scripts\python.exe"
@@ -590,6 +591,15 @@ def summarize_obsidian_export_output(vault_output_folder: Path) -> dict[str, Any
             summary["concepts_exported"] = manifest.get("concepts_exported")
             summary["warnings"] = manifest.get("warnings") or []
     return summary
+
+
+def load_workspace_status_for_gui(workspace_path: Path, show_history: bool = False, limit: int = 5) -> dict[str, Any]:
+    workspace = workspace_path.expanduser()
+    return summarize_workspace_status(workspace, show_history=show_history, limit=max(0, int(limit)))
+
+
+def workspace_status_json_for_download(status: dict[str, Any]) -> str:
+    return json.dumps(status, ensure_ascii=False, indent=2) + "\n"
 
 
 def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -> list[str]:

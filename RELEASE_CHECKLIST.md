@@ -1,5 +1,44 @@
 # office2md Release Readiness Checklist
 
+v0.4.1-rc1 GUI Workspace Dashboard checkpoint evidence:
+
+- [x] `python -m pytest` reports 137 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] GUI sidebar includes `Workspace`.
+- [x] Workspace page includes `Workspace Path`.
+- [x] Workspace page includes `Show history`.
+- [x] Workspace page includes `History limit`.
+- [x] Workspace page reuses existing `summarize_workspace_status()` through GUI helpers.
+- [x] Workspace page shows workspace detected / not detected status.
+- [x] Workspace page shows workspace path, created time, updated time, missing folders, and missing manifests.
+- [x] Source section shows total, active, new, changed, and missing source counts.
+- [x] Source section shows source root count, last scan, and changed/missing source warnings.
+- [x] Library Versions section shows total library versions and latest library version details.
+- [x] Library Versions section shows latest library version ID, registration time, label, source manifest hash, documents, chunks, entities, chunks without locator, and warnings.
+- [x] Output Versions section shows total output versions and latest output version details.
+- [x] Output Versions section shows latest output version ID, registration time, output type, label, linked library version ID, source manifest hash, file count, total size, export manifest summary, and warnings.
+- [x] Traceability section shows `source_manifest_hash -> library_version_id -> output_version_id`.
+- [x] `Show history` displays recent library and output versions.
+- [x] `History limit` is respected by the reused status helper.
+- [x] `Download workspace status JSON` is present.
+- [x] JSON download payload is parseable and generated from the same status summary data.
+- [x] Invalid workspace paths are handled with not-detected/error messages.
+- [x] Missing manifests, broken output/library linkage, and source hash mismatch warnings are surfaced from the status summary.
+- [x] GUI helper smoke loads an init-only workspace and parses JSON.
+- [x] GUI helper smoke loads full source/library/output/traceability summary.
+- [x] Existing CLI workspace-status tests still pass.
+- [x] The page is read-only: no subprocess, no automatic workspace-init, no automatic workspace-scan, no conversion, no build-library, no export, and no file writes.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.0 final release evidence:
 
 - [x] `python -m pytest` reports 134 passed.

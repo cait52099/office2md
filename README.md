@@ -182,6 +182,8 @@ The command creates workspace folders plus manifest/version files without conver
 
 `workspace-status` shows a read-only source/library/output traceability summary, including the latest `source_manifest_hash -> library_version_id -> output_version_id` chain. Use `--json` for machine-readable output, `--show-history` for recent versions, and `--strict` when missing manifests or broken linkage should fail the command.
 
+The optional Streamlit GUI also includes a read-only Workspace page for the same status summary and JSON download. It does not scan, convert, build, export, or modify workspace files.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

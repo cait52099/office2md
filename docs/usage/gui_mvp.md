@@ -43,6 +43,7 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 - Search: implemented as a read-only wrapper around existing library search.
 - Graph View: implemented as a read-only view of existing `library_graph.json`.
 - Build / Update Library: Scan / Dry-run, Convert / Update runner execution, Build Library, and Load Built Library implemented.
+- Workspace: implemented as a read-only view of existing workspace status and traceability manifests.
 - Export: Obsidian vault export implemented using the existing local exporter.
 - Locate Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
@@ -155,6 +156,35 @@ Recommended practice:
 
 Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, dry-run behavior, and no OCR/no AI defaults.
 
+## Workspace
+
+Open the Workspace page from the sidebar after creating a workspace with `workspace-init`.
+
+The Workspace page is read-only. It displays the same traceability summary as:
+
+```powershell
+python -m office2md.cli workspace-status "WORKSPACE_PATH"
+```
+
+Inputs:
+
+- Workspace Path.
+- Show history.
+- History limit, default `5`.
+
+The page shows:
+
+- workspace detection status, path, created time, updated time, missing folders, and missing manifests;
+- source counts, source root count, last scan, and changed/missing source warnings;
+- latest library version ID, registration time, label, source manifest hash, metrics, and warnings;
+- latest output version ID, registration time, output type, label, linked library version, source manifest hash, file count, size, export manifest summary, and warnings;
+- traceability chain: `source_manifest_hash -> library_version_id -> output_version_id`;
+- recent library/output version history when enabled.
+
+The page also provides `Download workspace status JSON`.
+
+It does not run `workspace-init`, run `workspace-scan`, convert files, build libraries, generate Obsidian exports, edit manifests, or modify source/output files.
+
 ## Export
 
 Open the Export page from the sidebar after loading a valid Knowledge Library folder or `library.db` path.
@@ -188,6 +218,7 @@ The MVP does not copy assets. Concept extraction is heuristic and library-native
 - The GUI can run Convert / Update only through the existing PowerShell runner.
 - The GUI can run Build Library as a separate explicit step.
 - The GUI can load a built Library Output Folder after `library.db` exists.
+- The GUI Workspace page is read-only and does not update workspace manifests.
 - One-click full workflow is not implemented.
 - The GUI does not change search ranking, aliases, token fallback, or diagnostics behavior.
 - The GUI does not change library-report metrics or scoring.
