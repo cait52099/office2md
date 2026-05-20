@@ -62,7 +62,7 @@ from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
 from office2md.utils import ensure_directory, utc_now_iso
-from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources
+from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources, summarize_workspace_status
 
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
@@ -320,6 +320,28 @@ def workspace_register_output_command(
         console.print("Dry run: versions/output_versions.json was not written.")
 
 
+@app.command("workspace-status")
+def workspace_status_command(
+    workspace_path: Path,
+    json_output: bool = typer.Option(False, "--json", help="Print stable JSON only."),
+    show_history: bool = typer.Option(False, "--show-history", help="Show recent library and output version history."),
+    limit: int = typer.Option(5, "--limit", help="Maximum history records to show."),
+    strict: bool = typer.Option(False, "--strict", help="Fail if expected manifests are missing or linkage is broken."),
+) -> None:
+    """Show a read-only workspace traceability summary."""
+    try:
+        status = summarize_workspace_status(workspace_path, show_history=show_history, limit=limit)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    if json_output:
+        print(json.dumps(status, ensure_ascii=False, indent=2))
+    else:
+        _print_workspace_status(status, show_history=show_history)
+    if strict and status["errors"]:
+        raise typer.Exit(1)
+
+
 @app.command("build-library")
 def build_library_command(input_output_root: Path, library_output_dir: Path) -> None:
     """Build a local searchable Knowledge Library from an office2md output root."""
@@ -560,6 +582,67 @@ def _write_library_report_export_json(path: Path, report: dict) -> None:
     if target.parent != Path("."):
         target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _print_workspace_status(status: dict, *, show_history: bool) -> None:
+    workspace = status["workspace"]
+    source = status["source_manifest"]
+    library = status["library_versions"]
+    output = status["output_versions"]
+    traceability = status["traceability"]
+    table = Table(title="office2md workspace-status")
+    table.add_column("Area")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("workspace", "workspace_path", workspace["workspace_path"])
+    table.add_row("workspace", "schema_version", str(workspace["schema_version"] or ""))
+    table.add_row("workspace", "created_at", str(workspace["created_at"] or ""))
+    table.add_row("workspace", "updated_at", str(workspace["updated_at"] or ""))
+    table.add_row("workspace", "missing_folders", str(len(workspace["missing_expected_folders"])))
+    table.add_row("workspace", "missing_manifests", str(len(workspace["missing_expected_manifests"])))
+    table.add_row("source", "total_sources", str(source["total_sources"]))
+    table.add_row("source", "active_sources", str(source["active_sources"]))
+    table.add_row("source", "changed_sources", str(source["changed_sources"]))
+    table.add_row("source", "missing_sources", str(source["missing_sources"]))
+    table.add_row("source", "source_roots_count", str(source["source_roots_count"]))
+    table.add_row("library", "total_versions", str(library["total_versions"]))
+    if library["latest"]:
+        table.add_row("library", "latest_library_version_id", str(library["latest"]["library_version_id"] or ""))
+        table.add_row("library", "latest_label", str(library["latest"]["label"] or ""))
+        metrics = library["latest"]["metrics"]
+        table.add_row("library", "documents_count", str(metrics.get("documents_count") or 0))
+        table.add_row("library", "chunks_count", str(metrics.get("chunks_count") or 0))
+        table.add_row("library", "entities_count", str(metrics.get("entities_count") or 0))
+    table.add_row("output", "total_versions", str(output["total_versions"]))
+    if output["latest"]:
+        table.add_row("output", "latest_output_version_id", str(output["latest"]["output_version_id"] or ""))
+        table.add_row("output", "latest_output_type", str(output["latest"]["output_type"] or ""))
+        table.add_row("output", "latest_label", str(output["latest"]["label"] or ""))
+        table.add_row("output", "linked_library_version_id", str(output["latest"]["library_version_id"] or ""))
+        files = output["latest"]["output_files"]
+        table.add_row("output", "file_count", str(files.get("file_count") or 0))
+        table.add_row("output", "total_size_bytes", str(files.get("total_size_bytes") or 0))
+    table.add_row("traceability", "source_manifest_hash", str(traceability["source_manifest_hash"] or ""))
+    table.add_row("traceability", "library_version_id", str(traceability["library_version_id"] or ""))
+    table.add_row("traceability", "output_version_id", str(traceability["output_version_id"] or ""))
+    console.print(table)
+    if show_history:
+        _print_workspace_status_history("Library Version History", library["history"], "library_version_id")
+        _print_workspace_status_history("Output Version History", output["history"], "output_version_id")
+    for warning in status["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+    for error in status["errors"]:
+        console.print(f"[red]error:[/red] {error}")
+
+
+def _print_workspace_status_history(title: str, rows: list[dict], id_key: str) -> None:
+    table = Table(title=title)
+    table.add_column("ID")
+    table.add_column("Registered At")
+    table.add_column("Label")
+    for row in rows:
+        table.add_row(str(row.get(id_key) or ""), str(row.get("registered_at") or ""), str(row.get("label") or ""))
+    console.print(table)
 
 
 @app.command("locate-document")

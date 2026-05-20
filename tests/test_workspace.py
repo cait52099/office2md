@@ -12,6 +12,7 @@ from office2md.workspace import (
     register_output_version,
     scan_workspace_sources,
     summarize_workspace,
+    summarize_workspace_status,
 )
 
 
@@ -571,6 +572,161 @@ def test_workspace_register_output_cli_help_and_dry_run(tmp_path):
     assert dry_run_result.exit_code == 0
     assert "output_versions.json was not written" in dry_run_result.stdout
     assert (workspace / "versions" / "output_versions.json").read_text(encoding="utf-8") == before
+
+
+def test_workspace_status_requires_existing_workspace(tmp_path):
+    try:
+        summarize_workspace_status(tmp_path / "missing.office2md")
+    except ValueError as exc:
+        assert "workspace-init" in str(exc)
+    else:
+        raise AssertionError("workspace-status should reject non-workspace paths")
+
+
+def test_workspace_status_with_init_only_manifests(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+
+    status = summarize_workspace_status(workspace)
+
+    assert status["workspace"]["workspace_path"] == str(workspace.resolve())
+    assert status["workspace"]["missing_expected_manifests"] == []
+    assert status["source_manifest"]["total_sources"] == 0
+    assert status["library_versions"]["total_versions"] == 0
+    assert status["output_versions"]["total_versions"] == 0
+    assert status["traceability"]["source_manifest_hash"].startswith("sha256:")
+
+
+def test_workspace_status_summarizes_source_counts_after_scan(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    (source_dir / "sample.txt").write_text("sample", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source_dir)
+
+    status = summarize_workspace_status(workspace)
+
+    assert status["source_manifest"]["total_sources"] == 1
+    assert status["source_manifest"]["active_sources"] == 1
+    assert status["source_manifest"]["source_roots_count"] == 1
+    assert status["source_manifest"]["last_scan"]["source_root"] == str(source_dir.resolve())
+
+
+def test_workspace_status_summarizes_library_version(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+
+    status = summarize_workspace_status(workspace)
+    latest = status["library_versions"]["latest"]
+
+    assert status["library_versions"]["total_versions"] == 1
+    assert latest["library_version_id"] == library_record["library_version_id"]
+    assert latest["label"] == "tiny-library"
+    assert latest["metrics"]["documents_count"] == 1
+    assert latest["metrics"]["chunks_count"] == 1
+    assert latest["metrics"]["entities_count"] == 1
+
+
+def test_workspace_status_summarizes_output_version_and_traceability_chain(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+    vault = _write_tiny_obsidian_vault(tmp_path / "vault")
+    output_record = register_output_version(workspace, vault, label="tiny-obsidian-export")["record"]
+
+    status = summarize_workspace_status(workspace)
+    latest_output = status["output_versions"]["latest"]
+    traceability = status["traceability"]
+
+    assert status["output_versions"]["total_versions"] == 1
+    assert latest_output["output_version_id"] == output_record["output_version_id"]
+    assert latest_output["output_type"] == "obsidian_vault"
+    assert latest_output["label"] == "tiny-obsidian-export"
+    assert latest_output["library_version_id"] == library_record["library_version_id"]
+    assert latest_output["export_manifest"]["export_type"] == "obsidian"
+    assert traceability["source_manifest_hash"] == library_record["source_manifest_hash"]
+    assert traceability["library_version_id"] == library_record["library_version_id"]
+    assert traceability["output_version_id"] == output_record["output_version_id"]
+
+
+def test_workspace_status_warns_when_output_links_to_missing_library_version(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    output_versions = {
+        "schema_version": "1",
+        "output_versions": [
+            {
+                "output_version_id": "out_missing",
+                "registered_at": "2026-01-01T00:00:00Z",
+                "library_version_id": "lib_missing",
+                "source_manifest_hash": "sha256:old",
+                "output_files": {"file_count": 1, "total_size_bytes": 1},
+            }
+        ],
+    }
+    (workspace / "versions" / "output_versions.json").write_text(json.dumps(output_versions), encoding="utf-8")
+
+    status = summarize_workspace_status(workspace)
+
+    assert any("missing library_version_id" in warning for warning in status["warnings"])
+    assert status["errors"]
+
+
+def test_workspace_status_warns_when_current_source_hash_differs_from_latest_library(tmp_path):
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+    source_manifest = json.loads((workspace / "source_manifest.json").read_text(encoding="utf-8"))
+    source_manifest["manual_change"] = True
+    (workspace / "source_manifest.json").write_text(json.dumps(source_manifest), encoding="utf-8")
+
+    status = summarize_workspace_status(workspace)
+
+    assert any("latest library source_manifest_hash differs" in warning for warning in status["warnings"])
+
+
+def test_workspace_status_json_outputs_parseable_json_only(tmp_path):
+    runner = CliRunner()
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+
+    result = runner.invoke(app, ["workspace-status", str(workspace), "--json"])
+    payload = json.loads(result.stdout)
+
+    assert result.exit_code == 0
+    assert payload["workspace"]["workspace_path"] == str(workspace.resolve())
+    assert "office2md workspace-status" not in result.stdout
+
+
+def test_workspace_status_show_history_respects_limit(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+    register_library_version(workspace, Path(library_record["library_path"]), label="second")
+    vault = _write_tiny_obsidian_vault(tmp_path / "vault")
+    register_output_version(workspace, vault, label="first-output")
+    register_output_version(workspace, vault, label="second-output")
+
+    status = summarize_workspace_status(workspace, show_history=True, limit=1)
+
+    assert len(status["library_versions"]["history"]) == 1
+    assert len(status["output_versions"]["history"]) == 1
+    assert status["library_versions"]["history"][0]["label"] == "second"
+    assert status["output_versions"]["history"][0]["label"] == "second-output"
+
+
+def test_workspace_status_strict_fails_for_missing_required_manifest(tmp_path):
+    runner = CliRunner()
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    (workspace / "versions" / "output_versions.json").unlink()
+
+    result = runner.invoke(app, ["workspace-status", str(workspace), "--strict"])
+
+    assert result.exit_code != 0
+    assert "missing expected manifest" in result.stdout
+
+
+def test_workspace_status_cli_help(tmp_path):
+    runner = CliRunner()
+    result = runner.invoke(app, ["workspace-status", "--help"])
+
+    assert result.exit_code == 0
+    assert "--show-history" in result.stdout
+    assert "--strict" in result.stdout
 
 
 def _build_tiny_library(tmp_path):

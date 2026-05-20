@@ -382,3 +382,19 @@ source_manifest.json -> library_versions.json -> output_versions.json
 ```
 
 The registration remains manual and does not alter export behavior.
+
+## P5 Workspace Status Note
+
+v0.4.0 P5 may expose the traceability backbone through a read-only status command:
+
+- validate an existing workspace;
+- read `workspace_manifest.json`, `source_manifest.json`, `versions/library_versions.json`, and `versions/output_versions.json`;
+- summarize folder and manifest presence;
+- summarize source counts, last scan state, and the current source manifest hash;
+- summarize the latest library version and output version;
+- show the latest `source_manifest_hash -> library_version_id -> output_version_id` chain;
+- warn when the latest output links to a missing library version;
+- warn when current `source_manifest.json` differs from the source hash recorded on the latest library or output version;
+- support JSON output, limited history display, and strict failure for missing manifests or broken linkage.
+
+This status layer is intentionally read-only. It must not scan sources, convert files, build libraries, generate exports, update manifests, or modify source/output files.

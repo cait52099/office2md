@@ -125,6 +125,98 @@ def summarize_workspace(path: Path) -> dict[str, Any]:
     }
 
 
+def load_workspace_status(workspace_path: Path) -> dict[str, Any]:
+    workspace = workspace_path.expanduser().resolve()
+    return {
+        "workspace_manifest": _read_json_if_possible(workspace / "workspace_manifest.json"),
+        "source_manifest": _read_json_if_possible(workspace / "source_manifest.json"),
+        "library_versions": _read_json_if_possible(workspace / "versions" / "library_versions.json"),
+        "output_versions": _read_json_if_possible(workspace / "versions" / "output_versions.json"),
+    }
+
+
+def current_source_manifest_hash(workspace_path: Path) -> str | None:
+    source_manifest_path = workspace_path.expanduser().resolve() / "source_manifest.json"
+    if not source_manifest_path.exists():
+        return None
+    return compute_json_file_sha256(source_manifest_path)
+
+
+def summarize_workspace_status(workspace_path: Path, *, show_history: bool = False, limit: int = 5) -> dict[str, Any]:
+    workspace = workspace_path.expanduser().resolve()
+    if not detect_workspace(workspace):
+        raise ValueError(f"Not an office2md workspace: {workspace}. Run workspace-init first.")
+    data = load_workspace_status(workspace)
+    workspace_manifest = data["workspace_manifest"] or {}
+    source_manifest = data["source_manifest"] or {}
+    library_versions_manifest = data["library_versions"] or {}
+    output_versions_manifest = data["output_versions"] or {}
+    current_source_hash = current_source_manifest_hash(workspace)
+    library_records = [item for item in library_versions_manifest.get("library_versions", []) if isinstance(item, dict)]
+    output_records = [item for item in output_versions_manifest.get("output_versions", []) if isinstance(item, dict)]
+    latest_library = _latest_version_record(library_records)
+    latest_output = _latest_version_record(output_records)
+    warnings = []
+    errors = []
+    missing_folders = [rel for rel in WORKSPACE_DIRECTORIES if not (workspace / rel).exists()]
+    missing_manifests = [rel for rel in WORKSPACE_MANIFEST_FILES if not (workspace / rel).exists()]
+    if missing_manifests:
+        errors.append(f"missing expected manifest(s): {', '.join(missing_manifests)}")
+    source_counts = _normalized_source_counts(source_manifest.get("counts", {}))
+    warnings.extend(_dirty_source_warnings(source_counts))
+    if latest_output and latest_output.get("library_version_id"):
+        linked_library = next((item for item in library_records if item.get("library_version_id") == latest_output.get("library_version_id")), None)
+        if linked_library is None:
+            warning = f"latest output links to missing library_version_id: {latest_output.get('library_version_id')}"
+            warnings.append(warning)
+            errors.append(warning)
+    if latest_library and latest_library.get("source_manifest_hash") and latest_library.get("source_manifest_hash") != current_source_hash:
+        warnings.append("latest library source_manifest_hash differs from current source_manifest hash")
+    if latest_output and latest_output.get("source_manifest_hash") and latest_output.get("source_manifest_hash") != current_source_hash:
+        warnings.append("latest output source_manifest_hash differs from current source_manifest hash")
+    return {
+        "workspace": {
+            "workspace_path": str(workspace),
+            "office2md_version": workspace_manifest.get("office2md_version") or _office2md_version(),
+            "schema_version": workspace_manifest.get("schema_version"),
+            "created_at": workspace_manifest.get("created_at"),
+            "updated_at": workspace_manifest.get("updated_at"),
+            "folders": {rel: (workspace / rel).exists() for rel in WORKSPACE_DIRECTORIES},
+            "missing_expected_folders": missing_folders,
+            "missing_expected_manifests": missing_manifests,
+        },
+        "source_manifest": {
+            **source_counts,
+            "source_roots_count": len(source_manifest.get("source_roots", []) or []),
+            "last_scan": source_manifest.get("last_scan"),
+            "current_source_manifest_hash": current_source_hash,
+            "warnings": _dirty_source_warnings(source_counts),
+        },
+        "library_versions": {
+            "total_versions": len(library_records),
+            "latest": _library_status_summary(latest_library),
+            "history": [_library_status_summary(item) for item in _recent_version_records(library_records, limit)] if show_history else [],
+        },
+        "output_versions": {
+            "total_versions": len(output_records),
+            "latest": _output_status_summary(latest_output),
+            "history": [_output_status_summary(item) for item in _recent_version_records(output_records, limit)] if show_history else [],
+        },
+        "traceability": build_traceability_summary(latest_library, latest_output, current_source_hash),
+        "warnings": warnings,
+        "errors": errors,
+    }
+
+
+def build_traceability_summary(latest_library: dict[str, Any] | None, latest_output: dict[str, Any] | None, current_source_hash: str | None) -> dict[str, Any]:
+    source_hash = (latest_output or {}).get("source_manifest_hash") or (latest_library or {}).get("source_manifest_hash") or current_source_hash
+    return {
+        "source_manifest_hash": source_hash,
+        "library_version_id": (latest_output or {}).get("library_version_id") or (latest_library or {}).get("library_version_id"),
+        "output_version_id": (latest_output or {}).get("output_version_id"),
+    }
+
+
 def load_source_manifest(workspace_path: Path) -> dict[str, Any]:
     manifest_path = workspace_path.expanduser().resolve() / "source_manifest.json"
     return _read_json_if_possible(manifest_path) or _source_manifest(utc_now_iso())
@@ -782,3 +874,53 @@ def _output_version_id(registered_at: str, output_path: str, output_files: dict[
     output_hash = output_files.get("folder_sha256") or output_files.get("sha256") or ""
     identity = f"{registered_at}|{output_path}|{output_hash}|{(library_version or {}).get('library_version_id', '')}"
     return "out_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
+
+
+def _latest_version_record(records: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not records:
+        return None
+    return sorted(records, key=lambda item: str(item.get("registered_at") or ""))[-1]
+
+
+def _recent_version_records(records: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    return list(reversed(sorted(records, key=lambda item: str(item.get("registered_at") or ""))))[: max(0, limit)]
+
+
+def _library_status_summary(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not record:
+        return None
+    metrics = record.get("library_metrics") or {}
+    return {
+        "library_version_id": record.get("library_version_id"),
+        "registered_at": record.get("registered_at"),
+        "label": record.get("label"),
+        "source_manifest_hash": record.get("source_manifest_hash"),
+        "metrics": {
+            "documents_count": metrics.get("documents_count"),
+            "chunks_count": metrics.get("chunks_count"),
+            "entities_count": metrics.get("entities_count"),
+            "chunks_without_locator": metrics.get("chunks_without_locator"),
+        },
+        "warnings": record.get("warnings") or [],
+    }
+
+
+def _output_status_summary(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not record:
+        return None
+    output_files = record.get("output_files") or {}
+    export_manifest = record.get("export_manifest") or None
+    return {
+        "output_version_id": record.get("output_version_id"),
+        "registered_at": record.get("registered_at"),
+        "output_type": record.get("output_type"),
+        "label": record.get("label"),
+        "library_version_id": record.get("library_version_id"),
+        "source_manifest_hash": record.get("source_manifest_hash"),
+        "output_files": {
+            "file_count": output_files.get("file_count"),
+            "total_size_bytes": output_files.get("total_size_bytes"),
+        },
+        "export_manifest": export_manifest,
+        "warnings": record.get("warnings") or [],
+    }

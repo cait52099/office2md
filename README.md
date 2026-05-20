@@ -49,6 +49,9 @@ office2md workspace-register-library ./project.office2md ./library
 # Register a generated output as a workspace version
 office2md workspace-register-output ./project.office2md ./obsidian-vault
 
+# Review read-only traceability status
+office2md workspace-status ./project.office2md
+
 # Convert a folder of documents
 office2md convert ./input ./output --recursive
 
@@ -176,6 +179,8 @@ The command creates workspace folders plus manifest/version files without conver
 `workspace-register-library` appends a built library version to `versions/library_versions.json`, linking library metrics and file hashes back to the current `source_manifest.json`. It does not build or modify the library.
 
 `workspace-register-output` appends a generated output version to `versions/output_versions.json`, linking file or folder hashes back to a library version and its source manifest. It does not generate or modify exports.
+
+`workspace-status` shows a read-only source/library/output traceability summary, including the latest `source_manifest_hash -> library_version_id -> output_version_id` chain. Use `--json` for machine-readable output, `--show-history` for recent versions, and `--strict` when missing manifests or broken linkage should fail the command.
 
 ### AI Enrichment (Optional)
 

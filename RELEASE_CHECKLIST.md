@@ -1,5 +1,44 @@
 # office2md Release Readiness Checklist
 
+v0.4.0-rc5 Workspace Status checkpoint evidence:
+
+- [x] `python -m pytest` reports 134 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli workspace-status --help` shows the new command.
+- [x] `workspace-status` accepts `WORKSPACE_PATH`.
+- [x] `workspace-status` supports `--json`.
+- [x] `workspace-status` supports `--show-history`.
+- [x] `workspace-status` supports `--limit`.
+- [x] `workspace-status` supports `--strict`.
+- [x] The command validates that `WORKSPACE_PATH` is an office2md workspace.
+- [x] The command reads `workspace_manifest.json`, `source_manifest.json`, `versions/library_versions.json`, and `versions/output_versions.json`.
+- [x] The command does not write files or modify manifests.
+- [x] The command does not run scan, conversion, build-library, or export-obsidian.
+- [x] The command does not modify source files or output files.
+- [x] Readable output includes workspace status, source manifest summary, library version summary, output version summary, latest traceability chain, warnings, and errors.
+- [x] JSON output includes `workspace`, `source_manifest`, `library_versions`, `output_versions`, `traceability`, `warnings`, and `errors`.
+- [x] `--json` prints parseable JSON only with no table text before or after the JSON payload.
+- [x] The latest traceability chain is shown as `source_manifest_hash -> library_version_id -> output_version_id`.
+- [x] Warning behavior covers current source hash differing from latest library version hash.
+- [x] Warning behavior covers current source hash differing from latest output version hash.
+- [x] Warning behavior covers latest output linking to a missing `library_version_id`.
+- [x] Normal warnings do not fail the command.
+- [x] Missing required manifests or broken linkage return non-zero under `--strict`.
+- [x] `--show-history` shows recent library versions and output versions.
+- [x] `--limit` limits history output.
+- [x] Temp workspace smoke confirms readable summary and parseable JSON.
+- [x] Full source/library/output smoke confirms summaries and latest traceability chain.
+- [x] History smoke confirms `--show-history --limit 1` is limited.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.0-rc4 Output Version Registration checkpoint evidence:
 
 - [x] `python -m pytest` reports 123 passed.

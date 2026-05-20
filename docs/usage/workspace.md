@@ -123,3 +123,40 @@ source_manifest.json -> versions/library_versions.json -> versions/output_versio
 If one library version exists, the output links to it automatically. If multiple library versions exist, the latest registered library version is used and a warning is recorded. If no library version exists, registration is blocked unless `--allow-missing-library-version` is provided.
 
 Obsidian vault folders are detected when they contain `00_Index.md` and `_office2md/export_manifest.json`. When an Obsidian export manifest is present, the output version records its export type, exported document count, exported concept count, and export warnings.
+
+## Check Workspace Status
+
+Use `workspace-status` to inspect the current source/library/output traceability state:
+
+```powershell
+python -m office2md.cli workspace-status "C:\path\to\project.office2md"
+```
+
+The command is read-only. It does not scan sources, convert files, build libraries, generate exports, edit manifests, or modify source/output files.
+
+The summary includes:
+
+- workspace manifest metadata and missing expected folders/manifests;
+- source counts, source root count, last scan details, and current `source_manifest.json` hash;
+- latest registered library version, metrics, source manifest hash, and warnings;
+- latest registered output version, linked library version, output type, file count, size, export manifest summary, and warnings;
+- the latest traceability chain:
+
+```text
+source_manifest_hash -> library_version_id -> output_version_id
+```
+
+Additional options:
+
+```powershell
+python -m office2md.cli workspace-status "C:\path\to\project.office2md" --json
+python -m office2md.cli workspace-status "C:\path\to\project.office2md" --show-history --limit 3
+python -m office2md.cli workspace-status "C:\path\to\project.office2md" --strict
+```
+
+- `--json` prints parseable pretty JSON only.
+- `--show-history` prints recent library and output versions.
+- `--limit` controls how many history records are shown.
+- `--strict` exits non-zero when required manifests are missing or the latest output links to a missing library version.
+
+Warnings are informational by default. For example, `workspace-status` warns if the latest library or output was registered against a different `source_manifest.json` hash than the current workspace state.
