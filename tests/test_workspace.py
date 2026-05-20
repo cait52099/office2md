@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from typer.testing import CliRunner
 
@@ -8,6 +9,7 @@ from office2md.workspace import (
     detect_workspace,
     init_workspace,
     register_library_version,
+    register_output_version,
     scan_workspace_sources,
     summarize_workspace,
 )
@@ -401,10 +403,180 @@ def test_workspace_register_library_cli_help_and_dry_run(tmp_path):
     assert (workspace / "versions" / "library_versions.json").read_text(encoding="utf-8") == before
 
 
+def test_workspace_register_output_requires_existing_workspace(tmp_path):
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+
+    try:
+        register_output_version(tmp_path / "missing.office2md", output, allow_missing_library_version=True)
+    except ValueError as exc:
+        assert "workspace-init" in str(exc)
+    else:
+        raise AssertionError("output registration should reject non-workspace paths")
+
+
+def test_workspace_register_output_requires_existing_output_path(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+
+    try:
+        register_output_version(workspace, tmp_path / "missing-output", allow_missing_library_version=True)
+    except FileNotFoundError as exc:
+        assert "Output path does not exist" in str(exc)
+    else:
+        raise AssertionError("output registration should reject missing output paths")
+
+
+def test_workspace_register_output_appends_record_and_preserves_history(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+    existing = {
+        "schema_version": "1",
+        "output_versions": [{"output_version_id": "existing", "label": "before"}],
+    }
+    (workspace / "versions" / "output_versions.json").write_text(json.dumps(existing), encoding="utf-8")
+
+    result = register_output_version(workspace, output, label="first", notes="notes")
+    manifest = json.loads((workspace / "versions" / "output_versions.json").read_text(encoding="utf-8"))
+    record = manifest["output_versions"][1]
+
+    assert result["versions_count"] == 2
+    assert manifest["output_versions"][0] == existing["output_versions"][0]
+    assert record["label"] == "first"
+    assert record["notes"] == "notes"
+    assert record["library_version_id"] == library_record["library_version_id"]
+    assert record["output_version_id"].startswith("out_")
+
+
+def test_workspace_register_output_dry_run_writes_nothing(tmp_path):
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+    before = (workspace / "versions" / "output_versions.json").read_text(encoding="utf-8")
+
+    result = register_output_version(workspace, output, dry_run=True)
+
+    assert result["dry_run"] is True
+    assert result["versions_count"] == 1
+    assert (workspace / "versions" / "output_versions.json").read_text(encoding="utf-8") == before
+
+
+def test_workspace_register_output_records_file_hash_for_file_output(tmp_path):
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+
+    result = register_output_version(workspace, output, output_version_id="manual-output")
+    record = result["record"]
+
+    assert record["output_version_id"] == "manual-output"
+    assert record["output_type"] == "report"
+    assert record["output_files"]["kind"] == "file"
+    assert record["output_files"]["file_count"] == 1
+    assert record["output_files"]["sha256"].startswith("sha256:")
+    assert record["output_files"]["folder_sha256"] is None
+
+
+def test_workspace_register_output_records_folder_summary_and_hash(tmp_path):
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+    output_dir = tmp_path / "folder-output"
+    output_dir.mkdir()
+    (output_dir / "a.md").write_text("a", encoding="utf-8")
+    (output_dir / "nested").mkdir()
+    (output_dir / "nested" / "b.md").write_text("bb", encoding="utf-8")
+
+    result = register_output_version(workspace, output_dir)
+    files = result["record"]["output_files"]
+
+    assert result["record"]["output_type"] == "generic_output"
+    assert files["kind"] == "folder"
+    assert files["file_count"] == 2
+    assert files["total_size_bytes"] == 3
+    assert files["folder_sha256"].startswith("sha256:")
+
+
+def test_workspace_register_output_detects_obsidian_vault_and_parses_manifest(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+    vault = _write_tiny_obsidian_vault(tmp_path / "vault")
+
+    result = register_output_version(workspace, vault)
+    record = result["record"]
+
+    assert record["output_type"] == "obsidian_vault"
+    assert record["library_version_id"] == library_record["library_version_id"]
+    assert record["source_manifest_hash"] == library_record["source_manifest_hash"]
+    assert record["source_counts"] == library_record["source_counts"]
+    assert "00_Index.md" in record["output_files"]["recognized_files"]
+    assert "_office2md/export_manifest.json" in record["output_files"]["recognized_files"]
+    assert record["export_manifest"]["export_type"] == "obsidian"
+    assert record["export_manifest"]["documents_exported"] == 1
+    assert record["export_manifest"]["concepts_exported"] == 1
+    assert record["export_manifest"]["warnings"] == ["assets not copied"]
+
+
+def test_workspace_register_output_uses_latest_library_version_when_multiple_exist(tmp_path):
+    workspace, library_record = _workspace_with_registered_library(tmp_path)
+    second = register_library_version(workspace, Path(library_record["library_path"]), label="second")["record"]
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+
+    result = register_output_version(workspace, output)
+
+    assert result["record"]["library_version_id"] == second["library_version_id"]
+    assert any("multiple library versions" in warning for warning in result["warnings"])
+
+
+def test_workspace_register_output_missing_library_version_blocks_by_default(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+
+    try:
+        register_output_version(workspace, output)
+    except ValueError as exc:
+        assert "workspace-register-library" in str(exc)
+    else:
+        raise AssertionError("output registration should require a library version by default")
+
+
+def test_workspace_register_output_allow_missing_library_version_records_warning(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+
+    result = register_output_version(workspace, output, allow_missing_library_version=True)
+    record = result["record"]
+
+    assert record["library_version_id"] is None
+    assert record["source_manifest_hash"] is None
+    assert any("without library linkage" in warning for warning in record["warnings"])
+
+
+def test_workspace_register_output_cli_help_and_dry_run(tmp_path):
+    runner = CliRunner()
+    workspace, _library_record = _workspace_with_registered_library(tmp_path)
+    output = tmp_path / "report.md"
+    output.write_text("# Report\n", encoding="utf-8")
+    before = (workspace / "versions" / "output_versions.json").read_text(encoding="utf-8")
+
+    help_result = runner.invoke(app, ["workspace-register-output", "--help"])
+    dry_run_result = runner.invoke(app, ["workspace-register-output", str(workspace), str(output), "--dry-run"])
+
+    assert help_result.exit_code == 0
+    assert "--allow-missing-library-version" in help_result.stdout
+    assert "--output-version-id" in help_result.stdout
+    assert dry_run_result.exit_code == 0
+    assert "output_versions.json was not written" in dry_run_result.stdout
+    assert (workspace / "versions" / "output_versions.json").read_text(encoding="utf-8") == before
+
+
 def _build_tiny_library(tmp_path):
     output_root = tmp_path / "output"
     doc_dir = output_root / "doc"
-    doc_dir.mkdir(parents=True)
+    doc_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
         "source_file": "sample.txt",
         "source_path": str(tmp_path / "sources" / "sample.txt"),
@@ -448,3 +620,37 @@ def _build_tiny_library(tmp_path):
     library_dir = tmp_path / "library"
     build_library(output_root, library_dir)
     return library_dir
+
+
+def _workspace_with_registered_library(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir(exist_ok=True)
+    (source_dir / "sample.txt").write_text("sample", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source_dir)
+    library_dir = _build_tiny_library(tmp_path)
+    record = register_library_version(workspace, library_dir, label="tiny-library")["record"]
+    return workspace, record
+
+
+def _write_tiny_obsidian_vault(path):
+    path.mkdir(parents=True)
+    (path / "00_Index.md").write_text("# Index\n", encoding="utf-8")
+    (path / "00_Library_Report.md").write_text("# Library Report\n", encoding="utf-8")
+    (path / "Documents").mkdir()
+    (path / "Concepts").mkdir()
+    manifest_dir = path / "_office2md"
+    manifest_dir.mkdir()
+    (manifest_dir / "export_manifest.json").write_text(
+        json.dumps(
+            {
+                "export_type": "obsidian",
+                "documents_exported": 1,
+                "concepts_exported": 1,
+                "warnings": ["assets not copied"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path

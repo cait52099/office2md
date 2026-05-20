@@ -62,7 +62,7 @@ from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
 from office2md.utils import ensure_directory, utc_now_iso
-from office2md.workspace import init_workspace, register_library_version, scan_workspace_sources
+from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources
 
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
@@ -265,6 +265,59 @@ def workspace_register_library_command(
         console.print(f"[yellow]warning:[/yellow] {warning}")
     if dry_run:
         console.print("Dry run: versions/library_versions.json was not written.")
+
+
+@app.command("workspace-register-output")
+def workspace_register_output_command(
+    workspace_path: Path,
+    output_path: Path,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview the output version record without writing files."),
+    label: str = typer.Option(None, "--label", help="Optional human-readable output label."),
+    notes: str = typer.Option(None, "--notes", help="Optional registration notes."),
+    output_type: str = typer.Option("auto", "--output-type", help="Output type. Use auto to detect common outputs."),
+    library_version_id: str = typer.Option(None, "--library-version-id", help="Library version id to link this output to."),
+    output_version_id: str = typer.Option(None, "--output-version-id", help="Optional explicit output version id."),
+    allow_missing_library_version: bool = typer.Option(
+        False,
+        "--allow-missing-library-version",
+        help="Allow registration when no library version is available.",
+    ),
+) -> None:
+    """Register a generated output as a workspace output version."""
+    try:
+        result = register_output_version(
+            workspace_path,
+            output_path,
+            dry_run=dry_run,
+            label=label,
+            notes=notes,
+            output_type=output_type,
+            library_version_id=library_version_id,
+            output_version_id=output_version_id,
+            allow_missing_library_version=allow_missing_library_version,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    record = result["record"]
+    files = record["output_files"]
+    table = Table(title="office2md workspace-register-output")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("workspace_path", result["workspace_path"])
+    table.add_row("output_path", result["output_path"])
+    table.add_row("dry_run", str(result["dry_run"]))
+    table.add_row("output_version_id", record["output_version_id"])
+    table.add_row("versions_count", str(result["versions_count"]))
+    table.add_row("output_type", record["output_type"])
+    table.add_row("library_version_id", str(record["library_version_id"] or ""))
+    table.add_row("file_count", str(files["file_count"]))
+    table.add_row("total_size_bytes", str(files["total_size_bytes"]))
+    console.print(table)
+    for warning in result["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+    if dry_run:
+        console.print("Dry run: versions/output_versions.json was not written.")
 
 
 @app.command("build-library")

@@ -46,6 +46,9 @@ office2md workspace-scan ./project.office2md ./input
 # Register a built library as a workspace version
 office2md workspace-register-library ./project.office2md ./library
 
+# Register a generated output as a workspace version
+office2md workspace-register-output ./project.office2md ./obsidian-vault
+
 # Convert a folder of documents
 office2md convert ./input ./output --recursive
 
@@ -171,6 +174,8 @@ The command creates workspace folders plus manifest/version files without conver
 `workspace-scan` then registers supported source files and SHA-256 checksums in `source_manifest.json`. It is a traceability step only: it does not convert files or build a library.
 
 `workspace-register-library` appends a built library version to `versions/library_versions.json`, linking library metrics and file hashes back to the current `source_manifest.json`. It does not build or modify the library.
+
+`workspace-register-output` appends a generated output version to `versions/output_versions.json`, linking file or folder hashes back to a library version and its source manifest. It does not generate or modify exports.
 
 ### AI Enrichment (Optional)
 

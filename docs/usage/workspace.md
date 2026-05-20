@@ -98,3 +98,28 @@ source_manifest.json -> versions/library_versions.json -> built library files
 ```
 
 If `source_manifest.json` contains changed or missing sources, the registration is allowed but the version record includes warnings so reviewers can see that the library was registered against a dirty source state.
+
+## Register a Generated Output Version
+
+After an export or report has been generated through its normal workflow, record it as a versioned output artifact:
+
+```powershell
+python -m office2md.cli workspace-register-output "C:\path\to\project.office2md" "C:\path\to\project.office2md\outputs\obsidian\vault"
+```
+
+The command accepts either a file or folder. It appends a record to `versions/output_versions.json` with output path, output type, file or folder hash summary, source linkage from the selected library version, optional label, and optional notes.
+
+```powershell
+python -m office2md.cli workspace-register-output "C:\path\to\project.office2md" "C:\path\to\vault" --label "obsidian baseline"
+python -m office2md.cli workspace-register-output "C:\path\to\project.office2md" "C:\path\to\vault" --dry-run
+```
+
+`workspace-register-output` does not generate exports, modify outputs, convert files, or build libraries. It only records the relationship:
+
+```text
+source_manifest.json -> versions/library_versions.json -> versions/output_versions.json
+```
+
+If one library version exists, the output links to it automatically. If multiple library versions exist, the latest registered library version is used and a warning is recorded. If no library version exists, registration is blocked unless `--allow-missing-library-version` is provided.
+
+Obsidian vault folders are detected when they contain `00_Index.md` and `_office2md/export_manifest.json`. When an Obsidian export manifest is present, the output version records its export type, exported document count, exported concept count, and export warnings.

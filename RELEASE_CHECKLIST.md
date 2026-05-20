@@ -1,5 +1,50 @@
 # office2md Release Readiness Checklist
 
+v0.4.0-rc4 Output Version Registration checkpoint evidence:
+
+- [x] `python -m pytest` reports 123 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli workspace-register-output --help` shows the new command.
+- [x] `workspace-register-output` accepts `WORKSPACE_PATH` and `OUTPUT_PATH`.
+- [x] `workspace-register-output` supports `--dry-run`.
+- [x] `workspace-register-output` supports `--label`.
+- [x] `workspace-register-output` supports `--notes`.
+- [x] `workspace-register-output` supports `--output-type`.
+- [x] `workspace-register-output` supports `--library-version-id`.
+- [x] `workspace-register-output` supports `--output-version-id`.
+- [x] `workspace-register-output` supports `--allow-missing-library-version`.
+- [x] The command validates that `WORKSPACE_PATH` is an office2md workspace.
+- [x] The command validates that `OUTPUT_PATH` exists as a file or folder.
+- [x] The command appends records to `versions/output_versions.json`.
+- [x] Previous output version records are preserved.
+- [x] Output version records include ID, registration time, office2md version, workspace path, output path, output type, label, notes, library version ID, source manifest hash, source counts, output file summary, export manifest summary, and warnings.
+- [x] File outputs record SHA-256, `file_count = 1`, and total size.
+- [x] Folder outputs record recursive file count, total size, and stable folder SHA-256.
+- [x] Folder SHA-256 uses sorted relative paths plus each file hash.
+- [x] Recognized files are recorded for known output layouts.
+- [x] Obsidian vaults are detected from `00_Index.md` and `_office2md/export_manifest.json`.
+- [x] Obsidian export manifests are parsed when present.
+- [x] Export type, exported document count, exported concept count, and export warnings are recorded when available.
+- [x] Explicit `--library-version-id` links to that library version.
+- [x] A single library version is linked automatically.
+- [x] Multiple library versions use the latest `registered_at` and record a warning.
+- [x] Missing library version blocks by default.
+- [x] `--allow-missing-library-version` allows registration with a warning and no library/source linkage.
+- [x] `--dry-run` builds a planned output version record and writes nothing.
+- [x] `--dry-run` prints that `versions/output_versions.json` was not written.
+- [x] Temp workspace/source/library/Obsidian smoke registers one output version with output type, library linkage, source hash, folder hash, and export manifest summary.
+- [x] Second output registration smoke preserves the first output version and appends a new version.
+- [x] Dry-run smoke confirms `versions/output_versions.json` content is unchanged.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.0-rc3 Library Version Registration checkpoint evidence:
 
 - [x] `python -m pytest` reports 112 passed.

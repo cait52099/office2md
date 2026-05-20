@@ -362,3 +362,23 @@ v0.4.0 P3 may append built library version records to `versions/library_versions
 - warn when the current source manifest contains changed or missing files.
 
 This establishes the first explicit traceability link from a source manifest state to a built library artifact. It remains a manual registration step and does not alter `build-library` internals.
+
+## P4 Output Version Registration Note
+
+v0.4.0 P4 may append generated output version records to `versions/output_versions.json`:
+
+- validate the workspace and an existing output file or folder;
+- link the output to a registered `library_version_id`;
+- carry forward `source_manifest_hash` and source counts from the selected library version;
+- hash output files or compute a stable folder hash;
+- detect common output types such as Obsidian vault exports;
+- parse Obsidian export manifests when present;
+- append output records without generating exports or changing previous history.
+
+This completes the first workspace-native traceability chain:
+
+```text
+source_manifest.json -> library_versions.json -> output_versions.json
+```
+
+The registration remains manual and does not alter export behavior.

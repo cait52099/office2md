@@ -149,6 +149,16 @@ def write_library_versions(workspace_path: Path, manifest: dict[str, Any]) -> No
     _write_json(versions_path, manifest)
 
 
+def load_output_versions(workspace_path: Path) -> dict[str, Any]:
+    versions_path = workspace_path.expanduser().resolve() / "versions" / "output_versions.json"
+    return _read_json_if_possible(versions_path) or _output_versions_manifest()
+
+
+def write_output_versions(workspace_path: Path, manifest: dict[str, Any]) -> None:
+    versions_path = workspace_path.expanduser().resolve() / "versions" / "output_versions.json"
+    _write_json(versions_path, manifest)
+
+
 def compute_json_file_sha256(path: Path) -> str:
     return compute_file_sha256(path)
 
@@ -233,6 +243,119 @@ def summarize_library_for_version(library_path: Path) -> dict[str, Any]:
             "low_quality_documents": len(report.get("low_quality_documents") or []),
             "page_level_pdf_documents": len(report.get("page_level_pdf_documents") or []),
         },
+    }
+
+
+def register_output_version(
+    workspace_path: Path,
+    output_path: Path,
+    *,
+    dry_run: bool = False,
+    label: str | None = None,
+    notes: str | None = None,
+    output_type: str = "auto",
+    library_version_id: str | None = None,
+    output_version_id: str | None = None,
+    allow_missing_library_version: bool = False,
+) -> dict[str, Any]:
+    workspace = workspace_path.expanduser().resolve()
+    if not detect_workspace(workspace):
+        raise ValueError(f"Not an office2md workspace: {workspace}. Run workspace-init first.")
+
+    output = output_path.expanduser().resolve()
+    if not output.exists():
+        raise FileNotFoundError(f"Output path does not exist: {output}")
+
+    library_versions = load_library_versions(workspace)
+    selected_library, library_warnings = _resolve_library_version_for_output(
+        library_versions.get("library_versions", []),
+        library_version_id=library_version_id,
+        allow_missing_library_version=allow_missing_library_version,
+    )
+    output_versions = load_output_versions(workspace)
+    registered_at = utc_now_iso()
+    output_summary = summarize_output_for_version(output, output_type=output_type)
+    source_counts = _normalized_source_counts((selected_library or {}).get("source_counts", {}))
+    source_manifest_hash = (selected_library or {}).get("source_manifest_hash")
+    warnings = [*library_warnings, *output_summary["warnings"]]
+    record = {
+        "output_version_id": output_version_id
+        or _output_version_id(registered_at, str(output), output_summary["output_files"], selected_library),
+        "registered_at": registered_at,
+        "office2md_version": _office2md_version(),
+        "workspace_path": str(workspace),
+        "output_path": str(output),
+        "output_type": output_summary["output_type"],
+        "label": label,
+        "notes": notes,
+        "library_version_id": (selected_library or {}).get("library_version_id"),
+        "source_manifest_hash": source_manifest_hash,
+        "source_counts": source_counts,
+        "output_files": output_summary["output_files"],
+        "export_manifest": output_summary["export_manifest"],
+        "warnings": warnings,
+    }
+    next_manifest = {
+        "schema_version": str(output_versions.get("schema_version") or WORKSPACE_SCHEMA_VERSION),
+        "output_versions": [*output_versions.get("output_versions", []), record],
+    }
+    if not dry_run:
+        write_output_versions(workspace, next_manifest)
+    return {
+        "workspace_path": str(workspace),
+        "output_path": str(output),
+        "dry_run": dry_run,
+        "record": record,
+        "versions_count": len(next_manifest["output_versions"]),
+        "warnings": warnings,
+        "manifest": next_manifest,
+    }
+
+
+def summarize_output_for_version(output_path: Path, *, output_type: str = "auto") -> dict[str, Any]:
+    output = output_path.expanduser().resolve()
+    detected_type = detect_output_type(output) if output_type == "auto" else output_type
+    export_manifest = parse_obsidian_export_manifest(output) if output.is_dir() else None
+    return {
+        "output_type": detected_type,
+        "output_files": _folder_output_record(output) if output.is_dir() else _file_output_record(output),
+        "export_manifest": export_manifest,
+        "warnings": [],
+    }
+
+
+def compute_folder_sha256(path: Path) -> str:
+    folder = path.expanduser().resolve()
+    digest = hashlib.sha256()
+    for file_path in _folder_files(folder):
+        relative = file_path.relative_to(folder).as_posix()
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(compute_file_sha256(file_path).encode("utf-8"))
+        digest.update(b"\0")
+    return f"sha256:{digest.hexdigest()}"
+
+
+def detect_output_type(output_path: Path) -> str:
+    output = output_path.expanduser().resolve()
+    if output.is_dir() and (output / "00_Index.md").exists() and (output / "_office2md" / "export_manifest.json").exists():
+        return "obsidian_vault"
+    if output.is_file() and output.suffix.lower() in {".md", ".html", ".htm", ".pdf", ".docx"}:
+        return "report"
+    return "generic_output"
+
+
+def parse_obsidian_export_manifest(output_path: Path) -> dict[str, Any] | None:
+    manifest_path = output_path.expanduser().resolve() / "_office2md" / "export_manifest.json"
+    data = _read_json_if_possible(manifest_path)
+    if data is None:
+        return None
+    return {
+        "path": str(manifest_path),
+        "export_type": data.get("export_type"),
+        "documents_exported": data.get("documents_exported"),
+        "concepts_exported": data.get("concepts_exported"),
+        "warnings": data.get("warnings") or [],
     }
 
 
@@ -591,3 +714,71 @@ def _library_version_id(registered_at: str, library_path: str, source_hash: str,
     db_hash = (library_files.get("library_db") or {}).get("sha256") or ""
     identity = f"{registered_at}|{library_path}|{source_hash}|{db_hash}"
     return "lib_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
+
+
+def _resolve_library_version_for_output(
+    library_versions: list[Any],
+    *,
+    library_version_id: str | None,
+    allow_missing_library_version: bool,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    records = [item for item in library_versions if isinstance(item, dict)]
+    if library_version_id:
+        for record in records:
+            if record.get("library_version_id") == library_version_id:
+                return record, []
+        raise ValueError(f"Library version id not found: {library_version_id}")
+    if len(records) == 1:
+        return records[0], []
+    if len(records) > 1:
+        latest = sorted(records, key=lambda item: str(item.get("registered_at") or ""))[-1]
+        return latest, [f"multiple library versions found; using latest registered version {latest.get('library_version_id')}"]
+    if allow_missing_library_version:
+        return None, ["no library version registered; output version recorded without library linkage"]
+    raise ValueError("No library version registered. Run workspace-register-library first or use --allow-missing-library-version.")
+
+
+def _file_output_record(path: Path) -> dict[str, Any]:
+    stat = path.stat()
+    return {
+        "kind": "file",
+        "file_count": 1,
+        "total_size_bytes": stat.st_size,
+        "sha256": compute_file_sha256(path),
+        "folder_sha256": None,
+        "recognized_files": _recognized_output_files(path),
+    }
+
+
+def _folder_output_record(path: Path) -> dict[str, Any]:
+    files = _folder_files(path)
+    return {
+        "kind": "folder",
+        "file_count": len(files),
+        "total_size_bytes": sum(file_path.stat().st_size for file_path in files),
+        "sha256": None,
+        "folder_sha256": compute_folder_sha256(path),
+        "recognized_files": _recognized_output_files(path),
+    }
+
+
+def _folder_files(path: Path) -> list[Path]:
+    folder = path.expanduser().resolve()
+    return sorted((item for item in folder.rglob("*") if item.is_file()), key=lambda item: item.relative_to(folder).as_posix().lower())
+
+
+def _recognized_output_files(path: Path) -> list[str]:
+    output = path.expanduser().resolve()
+    if output.is_file():
+        return [output.name] if detect_output_type(output) == "report" else []
+    recognized = []
+    for relative in ["00_Index.md", "00_Library_Report.md", "_office2md/export_manifest.json"]:
+        if (output / relative).exists():
+            recognized.append(relative)
+    return recognized
+
+
+def _output_version_id(registered_at: str, output_path: str, output_files: dict[str, Any], library_version: dict[str, Any] | None) -> str:
+    output_hash = output_files.get("folder_sha256") or output_files.get("sha256") or ""
+    identity = f"{registered_at}|{output_path}|{output_hash}|{(library_version or {}).get('library_version_id', '')}"
+    return "out_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
