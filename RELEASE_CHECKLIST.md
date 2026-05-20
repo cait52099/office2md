@@ -1,5 +1,57 @@
 # office2md Release Readiness Checklist
 
+v0.4.0 final release evidence:
+
+- [x] `python -m pytest` reports 134 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] `pyproject.toml` version is updated to `0.4.0`.
+- [x] `office2md/__init__.py` version is updated to `0.4.0`.
+- [x] `workspace-init` exists and creates the RAM / Wiki / Output / Version folder foundation.
+- [x] `workspace-init` creates `workspace_manifest.json`.
+- [x] `workspace-init` creates `source_manifest.json`.
+- [x] `workspace-init` creates `versions/library_versions.json`.
+- [x] `workspace-init` creates `versions/output_versions.json`.
+- [x] `workspace-init --dry-run` writes nothing.
+- [x] `workspace-init` is idempotent and preserves existing source/version manifests by default.
+- [x] `workspace-scan` exists and records source roots.
+- [x] `workspace-scan` records file metadata and SHA-256 checksums when enabled.
+- [x] `workspace-scan` detects new, active, changed, and missing files.
+- [x] `workspace-scan --dry-run` writes nothing.
+- [x] `workspace-scan --max-files` does not falsely mark unscanned historical files missing.
+- [x] `workspace-register-library` exists and appends to `versions/library_versions.json`.
+- [x] Library version records include `source_manifest_hash`, source counts, library file hashes, and library metrics from existing `library_report()` behavior.
+- [x] Dirty source warnings are recorded for changed or missing sources.
+- [x] `workspace-register-library --dry-run` writes nothing.
+- [x] `workspace-register-library` does not run build-library.
+- [x] `workspace-register-output` exists and appends to `versions/output_versions.json`.
+- [x] Output version records include `library_version_id`, `source_manifest_hash`, output file/folder hashes, and output summary.
+- [x] Obsidian vault output is detected and Obsidian export manifests are parsed when present.
+- [x] `workspace-register-output --dry-run` writes nothing.
+- [x] `workspace-register-output` does not run export-obsidian.
+- [x] `workspace-status` exists and is read-only.
+- [x] `workspace-status --json` outputs parseable JSON only.
+- [x] `workspace-status --show-history` and `--limit` work.
+- [x] `workspace-status --strict` fails for missing required manifests or broken linkage and does not fail normal warnings.
+- [x] `workspace-status` shows source, library, output summaries and the traceability chain `source_manifest_hash -> library_version_id -> output_version_id`.
+- [x] CLI help checks pass for `workspace-init`, `workspace-scan`, `workspace-register-library`, `workspace-register-output`, `workspace-status`, `export-obsidian`, `convert`, `build-library`, `search-library`, `locate-document`, and `library-report`.
+- [x] Full tiny traceability smoke passes.
+- [x] Dry-run smoke passes for workspace init, scan, library registration, and output registration.
+- [x] Local CML125 smoke is skipped when no CML125 library is found.
+- [x] README, workspace usage docs, workspace layering design docs, release checklist, and final release notes are updated.
+- [x] No dedicated workspace-trace command is included.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No GUI workspace dashboard is included.
+- [x] No Marker integration is included.
+- [x] No AI, OCR, embedding, vector, or cloud work is included.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+
 v0.4.0-rc5 Workspace Status checkpoint evidence:
 
 - [x] `python -m pytest` reports 134 passed.

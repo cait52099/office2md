@@ -244,5 +244,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Links
 
 - [Documentation](docs/)
-- [Release Notes](RELEASE_NOTES_v0.3.0.md)
+- [Release Notes](RELEASE_NOTES_v0.4.0.md)
 - [Issue Tracker](https://github.com/cait52099/office2md/issues)
