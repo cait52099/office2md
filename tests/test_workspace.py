@@ -3,7 +3,14 @@ import json
 from typer.testing import CliRunner
 
 from office2md.cli import app
-from office2md.workspace import detect_workspace, init_workspace, scan_workspace_sources, summarize_workspace
+from office2md.library import build_library
+from office2md.workspace import (
+    detect_workspace,
+    init_workspace,
+    register_library_version,
+    scan_workspace_sources,
+    summarize_workspace,
+)
 
 
 def test_workspace_init_creates_expected_folders_and_manifests(tmp_path):
@@ -264,3 +271,180 @@ def test_workspace_scan_cli_help(tmp_path):
     assert "--max-files" in help_result.stdout
     assert invalid_result.exit_code != 0
     assert "workspace-init" in invalid_result.stderr
+
+
+def test_workspace_register_library_requires_existing_workspace(tmp_path):
+    library_dir = _build_tiny_library(tmp_path)
+
+    try:
+        register_library_version(tmp_path / "missing.office2md", library_dir)
+    except ValueError as exc:
+        assert "workspace-init" in str(exc)
+    else:
+        raise AssertionError("library registration should reject non-workspace paths")
+
+
+def test_workspace_register_library_requires_valid_built_library(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+
+    try:
+        register_library_version(workspace, tmp_path / "not-a-library")
+    except FileNotFoundError as exc:
+        assert "Built library not found" in str(exc)
+    else:
+        raise AssertionError("library registration should reject invalid library paths")
+
+
+def test_workspace_register_library_appends_record_and_preserves_history(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    (source_dir / "sample.txt").write_text("sample", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source_dir)
+    library_dir = _build_tiny_library(tmp_path)
+    existing = {
+        "schema_version": "1",
+        "library_versions": [{"library_version_id": "existing", "label": "before"}],
+    }
+    (workspace / "versions" / "library_versions.json").write_text(json.dumps(existing), encoding="utf-8")
+
+    result = register_library_version(workspace, library_dir, label="first", notes="notes")
+    manifest = json.loads((workspace / "versions" / "library_versions.json").read_text(encoding="utf-8"))
+    record = manifest["library_versions"][1]
+
+    assert result["versions_count"] == 2
+    assert manifest["library_versions"][0] == existing["library_versions"][0]
+    assert record["label"] == "first"
+    assert record["notes"] == "notes"
+    assert record["workspace_path"] == str(workspace.resolve())
+    assert record["library_path"] == str(library_dir.resolve())
+    assert record["library_version_id"].startswith("lib_")
+
+
+def test_workspace_register_library_dry_run_writes_nothing(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    library_dir = _build_tiny_library(tmp_path)
+    before = (workspace / "versions" / "library_versions.json").read_text(encoding="utf-8")
+
+    result = register_library_version(workspace, library_dir, dry_run=True)
+
+    assert result["dry_run"] is True
+    assert result["versions_count"] == 1
+    assert (workspace / "versions" / "library_versions.json").read_text(encoding="utf-8") == before
+
+
+def test_workspace_register_library_records_hashes_metrics_and_source_counts(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    (source_dir / "sample.txt").write_text("sample", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source_dir)
+    library_dir = _build_tiny_library(tmp_path)
+
+    result = register_library_version(workspace, library_dir / "library.db", library_version_id="manual-lib")
+    record = result["record"]
+
+    assert record["library_version_id"] == "manual-lib"
+    assert record["source_manifest_hash"].startswith("sha256:")
+    assert record["library_files"]["library_db"]["sha256"].startswith("sha256:")
+    assert record["library_files"]["library_index"]["sha256"].startswith("sha256:")
+    assert record["library_files"]["library_graph"]["sha256"].startswith("sha256:")
+    assert record["library_metrics"]["documents_count"] == 1
+    assert record["library_metrics"]["chunks_count"] == 1
+    assert record["library_metrics"]["entities_count"] == 1
+    assert record["source_counts"]["total_sources"] == 1
+    assert record["source_counts"]["active_sources"] == 1
+
+
+def test_workspace_register_library_records_dirty_source_warnings(tmp_path):
+    workspace = tmp_path / "project.office2md"
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    changed_file = source_dir / "changed.txt"
+    missing_file = source_dir / "missing.txt"
+    changed_file.write_text("first", encoding="utf-8")
+    missing_file.write_text("missing", encoding="utf-8")
+    init_workspace(workspace)
+    scan_workspace_sources(workspace, source_dir)
+    changed_file.write_text("changed", encoding="utf-8")
+    missing_file.unlink()
+    scan_workspace_sources(workspace, source_dir)
+    library_dir = _build_tiny_library(tmp_path)
+
+    result = register_library_version(workspace, library_dir)
+    warnings = result["record"]["warnings"]
+
+    assert result["record"]["source_dirty"] is True
+    assert any("changed source" in warning for warning in warnings)
+    assert any("missing source" in warning for warning in warnings)
+
+
+def test_workspace_register_library_cli_help_and_dry_run(tmp_path):
+    runner = CliRunner()
+    workspace = tmp_path / "project.office2md"
+    init_workspace(workspace)
+    library_dir = _build_tiny_library(tmp_path)
+    before = (workspace / "versions" / "library_versions.json").read_text(encoding="utf-8")
+
+    help_result = runner.invoke(app, ["workspace-register-library", "--help"])
+    dry_run_result = runner.invoke(app, ["workspace-register-library", str(workspace), str(library_dir), "--dry-run"])
+
+    assert help_result.exit_code == 0
+    assert "--allow-dirty-source" in help_result.stdout
+    assert "--library-version-id" in help_result.stdout
+    assert dry_run_result.exit_code == 0
+    assert "library_versions.json was not written" in dry_run_result.stdout
+    assert (workspace / "versions" / "library_versions.json").read_text(encoding="utf-8") == before
+
+
+def _build_tiny_library(tmp_path):
+    output_root = tmp_path / "output"
+    doc_dir = output_root / "doc"
+    doc_dir.mkdir(parents=True)
+    manifest = {
+        "source_file": "sample.txt",
+        "source_path": str(tmp_path / "sources" / "sample.txt"),
+        "checksum": "sha256:sample",
+        "engine": "markitdown",
+        "status": "success",
+        "document_kind": "document",
+        "quality_status": "ok",
+        "extraction_status": "text",
+    }
+    knowledge = {
+        "title": "sample",
+        "document_kind": "document",
+        "quality_status": "ok",
+        "extraction_status": "text",
+        "key_metadata": {"source_path": manifest["source_path"], "checksum": manifest["checksum"]},
+        "tags": ["document"],
+    }
+    chunk = {
+        "chunk_id": "sample_chunk",
+        "doc_id": "sample",
+        "source_file": "sample.txt",
+        "source_path": manifest["source_path"],
+        "document_kind": "document",
+        "quality_status": "ok",
+        "evidence_type": "text",
+        "heading_path": ["Sample"],
+        "text": "sample text",
+        "char_count": 11,
+        "locator": "Line 1",
+        "provenance_status": "text",
+    }
+    source_map = {"sample_chunk": {"heading_path": ["Sample"], "locator": "Line 1", "evidence_type": "text"}}
+    entities = {"project": ["sample project"]}
+    (doc_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (doc_dir / "knowledge.json").write_text(json.dumps(knowledge), encoding="utf-8")
+    (doc_dir / "entities.json").write_text(json.dumps(entities), encoding="utf-8")
+    (doc_dir / "source_map.json").write_text(json.dumps(source_map), encoding="utf-8")
+    (doc_dir / "chunks.jsonl").write_text(json.dumps(chunk) + "\n", encoding="utf-8")
+    (doc_dir / "document.md").write_text("# Sample\n", encoding="utf-8")
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    return library_dir

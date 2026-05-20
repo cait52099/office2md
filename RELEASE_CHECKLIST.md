@@ -1,5 +1,45 @@
 # office2md Release Readiness Checklist
 
+v0.4.0-rc3 Library Version Registration checkpoint evidence:
+
+- [x] `python -m pytest` reports 112 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m office2md.cli workspace-register-library --help` shows the new command.
+- [x] `workspace-register-library` accepts `WORKSPACE_PATH` and `LIBRARY_PATH`.
+- [x] `workspace-register-library` supports `--dry-run`.
+- [x] `workspace-register-library` supports `--label`.
+- [x] `workspace-register-library` supports `--notes`.
+- [x] `workspace-register-library` supports `--allow-dirty-source`.
+- [x] `workspace-register-library` supports `--library-version-id`.
+- [x] The command validates that `WORKSPACE_PATH` is an office2md workspace.
+- [x] The command validates that `LIBRARY_PATH` is a built library folder or `library.db` path.
+- [x] The command appends records to `versions/library_versions.json`.
+- [x] Previous library version records are preserved.
+- [x] Version records include ID, registration time, office2md version, workspace path, library path, label, notes, source manifest hash, source counts, source dirty flag, library files, library metrics, and warnings.
+- [x] `source_manifest_hash` hashes the current `source_manifest.json`.
+- [x] `library.db` SHA-256 is recorded when present.
+- [x] `library_index.json` SHA-256 is recorded when present.
+- [x] `library_graph.json` SHA-256 is recorded when present.
+- [x] Library metrics come from existing `library_report()` behavior.
+- [x] Source counts are recorded with total, active, new, changed, and missing source counts.
+- [x] Changed and missing sources generate dirty source warnings.
+- [x] Dirty source warnings are printed by the CLI.
+- [x] Dirty source warnings are recorded in the version record.
+- [x] `--dry-run` builds a planned version record and writes nothing.
+- [x] `--dry-run` prints that `versions/library_versions.json` was not written.
+- [x] Temp workspace/source/library smoke registers one version with source hash, metrics, and library DB hash.
+- [x] Second registration smoke preserves the first version and appends a new version.
+- [x] Dry-run smoke confirms `versions/library_versions.json` content is unchanged.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.0-rc2 workspace-scan / source manifest population checkpoint evidence:
 
 - [x] `python -m pytest` reports 105 passed.

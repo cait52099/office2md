@@ -75,3 +75,26 @@ python -m office2md.cli workspace-scan "C:\path\to\project.office2md" "C:\path\t
 - Dot-prefixed paths are excluded by default; `--include-hidden` includes supported files under those paths.
 
 `source_manifest.json` is the first RAM/source traceability record. Later conversion, library, Wiki, and output versions can refer back to this manifest instead of treating source discovery as implicit state.
+
+## Register a Built Library Version
+
+After sources have been scanned and a library has been built through the normal `build-library` workflow, record that built library as a versioned workspace artifact:
+
+```powershell
+python -m office2md.cli workspace-register-library "C:\path\to\project.office2md" "C:\path\to\project.office2md\library"
+```
+
+The command accepts either a built library folder or a direct `library.db` path. It appends a record to `versions/library_versions.json` with the current source manifest hash, source counts, library file hashes, library metrics, registration time, optional label, and optional notes.
+
+```powershell
+python -m office2md.cli workspace-register-library "C:\path\to\project.office2md" "C:\path\to\library" --label "baseline"
+python -m office2md.cli workspace-register-library "C:\path\to\project.office2md" "C:\path\to\library" --dry-run
+```
+
+`workspace-register-library` does not build a library, modify the library, convert files, or edit source files. It only records the relationship:
+
+```text
+source_manifest.json -> versions/library_versions.json -> built library files
+```
+
+If `source_manifest.json` contains changed or missing sources, the registration is allowed but the version record includes warnings so reviewers can see that the library was registered against a dirty source state.

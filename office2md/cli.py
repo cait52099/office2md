@@ -62,7 +62,7 @@ from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
 from office2md.utils import ensure_directory, utc_now_iso
-from office2md.workspace import init_workspace, scan_workspace_sources
+from office2md.workspace import init_workspace, register_library_version, scan_workspace_sources
 
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
@@ -213,6 +213,58 @@ def workspace_scan_command(
         console.print(f"[yellow]limited scan:[/yellow] max_files={result['max_files']}")
     if dry_run:
         console.print("Dry run: source_manifest.json was not written.")
+
+
+@app.command("workspace-register-library")
+def workspace_register_library_command(
+    workspace_path: Path,
+    library_path: Path,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview the library version record without writing files."),
+    label: str = typer.Option(None, "--label", help="Optional human-readable version label."),
+    notes: str = typer.Option(None, "--notes", help="Optional registration notes."),
+    allow_dirty_source: bool = typer.Option(
+        False,
+        "--allow-dirty-source",
+        help="Allow registration when source_manifest.json reports changed or missing sources.",
+    ),
+    library_version_id: str = typer.Option(None, "--library-version-id", help="Optional explicit library version id."),
+) -> None:
+    """Register a built Knowledge Library as a workspace library version."""
+    try:
+        result = register_library_version(
+            workspace_path,
+            library_path,
+            dry_run=dry_run,
+            label=label,
+            notes=notes,
+            allow_dirty_source=allow_dirty_source,
+            library_version_id=library_version_id,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    record = result["record"]
+    metrics = record["library_metrics"]
+    counts = record["source_counts"]
+    table = Table(title="office2md workspace-register-library")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("workspace_path", result["workspace_path"])
+    table.add_row("library_path", result["library_path"])
+    table.add_row("dry_run", str(result["dry_run"]))
+    table.add_row("library_version_id", record["library_version_id"])
+    table.add_row("versions_count", str(result["versions_count"]))
+    table.add_row("documents_count", str(metrics["documents_count"]))
+    table.add_row("chunks_count", str(metrics["chunks_count"]))
+    table.add_row("entities_count", str(metrics["entities_count"]))
+    table.add_row("source_total", str(counts["total_sources"]))
+    table.add_row("source_changed", str(counts["changed_sources"]))
+    table.add_row("source_missing", str(counts["missing_sources"]))
+    console.print(table)
+    for warning in result["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+    if dry_run:
+        console.print("Dry run: versions/library_versions.json was not written.")
 
 
 @app.command("build-library")

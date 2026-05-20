@@ -349,3 +349,16 @@ v0.4.0 P2 may populate `source_manifest.json` through a conservative source regi
 - support dry-run and clearly record limited scans.
 
 This keeps source discovery in the RAM/traceability layer. It does not change source files, create Knowledge Packs, or advance Wiki editing behavior.
+
+## P3 Library Version Registration Note
+
+v0.4.0 P3 may append built library version records to `versions/library_versions.json`:
+
+- validate the workspace and an existing built library;
+- hash `source_manifest.json`;
+- hash library files such as `library.db`, `library_index.json`, and `library_graph.json` when present;
+- record source counts and library report metrics;
+- append a version record without rebuilding the library or changing previous history;
+- warn when the current source manifest contains changed or missing files.
+
+This establishes the first explicit traceability link from a source manifest state to a built library artifact. It remains a manual registration step and does not alter `build-library` internals.

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from office2md.detector import sha256_file
+from office2md.library import library_report
 from office2md.scanner import scan_input
 from office2md.utils import utc_now_iso
 
@@ -136,6 +137,103 @@ def write_source_manifest(workspace_path: Path, manifest: dict[str, Any]) -> Non
 
 def compute_file_sha256(path: Path) -> str:
     return sha256_file(path)
+
+
+def load_library_versions(workspace_path: Path) -> dict[str, Any]:
+    versions_path = workspace_path.expanduser().resolve() / "versions" / "library_versions.json"
+    return _read_json_if_possible(versions_path) or _library_versions_manifest()
+
+
+def write_library_versions(workspace_path: Path, manifest: dict[str, Any]) -> None:
+    versions_path = workspace_path.expanduser().resolve() / "versions" / "library_versions.json"
+    _write_json(versions_path, manifest)
+
+
+def compute_json_file_sha256(path: Path) -> str:
+    return compute_file_sha256(path)
+
+
+def compute_source_manifest_hash(workspace_path: Path) -> str:
+    return compute_json_file_sha256(workspace_path.expanduser().resolve() / "source_manifest.json")
+
+
+def register_library_version(
+    workspace_path: Path,
+    library_path: Path,
+    *,
+    dry_run: bool = False,
+    label: str | None = None,
+    notes: str | None = None,
+    allow_dirty_source: bool = False,
+    library_version_id: str | None = None,
+) -> dict[str, Any]:
+    workspace = workspace_path.expanduser().resolve()
+    if not detect_workspace(workspace):
+        raise ValueError(f"Not an office2md workspace: {workspace}. Run workspace-init first.")
+
+    library_summary = summarize_library_for_version(library_path)
+    source_manifest = load_source_manifest(workspace)
+    library_versions = load_library_versions(workspace)
+    registered_at = utc_now_iso()
+    source_counts = _normalized_source_counts(source_manifest.get("counts", {}))
+    warnings = _dirty_source_warnings(source_counts)
+    if warnings and not allow_dirty_source:
+        warnings.append("source_manifest has dirty source state; registration allowed with warning")
+
+    source_hash = compute_source_manifest_hash(workspace)
+    record = {
+        "library_version_id": library_version_id
+        or _library_version_id(registered_at, library_summary["library_path"], source_hash, library_summary["library_files"]),
+        "registered_at": registered_at,
+        "office2md_version": _office2md_version(),
+        "workspace_path": str(workspace),
+        "library_path": library_summary["library_path"],
+        "label": label,
+        "notes": notes,
+        "source_manifest_hash": source_hash,
+        "source_counts": source_counts,
+        "source_dirty": bool(warnings),
+        "library_files": library_summary["library_files"],
+        "library_metrics": library_summary["library_metrics"],
+        "warnings": warnings,
+    }
+    next_manifest = {
+        "schema_version": str(library_versions.get("schema_version") or WORKSPACE_SCHEMA_VERSION),
+        "library_versions": [*library_versions.get("library_versions", []), record],
+    }
+    if not dry_run:
+        write_library_versions(workspace, next_manifest)
+    return {
+        "workspace_path": str(workspace),
+        "library_path": library_summary["library_path"],
+        "dry_run": dry_run,
+        "record": record,
+        "versions_count": len(next_manifest["library_versions"]),
+        "warnings": warnings,
+        "manifest": next_manifest,
+    }
+
+
+def summarize_library_for_version(library_path: Path) -> dict[str, Any]:
+    library_dir, db_path = _resolve_library_paths(library_path)
+    report = library_report(db_path)
+    return {
+        "library_path": str(library_dir),
+        "library_files": {
+            "library_db": _version_file_record(db_path),
+            "library_index": _version_file_record(library_dir / "library_index.json"),
+            "library_graph": _version_file_record(library_dir / "library_graph.json"),
+        },
+        "library_metrics": {
+            "documents_count": int(report.get("documents_count") or 0),
+            "chunks_count": int(report.get("chunks_count") or 0),
+            "entities_count": int(report.get("entities_count") or 0),
+            "chunks_without_locator": int(report.get("chunks_without_locator") or 0),
+            "noisy_chunks_count": int(report.get("noisy_chunks_count") or 0),
+            "low_quality_documents": len(report.get("low_quality_documents") or []),
+            "page_level_pdf_documents": len(report.get("page_level_pdf_documents") or []),
+        },
+    }
 
 
 def scan_workspace_sources(
@@ -449,3 +547,47 @@ def _source_counts(sources: list[dict[str, Any]]) -> dict[str, int]:
         "changed_sources": sum(1 for item in sources if item.get("status") == "changed"),
         "missing_sources": sum(1 for item in sources if item.get("status") == "missing"),
     }
+
+
+def _resolve_library_paths(library_path: Path) -> tuple[Path, Path]:
+    candidate = library_path.expanduser().resolve()
+    db_path = candidate if candidate.name == "library.db" else candidate / "library.db"
+    library_dir = db_path.parent
+    if not db_path.exists():
+        raise FileNotFoundError(f"Built library not found: {candidate}. Expected a library folder or library.db path.")
+    return library_dir, db_path
+
+
+def _version_file_record(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    resolved = path.resolve()
+    return {
+        "path": str(resolved),
+        "sha256": compute_file_sha256(resolved),
+    }
+
+
+def _normalized_source_counts(counts: dict[str, Any]) -> dict[str, int]:
+    return {
+        "total_sources": int(counts.get("total_sources") or 0),
+        "active_sources": int(counts.get("active_sources") or 0),
+        "new_sources": int(counts.get("new_sources") or 0),
+        "changed_sources": int(counts.get("changed_sources") or 0),
+        "missing_sources": int(counts.get("missing_sources") or 0),
+    }
+
+
+def _dirty_source_warnings(source_counts: dict[str, int]) -> list[str]:
+    warnings = []
+    if source_counts["changed_sources"]:
+        warnings.append(f"source_manifest has {source_counts['changed_sources']} changed source file(s)")
+    if source_counts["missing_sources"]:
+        warnings.append(f"source_manifest has {source_counts['missing_sources']} missing source file(s)")
+    return warnings
+
+
+def _library_version_id(registered_at: str, library_path: str, source_hash: str, library_files: dict[str, Any]) -> str:
+    db_hash = (library_files.get("library_db") or {}).get("sha256") or ""
+    identity = f"{registered_at}|{library_path}|{source_hash}|{db_hash}"
+    return "lib_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
