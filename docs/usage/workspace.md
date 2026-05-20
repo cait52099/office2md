@@ -167,4 +167,8 @@ The optional Streamlit GUI includes a `Workspace` page that displays the same re
 
 It shows workspace, source, library version, output version, warning/error, and traceability chain summaries. It also provides a JSON download for the current status payload.
 
+The GUI input is `Workspace Root Path`. This must be a folder created by `workspace-init`, not the sidebar Library path, not a conversion output folder, not a built library folder, and not an Obsidian export folder. If a non-workspace path is entered, the page shows the expected workspace markers and a suggested `workspace-init` command.
+
+An init-only workspace is valid and will show empty source/library/output history until `workspace-scan`, `workspace-register-library`, and `workspace-register-output` have been run.
+
 The GUI page does not initialize workspaces, scan sources, convert files, build libraries, generate exports, edit manifests, or modify source/output files.

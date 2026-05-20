@@ -9,6 +9,9 @@ from office2md.gui.helpers import (
     build_obsidian_export_command_preview,
     build_library_command_preview,
     build_runner_command_preview,
+    build_workspace_init_command_hint,
+    build_workspace_next_step_hints,
+    classify_workspace_path_hint,
     count_existing_manifests,
     derive_workspace_paths,
     graph_layout_options,
@@ -1150,17 +1153,76 @@ def test_gui_workspace_status_helper_loads_init_only_workspace(tmp_path):
 
     status = load_workspace_status_for_gui(workspace)
     payload = json.loads(workspace_status_json_for_download(status))
+    hint = classify_workspace_path_hint(workspace)
+    next_steps = build_workspace_next_step_hints(status)
 
     assert status["workspace"]["workspace_path"] == str(workspace.resolve())
     assert status["source_manifest"]["total_sources"] == 0
     assert status["library_versions"]["total_versions"] == 0
     assert status["output_versions"]["total_versions"] == 0
     assert payload["traceability"]["source_manifest_hash"].startswith("sha256:")
+    assert hint["is_workspace"] is True
+    assert hint["kind"] == "workspace_root"
+    assert len(next_steps) == 3
+    assert "workspace-scan" in next_steps[0]
 
 
 def test_gui_workspace_status_helper_handles_invalid_workspace_path(tmp_path):
     with pytest.raises(ValueError, match="workspace-init"):
         load_workspace_status_for_gui(tmp_path / "missing.office2md")
+
+
+def test_gui_workspace_path_hint_identifies_built_library_folder(tmp_path):
+    library_dir = _tiny_gui_export_library(tmp_path)
+
+    hint = classify_workspace_path_hint(library_dir)
+
+    assert hint["is_workspace"] is False
+    assert hint["kind"] == "built_library"
+    assert "Library folder" in hint["message"]
+
+
+def test_gui_workspace_path_hint_identifies_obsidian_export_folder(tmp_path):
+    vault = _write_tiny_gui_obsidian_vault(tmp_path / "vault")
+
+    hint = classify_workspace_path_hint(vault)
+
+    assert hint["is_workspace"] is False
+    assert hint["kind"] == "obsidian_export"
+    assert "Obsidian export" in hint["message"]
+
+
+def test_gui_workspace_path_hint_identifies_conversion_output_folder(tmp_path):
+    conversion_output = tmp_path / "interview-office2md-output"
+    _write_doc(
+        conversion_output / "sample",
+        "sample-doc",
+        "sample.txt",
+        "document",
+        [_chunk("sample", "text", ["Sample"], "sample text", "Line 1")],
+        {},
+    )
+
+    hint = classify_workspace_path_hint(conversion_output)
+    command = build_workspace_init_command_hint(conversion_output)
+
+    assert hint["is_workspace"] is False
+    assert hint["kind"] == "conversion_output"
+    assert "Knowledge Pack" in hint["message"]
+    assert str(tmp_path / "interview.office2md") in command
+    assert "workspace-init" in command
+
+
+def test_gui_workspace_path_hint_identifies_output_workspace_suffix(tmp_path):
+    output_workspace = tmp_path / "interview-office2md-output"
+    output_workspace.mkdir()
+
+    hint = classify_workspace_path_hint(output_workspace)
+
+    assert hint["is_workspace"] is False
+    assert hint["kind"] == "output_workspace"
+    assert "not a workspace root" in hint["message"]
+    assert str(tmp_path / "interview.office2md") in hint["workspace_init_command"]
 
 
 def test_gui_workspace_status_helper_loads_full_traceability_workspace(tmp_path):

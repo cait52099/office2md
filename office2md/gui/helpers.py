@@ -18,7 +18,7 @@ from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.library import library_report
 from office2md.library import search_library, search_library_diagnostics, search_library_facets
 from office2md.scanner import scan_input
-from office2md.workspace import summarize_workspace_status
+from office2md.workspace import detect_workspace, summarize_workspace_status
 
 
 DEFAULT_RUNNER_PYTHON = r".\.venv\Scripts\python.exe"
@@ -602,6 +602,70 @@ def workspace_status_json_for_download(status: dict[str, Any]) -> str:
     return json.dumps(status, ensure_ascii=False, indent=2) + "\n"
 
 
+def classify_workspace_path_hint(path: Path) -> dict[str, Any]:
+    candidate = path.expanduser()
+    expected_markers = [
+        "workspace_manifest.json",
+        "source_manifest.json",
+        "versions/library_versions.json",
+        "versions/output_versions.json",
+    ]
+    hint: dict[str, Any] = {
+        "path": str(candidate),
+        "exists": candidate.exists(),
+        "is_workspace": detect_workspace(candidate),
+        "kind": "workspace_root" if detect_workspace(candidate) else "unknown",
+        "message": "",
+        "expected_markers": expected_markers,
+        "suggested_workspace_path": str(_suggest_workspace_root_from_path(candidate)),
+        "workspace_init_command": build_workspace_init_command_hint(candidate),
+    }
+    if hint["is_workspace"]:
+        hint["message"] = "This looks like an office2md workspace root."
+        return hint
+    if candidate.is_dir() and ((candidate / "library.db").exists() or (candidate / "library_index.json").exists()):
+        hint["kind"] = "built_library"
+        hint["message"] = "This looks like a built Library folder. Use it in Library Overview, Search, or Graph View, not as the Workspace Root Path."
+        return hint
+    if candidate.is_dir() and (candidate / "00_Index.md").exists() and (candidate / "_office2md" / "export_manifest.json").exists():
+        hint["kind"] = "obsidian_export"
+        hint["message"] = "This looks like an Obsidian export folder. It is an output artifact, not a workspace root."
+        return hint
+    if candidate.is_dir() and _looks_like_conversion_output(candidate):
+        hint["kind"] = "conversion_output"
+        hint["message"] = "This looks like a conversion output or Knowledge Pack folder. It is not a workspace root."
+        return hint
+    if candidate.name.endswith("-office2md-output") or candidate.name.endswith("_office2md_output"):
+        hint["kind"] = "output_workspace"
+        hint["message"] = "This looks like an office2md output workspace folder. It may contain conversion, library, or export outputs, but it is not a workspace root unless workspace-init was run there."
+        return hint
+    if not candidate.exists():
+        hint["kind"] = "missing_path"
+        hint["message"] = "This path does not exist yet. Create a workspace root with workspace-init before loading it here."
+    else:
+        hint["message"] = "This folder is not recognized as an office2md workspace root."
+    return hint
+
+
+def build_workspace_init_command_hint(path: Path) -> str:
+    suggested = _suggest_workspace_root_from_path(path.expanduser())
+    return _powershell_command(["python", "-m", "office2md.cli", "workspace-init", str(suggested)])
+
+
+def build_workspace_next_step_hints(status: dict[str, Any]) -> list[str]:
+    workspace_path = status.get("workspace", {}).get("workspace_path") or "WORKSPACE_PATH"
+    source_total = int(status.get("source_manifest", {}).get("total_sources") or 0)
+    library_total = int(status.get("library_versions", {}).get("total_versions") or 0)
+    output_total = int(status.get("output_versions", {}).get("total_versions") or 0)
+    if source_total or library_total or output_total:
+        return []
+    return [
+        _powershell_command(["python", "-m", "office2md.cli", "workspace-scan", workspace_path, "SOURCE_PATH"]),
+        _powershell_command(["python", "-m", "office2md.cli", "workspace-register-library", workspace_path, "LIBRARY_PATH"]),
+        _powershell_command(["python", "-m", "office2md.cli", "workspace-register-output", workspace_path, "OUTPUT_PATH"]),
+    ]
+
+
 def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -> list[str]:
     warnings = ["Dry-run only: no files will be converted and no library will be built."]
     source_text = str(source_folder)
@@ -618,6 +682,33 @@ def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -
 
 def _find_powershell() -> str | None:
     return shutil.which("powershell.exe") or shutil.which("powershell") or shutil.which("pwsh")
+
+
+def _suggest_workspace_root_from_path(path: Path) -> Path:
+    candidate = path.expanduser()
+    name = candidate.name
+    if name.endswith("-office2md-output"):
+        return candidate.with_name(name[: -len("-office2md-output")] + ".office2md")
+    if name.endswith("_office2md_output"):
+        return candidate.with_name(name[: -len("_office2md_output")] + ".office2md")
+    if candidate.suffix == ".office2md":
+        return candidate
+    return candidate.with_suffix(".office2md") if candidate.suffix else candidate.with_name(f"{name}.office2md")
+
+
+def _looks_like_conversion_output(path: Path) -> bool:
+    direct_markers = {"manifest.json", "chunks.jsonl", "source_map.json", "knowledge.json"}
+    if any((path / marker).exists() for marker in direct_markers):
+        return True
+    marker_count = 0
+    for child in path.iterdir():
+        if not child.is_dir():
+            continue
+        if any((child / marker).exists() for marker in direct_markers):
+            marker_count += 1
+        if marker_count >= 1:
+            return True
+    return False
 
 
 def _expected_manifest_names(files: list[Path], output_root: Path) -> list[str]:

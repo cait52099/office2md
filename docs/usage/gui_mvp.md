@@ -168,9 +168,24 @@ python -m office2md.cli workspace-status "WORKSPACE_PATH"
 
 Inputs:
 
-- Workspace Path.
+- Workspace Root Path.
 - Show history.
 - History limit, default `5`.
+
+The Workspace Root Path must be the folder created by `workspace-init`. It is separate from the GUI sidebar Library path. The Library path is used by Library Overview, Search, and Graph View; the Workspace Root Path is used by Workspace traceability status.
+
+Existing conversion output folders, built library folders, and Obsidian export folders are not automatically workspaces. If the path is not detected as a workspace, the page shows the expected workspace markers:
+
+- `workspace_manifest.json`
+- `source_manifest.json`
+- `versions/library_versions.json`
+- `versions/output_versions.json`
+
+It also shows a suggested command such as:
+
+```powershell
+python -m office2md.cli workspace-init "C:\Users\hcai\Downloads\interview.office2md"
+```
 
 The page shows:
 
@@ -182,6 +197,14 @@ The page shows:
 - recent library/output version history when enabled.
 
 The page also provides `Download workspace status JSON`.
+
+An init-only workspace is valid. It will show empty source/library/output history until you run scan/register commands. The page displays next-step examples for:
+
+```powershell
+python -m office2md.cli workspace-scan WORKSPACE_PATH SOURCE_PATH
+python -m office2md.cli workspace-register-library WORKSPACE_PATH LIBRARY_PATH
+python -m office2md.cli workspace-register-output WORKSPACE_PATH OUTPUT_PATH
+```
 
 It does not run `workspace-init`, run `workspace-scan`, convert files, build libraries, generate Obsidian exports, edit manifests, or modify source/output files.
 

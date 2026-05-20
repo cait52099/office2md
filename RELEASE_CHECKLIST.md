@@ -1,5 +1,39 @@
 # office2md Release Readiness Checklist
 
+v0.4.1-rc2 GUI Workspace path guidance checkpoint evidence:
+
+- [x] `python -m pytest` reports 141 passed.
+- [x] `python -m ruff check .` reports all checks passed.
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] Workspace page input label is `Workspace Root Path`.
+- [x] Helper text explains that the path must be created by `workspace-init`.
+- [x] Helper text explains that Workspace Root Path is separate from Library Path.
+- [x] Helper text explains that conversion output folders, built library folders, and Obsidian export folders are not workspace roots.
+- [x] Workspace-not-detected guidance shows expected markers: `workspace_manifest.json`, `source_manifest.json`, `versions/library_versions.json`, and `versions/output_versions.json`.
+- [x] Path type hints identify built library folders.
+- [x] Path type hints identify Obsidian export folders.
+- [x] Path type hints identify conversion / Knowledge Pack-like folders.
+- [x] Path type hints identify `*-office2md-output` output folders.
+- [x] Non-workspace paths show a `workspace-init` command hint.
+- [x] `interview-office2md-output` suggests `interview.office2md`.
+- [x] Valid init-only workspaces are treated as valid and show `Workspace detected`.
+- [x] Init-only workspaces can show zero source/library/output counts without error.
+- [x] Init-only guidance explains that scan/register history is empty.
+- [x] Init-only guidance shows next-step command hints for `workspace-scan`, `workspace-register-library`, and `workspace-register-output`.
+- [x] Current full valid workspace behavior is unchanged.
+- [x] The page is read-only: no subprocess, no automatic workspace-init, no automatic workspace-scan, no conversion, no build-library, no export, and no file writes.
+- [x] GUI/helper smoke confirms `C:\Users\hcai\Downloads\interview-office2md-output` is classified as output-like and receives a workspace-init hint.
+- [x] GUI/helper smoke confirms `C:\Users\hcai\Downloads\interview.office2md` is detected as a valid init-only workspace and receives next-step hints.
+- [x] Conversion behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] Build-library internals are unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Graph View behavior is unchanged.
+- [x] Obsidian export behavior is unchanged.
+- [x] No Wiki editing workflow is included.
+- [x] No AI suggestions are included.
+- [x] No Marker, AI, OCR, embedding, vector, or cloud work is included.
+
 v0.4.1-rc1 GUI Workspace Dashboard checkpoint evidence:
 
 - [x] `python -m pytest` reports 137 passed.

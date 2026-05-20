@@ -9,6 +9,7 @@ from office2md.gui.helpers import (
     build_obsidian_export_command_preview,
     build_library_command_preview,
     build_runner_command_preview,
+    build_workspace_next_step_hints,
     derive_workspace_paths,
     graph_json_path,
     graph_node_types,
@@ -16,6 +17,7 @@ from office2md.gui.helpers import (
     graph_view_html,
     is_conversion_output_path,
     is_valid_library_path,
+    classify_workspace_path_hint,
     load_workspace_status_for_gui,
     load_curated_concept_index,
     load_library_overview,
@@ -511,21 +513,38 @@ def render_workspace() -> None:
         "Read-only workspace status. This page displays the same traceability summary as workspace-status. "
         "It does not scan, convert, build, export, or modify files."
     )
+    st.caption(
+        "Workspace Root Path is the folder created by workspace-init. It is separate from the Library Path used by "
+        "Library Overview, Search, and Graph View. Conversion outputs, built libraries, and Obsidian exports are not workspace roots."
+    )
     control_columns = st.columns(3)
-    workspace_value = control_columns[0].text_input("Workspace Path", value="")
+    workspace_value = control_columns[0].text_input(
+        "Workspace Root Path",
+        value="",
+        help=(
+            "Use a folder created by workspace-init. Do not use a conversion output folder, built library folder, "
+            "or Obsidian export folder."
+        ),
+    )
     show_history = control_columns[1].checkbox("Show history", value=False)
     history_limit = int(control_columns[2].number_input("History limit", min_value=0, max_value=100, value=5, step=1))
 
     if not workspace_value.strip():
-        st.warning("Enter an office2md workspace folder path.")
+        st.warning("Enter an office2md Workspace Root Path created by workspace-init.")
         return
 
+    workspace_path = _required_path(workspace_value, "Workspace Root Path")
+    path_hint = classify_workspace_path_hint(workspace_path)
     try:
-        workspace_path = _required_path(workspace_value, "Workspace Path")
         status = load_workspace_status_for_gui(workspace_path, show_history=show_history, limit=history_limit)
     except Exception as exc:
         st.error("Workspace not detected")
         st.error(f"Unable to load workspace status: {exc}")
+        st.warning(path_hint["message"])
+        st.subheader("Expected Workspace Markers")
+        st.code("\n".join(path_hint["expected_markers"]), language="text")
+        st.subheader("Create Workspace Root")
+        st.code(path_hint["workspace_init_command"], language="powershell")
         return
 
     workspace = status["workspace"]
@@ -536,6 +555,8 @@ def render_workspace() -> None:
 
     st.subheader("Workspace Status")
     st.success("Workspace detected")
+    if path_hint.get("message"):
+        st.caption(path_hint["message"])
     workspace_columns = st.columns(3)
     workspace_columns[0].write({"workspace_path": workspace["workspace_path"]})
     workspace_columns[1].write({"created_at": workspace.get("created_at"), "updated_at": workspace.get("updated_at")})
@@ -556,6 +577,8 @@ def render_workspace() -> None:
         source_columns[index].metric(key, source.get(key, 0))
     if source.get("last_scan"):
         st.write({"last_scan": source["last_scan"]})
+    elif source.get("total_sources", 0) == 0:
+        st.info("No source scan history yet. This is valid for an init-only workspace.")
     for warning in source.get("warnings") or []:
         st.warning(warning)
 
@@ -578,7 +601,7 @@ def render_workspace() -> None:
         for warning in latest_library.get("warnings") or []:
             st.warning(warning)
     else:
-        st.info("No library versions registered.")
+        st.info("No library versions registered yet. Register a built library when one is ready.")
 
     st.subheader("Output Versions")
     st.metric("total output versions", output.get("total_versions", 0))
@@ -603,7 +626,7 @@ def render_workspace() -> None:
         for warning in latest_output.get("warnings") or []:
             st.warning(warning)
     else:
-        st.info("No output versions registered.")
+        st.info("No output versions registered yet. Register generated outputs when they are ready.")
 
     st.subheader("Traceability")
     st.code(
@@ -617,6 +640,12 @@ def render_workspace() -> None:
         st.warning(warning)
     for error in status.get("errors") or []:
         st.error(error)
+
+    next_steps = build_workspace_next_step_hints(status)
+    if next_steps:
+        st.subheader("Next Step Commands")
+        st.info("This workspace is valid but has no source/library/output history yet.")
+        st.code("\n".join(next_steps), language="powershell")
 
     if show_history:
         st.subheader("History")
