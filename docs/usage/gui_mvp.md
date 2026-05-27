@@ -1,6 +1,6 @@
-# office2md GUI MVP
+# office2md Local Knowledge Workspace
 
-The v0.3.0 GUI MVP is a local Streamlit workflow shell around existing stable office2md library functionality.
+The office2md GUI is a local Streamlit workspace around existing stable office2md library functionality.
 
 It is optional. Normal CLI installation and usage do not require Streamlit.
 
@@ -23,10 +23,10 @@ python -m streamlit run office2md/gui/app.py
 The app opens with:
 
 ```text
-office2md GUI MVP
+office2md Local Knowledge Workspace
 ```
 
-Use the sidebar to enter a Knowledge Library folder path or a `library.db` path. The Library Overview page loads existing `library_report()` data and shows:
+Use the sidebar to enter a Knowledge Library folder path or a `library.db` path. The Library page loads existing `library_report()` data and shows:
 
 - `documents_count`
 - `chunks_count`
@@ -39,13 +39,13 @@ If the library path is missing or invalid, the app shows a warning instead of ru
 
 ## Current Pages
 
-- Library Overview: implemented.
+- Library: implemented.
 - Search: implemented as a read-only wrapper around existing library search.
-- Graph View: implemented as a read-only view of existing `library_graph.json`.
-- Build / Update Library: Scan / Dry-run, Convert / Update runner execution, Build Library, and Load Built Library implemented.
-- Workspace: implemented as a read-only view of existing workspace status and traceability manifests.
+- Knowledge Graph: implemented as a read-only view of existing `library_graph.json`.
+- Build / Update: Scan / Dry-run, Convert / Update runner execution, Build Library, and Load Built Library implemented.
+- Workspace Status: implemented as a read-only view of existing workspace status and traceability manifests.
 - Export: Obsidian vault export implemented using the existing local exporter.
-- Locate Document: placeholder for a future GUI step.
+- Find Document: placeholder for a future GUI step.
 - Evidence Package: placeholder for a future GUI step.
 - Runner Dry-run: placeholder for a future GUI step.
 
@@ -67,9 +67,9 @@ Results are displayed in a table with rank, document title, source file, documen
 
 The search panel also provides a `Download search JSON` button for the current result set. The download uses the existing search export JSON payload shape; it does not change the CLI `--export-json` schema.
 
-## Graph View
+## Knowledge Graph
 
-Open the Graph View page from the sidebar after entering a Knowledge Library folder or `library.db` path.
+Open the Knowledge Graph page from the sidebar after entering a Knowledge Library folder or `library.db` path.
 
 The panel loads the existing `library_graph.json` file from the selected library folder. It is read-only and does not rebuild, edit, or regenerate graph data.
 
@@ -97,9 +97,9 @@ The default graph filters noisy labels such as language codes, standalone units,
 
 Large graphs are bounded by the max nodes setting before rendering. The Raw Provenance Graph also has a node type filter. When optional `pyvis` is available, the page renders an interactive graph. If rendering is unavailable or fails, the page shows fallback node and edge tables.
 
-## Build / Update Library
+## Build / Update
 
-Open the Build / Update Library page from the sidebar to inspect a source folder, run conversion through the existing PowerShell chunked runner, build a searchable library, and load the built library into the GUI.
+Open the Build / Update page from the sidebar to inspect a source folder, run conversion through the existing PowerShell chunked runner, build a searchable library, and load the built library into the GUI.
 
 Inputs:
 
@@ -156,11 +156,11 @@ Recommended practice:
 
 Warnings are shown for OneDrive/Teams synced folders, network paths, legacy `.doc` limitations, dry-run behavior, and no OCR/no AI defaults.
 
-## Workspace
+## Workspace Status
 
-Open the Workspace page from the sidebar after creating a workspace with `workspace-init`.
+Open the Workspace Status page from the sidebar after creating a workspace with `workspace-init`.
 
-The Workspace page is read-only. It displays the same traceability summary as:
+The Workspace Status page is read-only. It displays the same traceability summary as:
 
 ```powershell
 python -m office2md.cli workspace-status "WORKSPACE_PATH"
@@ -172,7 +172,7 @@ Inputs:
 - Show history.
 - History limit, default `5`.
 
-The Workspace Root Path must be the folder created by `workspace-init`. It is separate from the GUI sidebar Library path. The Library path is used by Library Overview, Search, and Graph View; the Workspace Root Path is used by Workspace traceability status.
+The Workspace Root Path must be the folder created by `workspace-init`. It is separate from the GUI sidebar Library path. The Library path is used by Library, Search, and Knowledge Graph; the Workspace Root Path is used by Workspace traceability status.
 
 Existing conversion output folders, built library folders, and Obsidian export folders are not automatically workspaces. If the path is not detected as a workspace, the page shows the expected workspace markers:
 
@@ -198,7 +198,13 @@ The page shows:
 
 The page also provides `Download workspace status JSON`.
 
-An init-only workspace is valid. It will show empty source/library/output history until you run scan/register commands. The page displays next-step examples for:
+An init-only workspace is valid. It will show empty source/library/output history until you run scan/register commands. The page displays a suggested workflow:
+
+1. Scan source files.
+2. Register built library.
+3. Register generated output.
+
+It also shows command examples:
 
 ```powershell
 python -m office2md.cli workspace-scan WORKSPACE_PATH SOURCE_PATH

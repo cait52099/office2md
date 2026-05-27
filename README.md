@@ -182,7 +182,7 @@ The command creates workspace folders plus manifest/version files without conver
 
 `workspace-status` shows a read-only source/library/output traceability summary, including the latest `source_manifest_hash -> library_version_id -> output_version_id` chain. Use `--json` for machine-readable output, `--show-history` for recent versions, and `--strict` when missing manifests or broken linkage should fail the command.
 
-The optional Streamlit GUI also includes a read-only Workspace page for the same status summary and JSON download. Its Workspace Root Path must be a folder created by `workspace-init`, separate from the Library path used by Library Overview/Search/Graph. It does not scan, convert, build, export, or modify workspace files.
+The optional Streamlit GUI also includes a read-only Workspace Status page for the same status summary and JSON download. Its Workspace Root Path must be a folder created by `workspace-init`, separate from the Library path used by Library/Search/Knowledge Graph. It does not scan, convert, build, export, or modify workspace files.
 
 ### AI Enrichment (Optional)
 

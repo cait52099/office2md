@@ -39,6 +39,7 @@ from office2md.gui.helpers import (
     summarize_conversion_output,
     validate_workspace_paths,
     workspace_status_json_for_download,
+    workspace_traceability_display,
 )
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources
@@ -1155,6 +1156,7 @@ def test_gui_workspace_status_helper_loads_init_only_workspace(tmp_path):
     payload = json.loads(workspace_status_json_for_download(status))
     hint = classify_workspace_path_hint(workspace)
     next_steps = build_workspace_next_step_hints(status)
+    traceability = workspace_traceability_display(status)
 
     assert status["workspace"]["workspace_path"] == str(workspace.resolve())
     assert status["source_manifest"]["total_sources"] == 0
@@ -1165,6 +1167,9 @@ def test_gui_workspace_status_helper_loads_init_only_workspace(tmp_path):
     assert hint["kind"] == "workspace_root"
     assert len(next_steps) == 3
     assert "workspace-scan" in next_steps[0]
+    assert traceability["complete"] is False
+    assert traceability["text"] == ""
+    assert traceability["next_required_step"] == "Register a library version."
 
 
 def test_gui_workspace_status_helper_handles_invalid_workspace_path(tmp_path):
@@ -1245,7 +1250,11 @@ def test_gui_workspace_status_helper_loads_full_traceability_workspace(tmp_path)
     assert status["output_versions"]["latest"]["output_version_id"] == output_record["output_version_id"]
     assert status["traceability"]["library_version_id"] == library_record["library_version_id"]
     assert status["traceability"]["output_version_id"] == output_record["output_version_id"]
+    traceability = workspace_traceability_display(status)
     assert status["output_versions"]["latest"]["export_manifest"]["export_type"] == "obsidian"
+    assert traceability["complete"] is True
+    assert library_record["library_version_id"] in traceability["text"]
+    assert output_record["output_version_id"] in traceability["text"]
     assert len(status["library_versions"]["history"]) == 1
     assert len(status["output_versions"]["history"]) == 1
     assert payload["workspace"]["workspace_path"] == str(workspace.resolve())

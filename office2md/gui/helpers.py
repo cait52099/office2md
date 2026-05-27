@@ -666,6 +666,40 @@ def build_workspace_next_step_hints(status: dict[str, Any]) -> list[str]:
     ]
 
 
+def workspace_traceability_display(status: dict[str, Any]) -> dict[str, Any]:
+    traceability = status.get("traceability") or {}
+    source_hash = traceability.get("source_manifest_hash")
+    library_id = traceability.get("library_version_id")
+    output_id = traceability.get("output_version_id")
+    if source_hash and library_id and output_id:
+        return {
+            "complete": True,
+            "text": f"{source_hash} -> {library_id} -> {output_id}",
+            "message": "Traceability chain is complete.",
+            "next_required_step": None,
+        }
+    if source_hash and not library_id:
+        return {
+            "complete": False,
+            "text": "",
+            "message": "Traceability chain is not complete yet.",
+            "next_required_step": "Register a library version.",
+        }
+    if library_id and not output_id:
+        return {
+            "complete": False,
+            "text": "",
+            "message": "Traceability chain is not complete yet.",
+            "next_required_step": "Register a generated output.",
+        }
+    return {
+        "complete": False,
+        "text": "",
+        "message": "Traceability chain is not complete yet.",
+        "next_required_step": "Scan source files.",
+    }
+
+
 def dry_run_path_warnings(source_folder: Path, conversion_output_folder: Path) -> list[str]:
     warnings = ["Dry-run only: no files will be converted and no library will be built."]
     source_text = str(source_folder)

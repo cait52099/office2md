@@ -1140,3 +1140,22 @@ v0.3.1 release documentation patch evidence:
 - [ ] CLI help checks pass for convert, build-library, search-library, locate-document, and library-report.
 - [ ] No conversion behavior, runner process-control behavior, build-library internals, search core/ranking/aliases/token fallback, Graph View behavior, library-report scoring, Marker integration, Obsidian export, AI/OCR/embedding/vector/cloud behavior changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.3.1.md`.
+
+v0.4.1-rc3 GUI product presentation polish checkpoint evidence:
+
+- [ ] `python -m pytest` reports 141 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for workspace-status, workspace-init, workspace-scan, workspace-register-library, workspace-register-output, export-obsidian, convert, build-library, search-library, locate-document, and library-report.
+- [ ] Main GUI title is `office2md Local Knowledge Workspace`.
+- [ ] Sidebar labels include `Library`, `Knowledge Graph`, `Build / Update`, `Workspace Status`, and `Find Document`.
+- [ ] Internal GUI routing remains stable through product labels mapped to existing route identifiers.
+- [ ] Workspace Status uses friendlier summary metrics and table rows instead of raw top-level debug JSON blocks.
+- [ ] Detailed workspace data remains available through `Workspace details` and `Download workspace status JSON`.
+- [ ] Init-only workspaces no longer show empty trace arrows such as `sha256:... -> ->`.
+- [ ] Empty source/library/output states use clear product wording.
+- [ ] Next-step commands are shown as a guided workflow: scan sources, register library, register output.
+- [ ] Non-workspace path hints remain unchanged.
+- [ ] Workspace Status remains read-only with no subprocess, automatic workspace-init, automatic workspace-scan, conversion, build-library, export, manifest writes, or source/output file modifications.
+- [ ] No OfficeCLI integration, new conversion engines, conversion behavior changes, runner behavior changes, build-library internals changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, Wiki editing workflow, AI/OCR/Marker/vector/cloud work, or workspace CLI behavior changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.1-rc3.md`.

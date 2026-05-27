@@ -37,13 +37,27 @@ from office2md.gui.helpers import (
     suggest_workspace_path,
     validate_workspace_paths,
     workspace_status_json_for_download,
+    workspace_traceability_display,
     workspace_warnings,
 )
 
 
+PAGE_LABELS = {
+    "Library": "library",
+    "Search": "search",
+    "Knowledge Graph": "graph",
+    "Build / Update": "build_update",
+    "Workspace Status": "workspace",
+    "Export": "export",
+    "Find Document": "locate_document",
+    "Evidence Package": "evidence_package",
+    "Runner Dry-run": "runner_dry_run",
+}
+
+
 def main() -> None:
-    st.set_page_config(page_title="office2md GUI MVP", layout="wide")
-    st.title("office2md GUI MVP")
+    st.set_page_config(page_title="office2md Local Knowledge Workspace", layout="wide")
+    st.title("office2md Local Knowledge Workspace")
 
     st.sidebar.header("Library")
     pending_library_path = st.session_state.pop("pending_library_path_value", None)
@@ -54,43 +68,34 @@ def main() -> None:
     library_value = st.sidebar.text_input("Library path", key="library_path_value")
     library_path = normalize_library_path(library_value)
 
-    page = st.sidebar.radio(
+    page_label = st.sidebar.radio(
         "Page",
-        [
-            "Library Overview",
-            "Search",
-            "Graph View",
-            "Build / Update Library",
-            "Workspace",
-            "Export",
-            "Locate Document",
-            "Evidence Package",
-            "Runner Dry-run",
-        ],
+        list(PAGE_LABELS.keys()),
     )
+    page = PAGE_LABELS[page_label]
 
-    if page == "Library Overview":
+    if page == "library":
         render_library_overview(library_path)
-    elif page == "Search":
+    elif page == "search":
         render_search(library_path)
-    elif page == "Graph View":
+    elif page == "graph":
         render_graph_view(library_path)
-    elif page == "Build / Update Library":
+    elif page == "build_update":
         render_build_update_library()
-    elif page == "Workspace":
+    elif page == "workspace":
         render_workspace()
-    elif page == "Export":
+    elif page == "export":
         render_export(library_path)
-    elif page == "Locate Document":
-        render_placeholder("Locate Document", "Locate-document panel is planned for v0.3.0 P3.")
-    elif page == "Evidence Package":
+    elif page == "locate_document":
+        render_placeholder("Find Document", "Find-document panel is planned for a future GUI step.")
+    elif page == "evidence_package":
         render_placeholder("Evidence Package", "Evidence package controls are planned for v0.3.0 P4.")
-    elif page == "Runner Dry-run":
+    elif page == "runner_dry_run":
         render_placeholder("Runner Dry-run", "Runner dry-run controls are planned for v0.3.0 P5.")
 
 
 def render_library_overview(library_path: Path | None) -> None:
-    st.header("Library Overview")
+    st.header("Library")
     if not is_valid_library_path(library_path):
         if is_conversion_output_path(library_path):
             st.warning("This looks like a conversion output folder, not a built library. Load the workspace library folder instead.")
@@ -229,7 +234,7 @@ def render_related_chunks(results: list[dict]) -> None:
 
 
 def render_graph_view(library_path: Path | None) -> None:
-    st.header("Graph View")
+    st.header("Knowledge Graph")
     if library_path is None:
         st.warning("Enter a valid Knowledge Library folder or library.db path in the sidebar.")
         return
@@ -327,7 +332,7 @@ def render_graph_fallback(graph_view: dict) -> None:
 
 
 def render_build_update_library() -> None:
-    st.header("Build / Update Library")
+    st.header("Build / Update")
     st.caption("Select a source folder and one output workspace. The GUI keeps conversion, library, and logs separate.")
 
     path_columns = st.columns(2)
@@ -508,14 +513,14 @@ def render_export(library_path: Path | None) -> None:
 
 
 def render_workspace() -> None:
-    st.header("Workspace")
+    st.header("Workspace Status")
     st.info(
         "Read-only workspace status. This page displays the same traceability summary as workspace-status. "
         "It does not scan, convert, build, export, or modify files."
     )
     st.caption(
         "Workspace Root Path is the folder created by workspace-init. It is separate from the Library Path used by "
-        "Library Overview, Search, and Graph View. Conversion outputs, built libraries, and Obsidian exports are not workspace roots."
+        "Library, Search, and Knowledge Graph. Conversion outputs, built libraries, and Obsidian exports are not workspace roots."
     )
     control_columns = st.columns(3)
     workspace_value = control_columns[0].text_input(
@@ -552,20 +557,32 @@ def render_workspace() -> None:
     library = status["library_versions"]
     output = status["output_versions"]
     traceability = status["traceability"]
+    traceability_view = workspace_traceability_display(status)
 
     st.subheader("Workspace Status")
     st.success("Workspace detected")
     if path_hint.get("message"):
         st.caption(path_hint["message"])
-    workspace_columns = st.columns(3)
-    workspace_columns[0].write({"workspace_path": workspace["workspace_path"]})
-    workspace_columns[1].write({"created_at": workspace.get("created_at"), "updated_at": workspace.get("updated_at")})
-    workspace_columns[2].write(
-        {
-            "missing_folders": len(workspace.get("missing_expected_folders") or []),
-            "missing_manifests": len(workspace.get("missing_expected_manifests") or []),
-        }
+    workspace_columns = st.columns(4)
+    workspace_columns[0].metric("Missing folders", len(workspace.get("missing_expected_folders") or []))
+    workspace_columns[1].metric("Missing manifests", len(workspace.get("missing_expected_manifests") or []))
+    workspace_columns[2].write("Created at")
+    workspace_columns[2].caption(str(workspace.get("created_at") or ""))
+    workspace_columns[3].write("Updated at")
+    workspace_columns[3].caption(str(workspace.get("updated_at") or ""))
+    st.dataframe(
+        [
+            {"Field": "Workspace path", "Value": workspace["workspace_path"]},
+            {"Field": "Created at", "Value": workspace.get("created_at")},
+            {"Field": "Updated at", "Value": workspace.get("updated_at")},
+            {"Field": "Missing folders", "Value": ", ".join(workspace.get("missing_expected_folders") or []) or "None"},
+            {"Field": "Missing manifests", "Value": ", ".join(workspace.get("missing_expected_manifests") or []) or "None"},
+        ],
+        hide_index=True,
+        use_container_width=True,
     )
+    with st.expander("Workspace details"):
+        st.json({"workspace": workspace})
     if workspace.get("missing_expected_folders"):
         st.warning("Missing expected folders: " + ", ".join(workspace["missing_expected_folders"]))
     if workspace.get("missing_expected_manifests"):
@@ -578,7 +595,7 @@ def render_workspace() -> None:
     if source.get("last_scan"):
         st.write({"last_scan": source["last_scan"]})
     elif source.get("total_sources", 0) == 0:
-        st.info("No source scan history yet. This is valid for an init-only workspace.")
+        st.info("No source scan history yet. Run workspace-scan to register source files.")
     for warning in source.get("warnings") or []:
         st.warning(warning)
 
@@ -629,12 +646,11 @@ def render_workspace() -> None:
         st.info("No output versions registered yet. Register generated outputs when they are ready.")
 
     st.subheader("Traceability")
-    st.code(
-        f"{traceability.get('source_manifest_hash') or ''} -> "
-        f"{traceability.get('library_version_id') or ''} -> "
-        f"{traceability.get('output_version_id') or ''}",
-        language="text",
-    )
+    if traceability_view["complete"]:
+        st.code(traceability_view["text"], language="text")
+    else:
+        st.info(traceability_view["message"])
+        st.write({"current_source_manifest_hash": traceability.get("source_manifest_hash"), "next_required_step": traceability_view["next_required_step"]})
 
     for warning in status.get("warnings") or []:
         st.warning(warning)
@@ -643,9 +659,18 @@ def render_workspace() -> None:
 
     next_steps = build_workspace_next_step_hints(status)
     if next_steps:
-        st.subheader("Next Step Commands")
+        st.subheader("Suggested Workflow")
         st.info("This workspace is valid but has no source/library/output history yet.")
-        st.code("\n".join(next_steps), language="powershell")
+        for index, (label, command) in enumerate(
+            [
+                ("Scan source files", next_steps[0]),
+                ("Register built library", next_steps[1]),
+                ("Register generated output", next_steps[2]),
+            ],
+            start=1,
+        ):
+            st.markdown(f"{index}. {label}")
+            st.code(command, language="powershell")
 
     if show_history:
         st.subheader("History")
@@ -802,7 +827,7 @@ def render_build_library_section(conversion_output_folder: Path, library_output_
     if st.button("Load Built Library"):
         if summary["is_valid_library"]:
             st.session_state["pending_library_path_value"] = str(library_output_folder)
-            st.success("Loaded Library Output Folder. Library Overview, Search, and Graph View will use this path.")
+            st.success("Loaded Library Output Folder. Library, Search, and Knowledge Graph will use this path.")
             st.rerun()
         else:
             st.warning(
