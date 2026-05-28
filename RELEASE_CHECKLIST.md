@@ -1186,3 +1186,30 @@ v0.4.1 final release readiness evidence:
 - [ ] No OfficeCLI integration or dependency is included.
 - [ ] No Wiki editing workflow, AI suggestions, Marker integration, AI/OCR/embedding/vector/cloud work, conversion behavior changes, runner behavior changes, build-library internals changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, or GUI workspace file modifications are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.1.md`.
+
+v0.4.2-rc1 OfficeCLI read-only benchmark harness checkpoint evidence:
+
+- [ ] `officecli-benchmark INPUT_PATH OUTPUT_DIR` command exists.
+- [ ] Command options include `--officecli-path`, `--max-files`, `--include-hidden`, `--formats`, `--timeout-seconds`, `--skip-html`, `--json`, and `--dry-run`.
+- [ ] OfficeCLI remains optional and no required dependency is added.
+- [ ] Missing OfficeCLI produces a clear error.
+- [ ] Unit tests do not require real OfficeCLI.
+- [ ] Only read-only OfficeCLI commands are planned: `--version`, `view FILE outline`, `view FILE text --max-lines 200`, `view FILE html`, `get FILE / --depth 2 --json`, `validate FILE`, and `view FILE issues --limit 50`.
+- [ ] Mutating command tokens `create`, `add`, `set`, `remove`, resident edit `open`, and resident edit `close` are forbidden in the benchmark command plan.
+- [ ] Source SHA-256 is computed before and after OfficeCLI commands.
+- [ ] Checksum changes are recorded as critical failures.
+- [ ] Artifacts are written only under `OUTPUT_DIR`.
+- [ ] `stdout`, `stderr`, exit code, and runtime are captured for each OfficeCLI command.
+- [ ] Per-file failures are recorded and the benchmark continues.
+- [ ] Single-file and directory inputs are supported.
+- [ ] Default file selection includes `.docx`, `.xlsx`, and `.pptx`, ignores temporary `~$` Office files, respects `--max-files`, and does not process legacy `.doc`.
+- [ ] Output structure includes `officecli_benchmark_summary.json`, `officecli_benchmark_report.md`, and per-file `metadata.json`, command results, and command artifacts.
+- [ ] Summary JSON includes schema, timestamps, OfficeCLI and office2md version metadata, input/output paths, options, counts, and files.
+- [ ] Markdown report includes overview, OfficeCLI version, selected file count, per-format summary, failures, checksum safety result, and recommendation placeholder.
+- [ ] `--dry-run` writes no artifacts.
+- [ ] Real OfficeCLI smoke against `C:\Users\hcai\Desktop\test` with `C:\Users\hcai\bin\officecli.exe` selected 3 files, parsed summary JSON, wrote Markdown report, recorded 2 successes and 1 per-file failure, and changed 0 checksums.
+- [ ] `python -m pytest` reports 154 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
+- [ ] No conversion, runner, build-library, search/ranking, Graph View, Obsidian export, workspace behavior, OfficeCLI sidecar extraction, `--office-engine officecli`, or AI/OCR/Marker/vector/cloud changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.2-rc1.md`.

@@ -20,6 +20,7 @@ from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
+from office2md.officecli_benchmark import run_officecli_benchmark
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
 from office2md.postprocess.drawing_index import build_drawing_index_chunks, extract_drawing_index
 from office2md.postprocess.entities import extract_entities
@@ -340,6 +341,68 @@ def workspace_status_command(
         _print_workspace_status(status, show_history=show_history)
     if strict and status["errors"]:
         raise typer.Exit(1)
+
+
+@app.command("officecli-benchmark")
+def officecli_benchmark_command(
+    input_path: Path,
+    output_dir: Path,
+    officecli_path: Path = typer.Option(None, "--officecli-path", help="OfficeCLI executable path. Defaults to officecli on PATH."),
+    max_files: int = typer.Option(None, "--max-files", help="Maximum Office files to benchmark."),
+    include_hidden: bool = typer.Option(False, "--include-hidden", help="Include Office files under dot-prefixed paths."),
+    formats: str = typer.Option("docx,xlsx,pptx", "--formats", help="Comma-separated Office extensions to include."),
+    timeout_seconds: int = typer.Option(60, "--timeout-seconds", help="Per-command timeout in seconds."),
+    skip_html: bool = typer.Option(False, "--skip-html", help="Skip OfficeCLI HTML preview command."),
+    json_output: bool = typer.Option(False, "--json", help="Print benchmark summary JSON."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview selected files and commands without writing artifacts."),
+) -> None:
+    """Run a read-only OfficeCLI benchmark without changing conversion behavior."""
+    parsed_formats = tuple(item.strip().lower().lstrip(".") for item in formats.split(",") if item.strip())
+    if not parsed_formats:
+        raise typer.BadParameter("--formats must include at least one extension")
+    try:
+        summary = run_officecli_benchmark(
+            input_path,
+            output_dir,
+            officecli_path=officecli_path,
+            max_files=max_files,
+            include_hidden=include_hidden,
+            formats=parsed_formats,
+            timeout_seconds=timeout_seconds,
+            skip_html=skip_html,
+            dry_run=dry_run,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    if json_output:
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return
+
+    counts = summary["counts"]
+    table = Table(title="office2md officecli-benchmark")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("input_path", summary["input_path"])
+    table.add_row("output_dir", summary["output_dir"])
+    table.add_row("officecli_path", summary["officecli_path"])
+    table.add_row("officecli_version", str(summary.get("officecli_version") or ""))
+    table.add_row("dry_run", str(summary["dry_run"]))
+    table.add_row("files_selected", str(counts["files_selected"]))
+    table.add_row("files_succeeded", str(counts["files_succeeded"]))
+    table.add_row("files_failed", str(counts["files_failed"]))
+    table.add_row("checksum_changed", str(counts["checksum_changed"]))
+    table.add_row("json_parse_success", str(counts["json_parse_success"]))
+    table.add_row("html_generated", str(counts["html_generated"]))
+    console.print(table)
+    if dry_run:
+        console.print("Dry run: OfficeCLI was not executed and no artifacts were written.")
+        console.print("planned_commands:")
+        for command in summary["planned_commands"]:
+            console.print(" ".join(command))
+    else:
+        console.print(f"Summary: {Path(summary['output_dir']) / 'officecli_benchmark_summary.json'}")
+        console.print(f"Report: {Path(summary['output_dir']) / 'officecli_benchmark_report.md'}")
 
 
 @app.command("build-library")

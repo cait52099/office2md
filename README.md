@@ -184,6 +184,10 @@ The command creates workspace folders plus manifest/version files without conver
 
 The optional Streamlit GUI also includes a read-only Workspace Status page for the same status summary and JSON download. Its Workspace Root Path must be a folder created by `workspace-init`, separate from the Library path used by Library/Search/Knowledge Graph. It does not scan, convert, build, export, or modify workspace files.
 
+### OfficeCLI Benchmark
+
+`officecli-benchmark` is an optional, read-only benchmark command for evaluating OfficeCLI against DOCX/XLSX/PPTX files. It verifies source checksums before and after OfficeCLI commands and writes artifacts only to the requested output folder. It does not change the default conversion pipeline or require OfficeCLI as a dependency.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

@@ -1,6 +1,8 @@
 # v0.4.2 OfficeCLI Benchmark Plan
 
-Status: design only.
+Status: design with v0.4.2 P1 benchmark harness.
+
+Implementation note: v0.4.2 P1 adds a read-only `officecli-benchmark` harness for this plan. It remains optional, does not change conversion behavior, and does not add OfficeCLI as a dependency.
 
 ## Purpose
 
