@@ -188,6 +188,10 @@ The optional Streamlit GUI also includes a read-only Workspace Status page for t
 
 `officecli-benchmark` is an optional, read-only benchmark command for evaluating OfficeCLI against DOCX/XLSX/PPTX files. It verifies source checksums before and after OfficeCLI commands and writes artifacts only to the requested output folder. It does not change the default conversion pipeline or require OfficeCLI as a dependency.
 
+### Agent-Ready CLI JSON
+
+office2md is preparing stable, read-only CLI JSON contracts for future AI-agent workflows. The planned interface is evidence-first: search a built Knowledge Library, open selected chunks by `chunk_id`, and cite `source_file`, `locator`, and `document_id` in downstream answers or report drafts. See `docs/usage/agent_ready_cli.md` and `docs/design/v044_agent_ready_json_contract.md`.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

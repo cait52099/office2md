@@ -1324,3 +1324,23 @@ v0.4.3 final release readiness evidence:
 - [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
 - [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.3.md`.
+
+v0.4.4-rc1 Agent-ready JSON Contract Foundation checkpoint evidence:
+
+- [ ] Docs-only checkpoint.
+- [ ] `docs/design/v044_agent_ready_json_contract.md` defines agent-ready CLI/core JSON contract principles.
+- [ ] `docs/usage/agent_ready_cli.md` documents planned agent-ready CLI workflows.
+- [ ] README includes a short pointer to the agent-ready CLI JSON docs.
+- [ ] Evidence packet fields are documented: `source_file`, `locator`, `chunk_id`, `document_id`, `document_title`, `document_kind`, `evidence_type`, `confidence`, and `limitation`.
+- [ ] Future schema names are documented for search, open-chunk, locate-document, build-report-context, and library-report JSON.
+- [ ] CLI JSON is documented as the stable base for future read-only MCP adapters.
+- [ ] Planned workflows are documented: search -> open-chunk -> evidence-first answer, locate-document -> open-chunk, and build-report-context -> report draft.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] No runtime code changes are included.
+- [ ] No CLI behavior changes are included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m office2md.cli --help` passes.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc1.md`.
