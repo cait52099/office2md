@@ -1159,3 +1159,30 @@ v0.4.1-rc3 GUI product presentation polish checkpoint evidence:
 - [ ] Workspace Status remains read-only with no subprocess, automatic workspace-init, automatic workspace-scan, conversion, build-library, export, manifest writes, or source/output file modifications.
 - [ ] No OfficeCLI integration, new conversion engines, conversion behavior changes, runner behavior changes, build-library internals changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, Wiki editing workflow, AI/OCR/Marker/vector/cloud work, or workspace CLI behavior changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.1-rc3.md`.
+
+v0.4.1 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.1`.
+- [ ] `office2md.__version__` is updated to `0.4.1`.
+- [ ] `python -m pytest` reports 141 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for workspace-init, workspace-scan, workspace-register-library, workspace-register-output, workspace-status, export-obsidian, convert, build-library, search-library, locate-document, and library-report.
+- [ ] GUI title is `office2md Local Knowledge Workspace`.
+- [ ] Sidebar labels are product-facing.
+- [ ] Workspace Status page exists and remains read-only.
+- [ ] Workspace Root Path guidance is clear.
+- [ ] Library Path versus Workspace Root Path distinction is clear.
+- [ ] Init-only workspace status is valid and readable.
+- [ ] Empty source/library/output states use friendly wording.
+- [ ] Incomplete traceability state does not show empty arrows.
+- [ ] Next-step commands are shown as a guided workflow.
+- [ ] Download workspace status JSON remains available.
+- [ ] Non-workspace paths show expected workspace markers and workspace-init command hints.
+- [ ] Built library, Obsidian export, conversion / Knowledge Pack-like, and `*-office2md-output` path hints work.
+- [ ] Existing workspace CLI commands remain unchanged.
+- [ ] Existing non-workspace commands and GUI pages remain unaffected.
+- [ ] OfficeCLI benchmark plan is documentation only.
+- [ ] No OfficeCLI integration or dependency is included.
+- [ ] No Wiki editing workflow, AI suggestions, Marker integration, AI/OCR/embedding/vector/cloud work, conversion behavior changes, runner behavior changes, build-library internals changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, or GUI workspace file modifications are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.1.md`.
