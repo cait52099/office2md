@@ -1469,3 +1469,29 @@ v0.4.5-rc1 Incremental Knowledge Base Foundation checkpoint evidence:
 - [ ] `python -m ruff check .` passes.
 - [ ] CLI help checks pass for `office2md`, `library-status`, `scan-changes`, `search-library`, and `open-chunk`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.5-rc1.md`.
+
+v0.4.5-rc2 Windows-safe JSON console output checkpoint evidence:
+
+- [ ] `scan-changes --dry-run --json` works with non-ASCII paths/output on Windows-safe console output.
+- [ ] `library-status --json` uses the same safe JSON print path.
+- [ ] CLI JSON-only output uses UTF-8 bytes through `stdout.buffer` when available.
+- [ ] `--export-json` behavior is unchanged: UTF-8 pretty JSON with parent directory creation.
+- [ ] Tests cover non-ASCII `scan-changes --json` under strict CP936 stdout encoding.
+- [ ] Tests cover non-ASCII `scan-changes --export-json` UTF-8 file output.
+- [ ] Existing incremental tests pass without classification count regression.
+- [ ] Real-source smoke against `C:\Users\hcai\Desktop\test` confirms `scan-changes --dry-run --json` succeeds and parses.
+- [ ] Real-source smoke confirms `scan-changes --export-json` still parses.
+- [ ] Real-source smoke confirms the source folder snapshot remains unchanged.
+- [ ] No scan classification logic, source registry schema, `change_plan.json` schema, or `library-status` semantics are changed.
+- [ ] No source files, conversion output, library DB, library index, library graph, or evidence are modified.
+- [ ] No `update-library` implementation is included.
+- [ ] No row-level SQLite incremental update is included.
+- [ ] No automatic deletion is included.
+- [ ] No watcher or background update is included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] CLI help checks pass for `scan-changes` and `library-status`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.5-rc2.md`.

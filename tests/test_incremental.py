@@ -1,5 +1,8 @@
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 
 from typer.testing import CliRunner
 
@@ -175,6 +178,54 @@ def test_scan_changes_cli_help_and_export(tmp_path):
     assert result.exit_code == 0
     assert export_path.exists()
     assert json.loads(export_path.read_text(encoding="utf-8"))["counts"]["new"] == 1
+
+
+def test_scan_changes_json_handles_non_ascii_under_strict_console_encoding(tmp_path):
+    source = tmp_path / "source"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    (source / "中文-évidence.txt").write_text("非 ASCII content", encoding="utf-8")
+    env = {**os.environ, "PYTHONIOENCODING": "cp936:strict"}
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "office2md.cli",
+            "scan-changes",
+            str(source),
+            str(library),
+            "--dry-run",
+            "--json",
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        capture_output=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
+    payload = json.loads(result.stdout.decode("utf-8"))
+    assert payload["schema_version"] == CHANGE_PLAN_SCHEMA_VERSION
+    assert payload["counts"]["new"] == 1
+    assert payload["changes"][0]["source_file"] == "中文-évidence.txt"
+
+
+def test_scan_changes_export_json_remains_utf8_for_non_ascii(tmp_path):
+    source = tmp_path / "source"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    (source / "中文-évidence.txt").write_text("非 ASCII content", encoding="utf-8")
+    export_path = tmp_path / "计划" / "change_plan.json"
+
+    result = runner.invoke(app, ["scan-changes", str(source), str(library), "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    loaded = json.loads(export_path.read_text(encoding="utf-8"))
+    assert loaded["schema_version"] == CHANGE_PLAN_SCHEMA_VERSION
+    assert loaded["changes"][0]["source_file"] == "中文-évidence.txt"
 
 
 def test_build_source_registry_from_library_documents(tmp_path):

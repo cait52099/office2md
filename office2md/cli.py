@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 import tempfile
 from typing import List
 
@@ -69,6 +70,20 @@ from office2md.workspace import init_workspace, register_library_version, regist
 
 app = typer.Typer(help="Convert Office/PDF documents to knowledge-base-ready Markdown.")
 console = Console()
+
+
+def _print_json(data: object) -> None:
+    text = json.dumps(data, ensure_ascii=False, indent=2)
+    buffer = getattr(sys.stdout, "buffer", None)
+    if buffer is not None:
+        buffer.write(text.encode("utf-8"))
+        buffer.write(b"\n")
+        buffer.flush()
+        return
+    try:
+        sys.stdout.write(text + "\n")
+    except UnicodeEncodeError:
+        sys.stdout.write(json.dumps(data, ensure_ascii=True, indent=2) + "\n")
 
 
 def choose_engine(path: Path, options: ConvertOptions) -> str:
@@ -337,7 +352,7 @@ def workspace_status_command(
         raise typer.BadParameter(str(exc)) from exc
 
     if json_output:
-        print(json.dumps(status, ensure_ascii=False, indent=2))
+        _print_json(status)
     else:
         _print_workspace_status(status, show_history=show_history)
     if strict and status["errors"]:
@@ -385,7 +400,7 @@ def officecli_benchmark_command(
         raise typer.BadParameter(str(exc)) from exc
 
     if json_output:
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        _print_json(summary)
         return
 
     counts = summary["counts"]
@@ -446,7 +461,7 @@ def library_status_command(
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
         raise typer.BadParameter(str(exc)) from exc
     if json_output:
-        print(json.dumps(status, ensure_ascii=False, indent=2))
+        _print_json(status)
         return
     table = Table(title="office2md library-status")
     table.add_column("Metric")
@@ -490,7 +505,7 @@ def scan_changes_command(
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
         raise typer.BadParameter(str(exc)) from exc
     if json_output:
-        print(json.dumps(plan, ensure_ascii=False, indent=2))
+        _print_json(plan)
         return
     counts = plan["counts"]
     table = Table(title="office2md scan-changes")
@@ -655,7 +670,7 @@ def search_library_command(
         console.print(f"export_json: {export_json}")
     if diagnostics_json and diagnostic_data is not None:
         print("diagnostics_json:")
-        print(json.dumps(_search_diagnostics_json_payload(diagnostic_data, results), ensure_ascii=False, indent=2))
+        _print_json(_search_diagnostics_json_payload(diagnostic_data, results))
 
 
 def _search_diagnostics_json_payload(diagnostics: dict, results: List[dict]) -> dict:
