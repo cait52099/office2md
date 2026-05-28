@@ -50,7 +50,8 @@ Agents should prefer evidence with a `locator`. If evidence lacks a locator, the
 
 - JSON output should be UTF-8 and parseable without table text.
 - File exports should create parent directories.
-- Payloads should include `schema_name`, `schema_version`, and `office2md_version` where practical.
+- New v0.4.4 agent payloads use `schema_version` values such as `office2md.open_chunk.v1`.
+- Existing `search-library --export-json` and `library-report --export-json` are legacy exports and do not yet include schema identifiers.
 - Contract changes should be additive unless a schema version changes.
 - Search JSON should not change ranking, aliases, token fallback, filters, or related chunk behavior.
 - `open-chunk` should be a direct read-only lookup by `chunk_id`.
@@ -75,6 +76,14 @@ The agent should answer using:
 - `evidence_type`
 - limitations or warnings
 
+Minimal agent behavior:
+
+1. Read `search.json`.
+2. Pick `chunk_id` values from high-confidence, locator-backed results.
+3. Open those chunks.
+4. Cite `source_file`, `locator`, and `chunk_id` in the answer.
+5. State any `limitation` values instead of hiding weak evidence.
+
 ### Locate a Document First
 
 ```powershell
@@ -91,6 +100,20 @@ python -m office2md.cli build-report-context .\library "CIP pump fault" --export
 ```
 
 This command collects evidence packets, supporting chunks, diagnostics, and coverage information for report drafting. It reuses existing search behavior and should not generate unsupported claims.
+
+Use `selected_evidence` for citations. Use `supporting_chunks` for nearby context. If `warnings` contains `no results found`, the agent should ask for a narrower query or a known document name instead of drafting a report.
+
+## Schema Status
+
+Current v0.4.4 agent JSON status:
+
+| Command | JSON status |
+|---|---|
+| `search-library --export-json` | Legacy export, no schema identifier yet |
+| `open-chunk --export-json` | `office2md.open_chunk.v1` |
+| `locate-document --export-json` | `office2md.locate_document.v1` |
+| `build-report-context --export-json` | `office2md.report_context.v1` |
+| `library-report --export-json` | Legacy report export, no schema identifier yet |
 
 ## Future MCP
 

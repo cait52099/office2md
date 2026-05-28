@@ -98,25 +98,30 @@ Field notes:
 - `confidence` should use existing confidence data when present; otherwise `null` is acceptable.
 - `limitation` should be explicit when evidence lacks a locator, comes from noisy text, or is otherwise weak.
 
-## Contract Naming
+## Contract Naming Audit
 
-Use explicit schema names and schema versions.
+Use explicit schema identifiers for agent-facing JSON.
 
-Recommended top-level fields:
+Current v0.4.4 status:
+
+- `open-chunk` uses `schema_version: office2md.open_chunk.v1`.
+- `locate-document --export-json` uses `schema_version: office2md.locate_document.v1`.
+- `build-report-context` uses `schema_version: office2md.report_context.v1`.
+- Existing `search-library --export-json` predates this contract and does not yet include a schema identifier.
+- Existing `library-report --export-json` predates this contract and writes the report dictionary directly.
+
+Recommended future top-level fields for new or upgraded agent JSON contracts:
 
 ```json
 {
-  "schema_name": "office2md.search_results",
-  "schema_version": "1",
-  "generated_at": "ISO-8601 timestamp",
-  "office2md_version": "0.4.4",
-  "library_path": "path supplied or resolved",
+  "schema_version": "office2md.command_name.v1",
+  "request": {},
   "warnings": [],
   "limitations": []
 }
 ```
 
-Planned schema names:
+Future schema identifiers:
 
 - `office2md.search_results.v1`
 - `office2md.open_chunk.v1`
@@ -142,12 +147,13 @@ Command shape:
 python -m office2md.cli search-library LIBRARY_DB QUERY --export-json search.json
 ```
 
-Planned payload:
+Current v0.4.4 status: `search-library --export-json` exists and is stable enough for current users, but its payload is legacy JSON without a `schema_version` field. A future additive polish can wrap or extend it as `office2md.search_results.v1` without changing search behavior.
+
+Future normalized payload:
 
 ```json
 {
-  "schema_name": "office2md.search_results.v1",
-  "schema_version": "1",
+  "schema_version": "office2md.search_results.v1",
   "query": {},
   "diagnostics": {},
   "result_count": 0,
@@ -165,7 +171,7 @@ Planned payload:
 }
 ```
 
-The implementation should reuse existing `search_library()` and `search_library_diagnostics()` behavior. It must not change ranking, aliases, token fallback, filters, or related chunk selection.
+Any future schema polish must reuse existing `search_library()` and `search_library_diagnostics()` behavior. It must not change ranking, aliases, token fallback, filters, or related chunk selection.
 
 ### Open Chunk
 
@@ -241,7 +247,7 @@ This command builds an evidence bundle for a future report draft. It reuses exis
 
 ### Library Report
 
-Existing `library-report --export-json` already writes the current report dictionary. v0.4.4 can document it as a stable agent-readable report once schema metadata is added additively.
+Existing `library-report --export-json` already writes the current report dictionary. It is useful for agents today, but it is a legacy export without `schema_version`. A future additive polish can expose it as `office2md.library_report.v1` without changing report scoring.
 
 ## Future MCP Relationship
 
@@ -277,11 +283,25 @@ Forbidden future MCP operations:
 4. Agent answers with citations based on `source_file`, `locator`, and `chunk_id`.
 5. Agent states limitations for missing locators or noisy chunks.
 
+Example:
+
+```powershell
+python -m office2md.cli search-library .\library\library.db "vacuum pump fault" --export-json .\agent\search.json
+python -m office2md.cli open-chunk .\library\library.db CHUNK_ID --context 2 --export-json .\agent\open_chunk.json
+```
+
 ### Locate Document -> Open Chunk
 
 1. Agent calls `locate-document` JSON to find a likely source document.
 2. Agent searches or opens relevant chunks from that document.
 3. Agent answers with document-level and chunk-level provenance.
+
+Example:
+
+```powershell
+python -m office2md.cli locate-document .\library "operation manual" --export-json .\agent\documents.json
+python -m office2md.cli open-chunk .\library CHUNK_ID --context 2 --export-json .\agent\open_chunk.json
+```
 
 ### Build Report Context -> Report Draft
 
@@ -289,6 +309,14 @@ Forbidden future MCP operations:
 2. Agent receives grouped evidence packets and coverage information.
 3. Agent drafts a troubleshooting report, SOP impact summary, supplier email, or evidence package.
 4. Agent cites source files and locators for every factual claim.
+
+Example:
+
+```powershell
+python -m office2md.cli build-report-context .\library\library.db "CIP pump fault" --context 2 --export-json .\agent\report_context.json
+```
+
+The agent should treat `selected_evidence` as the citation set and `supporting_chunks` as nearby context. It should not claim anything that is not supported by these packets.
 
 ## Release Slicing
 

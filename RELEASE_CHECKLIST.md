@@ -1389,3 +1389,25 @@ v0.4.4-rc3 agent JSON completion checkpoint evidence:
 - [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, incremental update, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
 - [ ] OfficeCLI remains `diagnostic_only`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc3.md`.
+
+v0.4.4-rc4 consistency audit checkpoint evidence:
+
+- [ ] Docs-only checkpoint.
+- [ ] `docs/design/v044_agent_ready_json_contract.md` audits schema/version naming consistency for agent-facing JSON commands.
+- [ ] `docs/usage/agent_ready_cli.md` includes agent workflow examples for search, open-chunk, locate-document, and build-report-context.
+- [ ] `open-chunk --export-json` is documented as `schema_version: office2md.open_chunk.v1`.
+- [ ] `locate-document --export-json` is documented as `schema_version: office2md.locate_document.v1`.
+- [ ] `build-report-context --export-json` is documented as `schema_version: office2md.report_context.v1`.
+- [ ] `search-library --export-json` is documented as a legacy export without a schema identifier.
+- [ ] `library-report --export-json` is documented as a legacy export without a schema identifier.
+- [ ] Future schema polish for search and library report exports is documented as additive only.
+- [ ] No runtime code changes are included.
+- [ ] No CLI behavior changes are included.
+- [ ] No JSON payload structure changes are included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, locate-document matching, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, incremental update, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] CLI help checks pass for `office2md`, `search-library`, `open-chunk`, `locate-document`, `build-report-context`, and `library-report`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc4.md`.
