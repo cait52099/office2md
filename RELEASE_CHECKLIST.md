@@ -1300,3 +1300,27 @@ v0.4.3-rc1 OfficeCLI benchmark usability and timeout-control checkpoint evidence
 - [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
 - [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.3-rc1.md`.
+
+v0.4.3 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.3`.
+- [ ] `office2md.__version__` is updated to `0.4.3`.
+- [ ] `officecli-benchmark` command exists.
+- [ ] OfficeCLI remains optional and no dependency is added.
+- [ ] Timeout/usability options are present: `--skip-html`, `--skip-structure-json`, `--skip-issues`, `--skip-validate`, `--large-file-size-mb`, and per-command `--timeout-seconds`.
+- [ ] Summary JSON additively includes `timeout_summary`, `suggested_rerun_options`, `large_file_warnings`, and `skipped_commands`.
+- [ ] Report includes option summary, command timeout summary, timeout rerun suggestions, expensive command hints, large-file warnings, and file size in the per-file table.
+- [ ] Only read-only OfficeCLI command plan is used.
+- [ ] Mutating OfficeCLI command tokens remain blocked.
+- [ ] Source SHA-256 before/after safety remains in place.
+- [ ] Artifacts are written only under `OUTPUT_DIR`.
+- [ ] Per-file failures are recorded without stopping the benchmark.
+- [ ] Dry-run writes no artifacts.
+- [ ] Real OfficeCLI default smoke against `C:\Users\hcai\Desktop\test` selected 3 files, recorded 2 succeeded files, 1 failed file, 6 command timeouts, parsed summary JSON, Markdown report, 0 checksum changes, unchanged source checksums, and `diagnostic_only`.
+- [ ] Real OfficeCLI light smoke with `--skip-html --skip-structure-json` selected 3 files, recorded skipped commands `html` and `structure`, 2 succeeded files, 1 failed file, 4 command timeouts, parsed summary JSON, Markdown report, 0 checksum changes, unchanged source checksums, and `diagnostic_only`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
+- [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.3.md`.
