@@ -1240,3 +1240,31 @@ v0.4.2-rc2 OfficeCLI benchmark diagnostics/report polish checkpoint evidence:
 - [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
 - [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, AI/OCR/Marker/vector/cloud work, or source Office file modifications are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.2-rc2.md`.
+
+v0.4.2 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.2`.
+- [ ] `office2md.__version__` is updated to `0.4.2`.
+- [ ] `officecli-benchmark` command exists.
+- [ ] OfficeCLI remains optional and no dependency is added.
+- [ ] Missing OfficeCLI produces a clear error.
+- [ ] Unit tests do not require real OfficeCLI.
+- [ ] Read-only OfficeCLI command plan is used.
+- [ ] Mutating tokens `create`, `add`, `set`, `remove`, `open`, and `close` remain blocked.
+- [ ] Source SHA-256 is computed before and after commands.
+- [ ] Checksum changes are recorded as critical failures.
+- [ ] Artifacts are written only under `OUTPUT_DIR`.
+- [ ] Per-file failures do not stop the benchmark.
+- [ ] Output artifacts include summary JSON, Markdown report, per-file metadata, command results, and command artifacts.
+- [ ] Report includes per-file table, per-command table, failed file details, checksum safety, JSON parseability, HTML generation, and per-format summary.
+- [ ] Summary JSON additively includes failure classification and recommendation fields.
+- [ ] Recommendation heuristic remains advisory only.
+- [ ] Real OfficeCLI smoke against `C:\Users\hcai\Desktop\test` records recommendation `diagnostic_only`, 1 `command_timeout` failed file, 0 checksum changes, and all source checksums unchanged.
+- [ ] Dry-run smoke writes no artifacts.
+- [ ] `python -m pytest` reports 160 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for officecli-benchmark, workspace-init, workspace-scan, workspace-register-library, workspace-register-output, workspace-status, export-obsidian, convert, build-library, search-library, locate-document, and library-report.
+- [ ] Existing convert, build-library, search-library, locate-document, library-report, export-obsidian, workspace commands, and GUI pages remain unchanged.
+- [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.2.md`.
