@@ -697,7 +697,7 @@ def locate_document(path: Path, query: str, limit: int = 20) -> List[Dict]:
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
             """
-            SELECT d.title, d.source_file, d.document_kind, d.output_dir, d.source_path,
+            SELECT d.doc_id, d.title, d.source_file, d.document_kind, d.output_dir, d.source_path,
                    COUNT(c.chunk_id) AS chunks_count
             FROM documents d
             LEFT JOIN chunks c ON c.doc_id = d.doc_id

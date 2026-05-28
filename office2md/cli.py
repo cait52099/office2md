@@ -694,6 +694,139 @@ def _write_open_chunk_export_json(path: Path, payload: dict) -> None:
     target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _chunk_evidence_packet(item: dict) -> dict:
+    return {
+        "source_file": item.get("source_file"),
+        "locator": item.get("locator"),
+        "chunk_id": item.get("chunk_id"),
+        "document_id": item.get("document_id") or item.get("doc_id"),
+        "document_title": item.get("document_title"),
+        "document_kind": item.get("document_kind"),
+        "evidence_type": item.get("evidence_type"),
+        "confidence": item.get("confidence"),
+        "limitation": _evidence_limitation(item),
+    }
+
+
+def _evidence_limitation(item: dict) -> str | None:
+    limitations = []
+    if not item.get("locator"):
+        limitations.append("missing locator")
+    if item.get("is_noisy"):
+        limitations.append("chunk marked noisy")
+    return "; ".join(limitations) if limitations else None
+
+
+def _locate_document_export_json_payload(library_path: Path, query: str, limit: int, results: List[dict]) -> dict:
+    return {
+        "schema_version": "office2md.locate_document.v1",
+        "request": {
+            "library_path": str(library_path),
+            "query": query,
+            "limit": limit,
+        },
+        "matches": [
+            {
+                "document_id": item.get("doc_id"),
+                "document_title": item.get("title"),
+                "source_file": item.get("source_file"),
+                "document_kind": item.get("document_kind"),
+                "output_dir": item.get("output_dir"),
+                "source_path": item.get("source_path"),
+                "chunks_count": item.get("chunks_count"),
+            }
+            for item in results
+        ],
+        "limitations": [],
+        "warnings": [],
+    }
+
+
+def _write_locate_document_export_json(path: Path, payload: dict) -> None:
+    target = path.expanduser()
+    if target.parent != Path("."):
+        target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _report_context_json_payload(
+    library_path: Path,
+    query: str,
+    limit: int,
+    context: int,
+    filters: dict,
+    results: List[dict],
+    diagnostics: dict,
+) -> dict:
+    selected_evidence = []
+    supporting_chunks = []
+    limitations = []
+    for item in results:
+        evidence = {
+            "rank": item.get("rank"),
+            **_chunk_evidence_packet(item),
+            "chunk_title": item.get("chunk_title"),
+            "output_dir": item.get("output_dir"),
+            "preview": item.get("preview"),
+            "matched_tokens": item.get("matched_tokens", []),
+        }
+        selected_evidence.append(evidence)
+        if evidence["limitation"]:
+            limitations.append(evidence["limitation"])
+        for related in item.get("related_chunks", []):
+            supporting = {
+                "for_rank": item.get("rank"),
+                **_chunk_evidence_packet(related),
+                "chunk_title": related.get("chunk_title"),
+                "preview": related.get("preview"),
+            }
+            supporting_chunks.append(supporting)
+            if supporting["limitation"]:
+                limitations.append(supporting["limitation"])
+    with_locator = sum(1 for item in selected_evidence if item.get("locator"))
+    return {
+        "schema_version": "office2md.report_context.v1",
+        "request": {
+            "library_path": str(library_path),
+            "query": query,
+            "limit": limit,
+            "context": context,
+            "filters": filters,
+        },
+        "diagnostics": diagnostics,
+        "matches": {
+            "result_count": diagnostics["result_count"],
+            "shown_count": diagnostics["shown_count"],
+        },
+        "selected_evidence": selected_evidence,
+        "supporting_chunks": supporting_chunks,
+        "coverage": {
+            "selected_evidence_count": len(selected_evidence),
+            "supporting_chunks_count": len(supporting_chunks),
+            "with_locator": with_locator,
+            "without_locator": len(selected_evidence) - with_locator,
+            "documents": len({item.get("document_title") for item in selected_evidence if item.get("document_title")}),
+        },
+        "limitations": _dedupe_strings(limitations),
+        "warnings": [] if results else ["no results found"],
+    }
+
+
+def _write_report_context_export_json(path: Path, payload: dict) -> None:
+    target = path.expanduser()
+    if target.parent != Path("."):
+        target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _dedupe_strings(values: list[str | None]) -> list[str]:
+    result = []
+    for value in values:
+        if value and value not in result:
+            result.append(value)
+    return result
+
+
 def _print_workspace_status(status: dict, *, show_history: bool) -> None:
     workspace = status["workspace"]
     source = status["source_manifest"]
@@ -756,7 +889,12 @@ def _print_workspace_status_history(title: str, rows: list[dict], id_key: str) -
 
 
 @app.command("locate-document")
-def locate_document_command(library_db_or_output_dir: Path, query: str, limit: int = typer.Option(20, help="Maximum documents to print.")) -> None:
+def locate_document_command(
+    library_db_or_output_dir: Path,
+    query: str,
+    limit: int = typer.Option(20, help="Maximum documents to print."),
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 locate-document JSON to PATH; creates parent directories."),
+) -> None:
     """Locate source documents in a built Knowledge Library by title or source filename."""
     results = locate_document(library_db_or_output_dir, query, limit=limit)
     table = Table(title=f"office2md locate-document: {query}")
@@ -776,6 +914,9 @@ def locate_document_command(library_db_or_output_dir: Path, query: str, limit: i
             str(item.get("chunks_count", "")),
         )
     console.print(table)
+    if export_json is not None:
+        _write_locate_document_export_json(export_json, _locate_document_export_json_payload(library_db_or_output_dir, query, limit, results))
+        console.print(f"export_json: {export_json}")
 
 
 @app.command("open-chunk")
@@ -809,6 +950,72 @@ def open_chunk_command(
             console.print(f"[yellow]limitation:[/yellow] {limitation}")
     if export_json is not None:
         _write_open_chunk_export_json(export_json, payload)
+        console.print(f"export_json: {export_json}")
+
+
+@app.command("build-report-context")
+def build_report_context_command(
+    library_db: Path,
+    query: str,
+    limit: int = typer.Option(10, help="Maximum search results to include."),
+    context: int = typer.Option(2, "--context", "--related", help="Same-document context chunks per result."),
+    kind: List[str] = typer.Option(None, "--kind", help="Filter by document_kind. Can be repeated."),
+    evidence: List[str] = typer.Option(None, "--evidence", help="Filter by evidence_type. Can be repeated."),
+    document: str = typer.Option(None, "--doc", "--document", help="Filter by document title or source_file."),
+    output_dir: str = typer.Option(None, "--output-dir", help="Filter by output directory name."),
+    entity: List[str] = typer.Option(None, "--entity", help="Filter by entity text. Can be repeated."),
+    exclude_doc: List[str] = typer.Option(None, "--exclude-doc", help="Exclude document title/source_file match. Can be repeated."),
+    has_locator: bool = typer.Option(False, "--has-locator", help="Only include chunks with source locators."),
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 report context JSON to PATH; creates parent directories."),
+) -> None:
+    """Build a read-only evidence context package for agent report drafting."""
+    filters = {
+        "kind": kind or [],
+        "evidence": evidence or [],
+        "document": document,
+        "output_dir": output_dir,
+        "entity": entity or [],
+        "exclude_doc": exclude_doc or [],
+        "has_locator": has_locator,
+    }
+    results = search_library(
+        library_db,
+        query,
+        limit=limit,
+        kinds=kind or [],
+        evidences=evidence or [],
+        document=document,
+        output_dir=output_dir,
+        entities=entity or [],
+        exclude_docs=exclude_doc or [],
+        has_locator=has_locator,
+        related=max(context, 0),
+    )
+    diagnostics = search_library_diagnostics(
+        query,
+        results,
+        kinds=kind or [],
+        evidences=evidence or [],
+        document=document,
+        output_dir=output_dir,
+        entities=entity or [],
+        exclude_docs=exclude_doc or [],
+        has_locator=has_locator,
+    )
+    payload = _report_context_json_payload(library_db, query, limit, max(context, 0), filters, results, diagnostics)
+    table = Table(title=f"office2md build-report-context: {query}")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("result_count", str(payload["matches"]["result_count"]))
+    table.add_row("selected_evidence", str(len(payload["selected_evidence"])))
+    table.add_row("supporting_chunks", str(len(payload["supporting_chunks"])))
+    table.add_row("with_locator", str(payload["coverage"]["with_locator"]))
+    table.add_row("without_locator", str(payload["coverage"]["without_locator"]))
+    console.print(table)
+    for warning in payload["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+    if export_json is not None:
+        _write_report_context_export_json(export_json, payload)
         console.print(f"export_json: {export_json}")
 
 

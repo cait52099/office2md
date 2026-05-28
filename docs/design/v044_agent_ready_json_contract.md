@@ -199,25 +199,13 @@ Command shape:
 python -m office2md.cli locate-document LIBRARY_DB_OR_DIR QUERY --export-json documents.json
 ```
 
-Planned payload:
+Implemented v0.4.4-rc3 payload:
 
 ```json
 {
-  "schema_name": "office2md.locate_document.v1",
-  "schema_version": "1",
-  "query": "Manual",
-  "result_count": 0,
-  "results": [
-    {
-      "document_id": "manual-doc",
-      "document_title": "Operation Manual",
-      "source_file": "Manual.pdf",
-      "document_kind": "manual_pdf",
-      "output_dir": "manual",
-      "source_path": "C:/docs/Manual.pdf",
-      "chunks_count": 12
-    }
-  ],
+  "schema_version": "office2md.locate_document.v1",
+  "request": {},
+  "matches": [],
   "warnings": [],
   "limitations": []
 }
@@ -233,27 +221,23 @@ Command shape:
 python -m office2md.cli build-report-context LIBRARY_DB QUERY --export-json report_context.json
 ```
 
-Planned payload:
+Implemented v0.4.4-rc3 payload:
 
 ```json
 {
-  "schema_name": "office2md.report_context.v1",
-  "schema_version": "1",
-  "query": {},
-  "evidence_packets": [],
-  "coverage": {
-    "documents": 0,
-    "chunks": 0,
-    "with_locator": 0,
-    "without_locator": 0
-  },
-  "draft_outline": [],
+  "schema_version": "office2md.report_context.v1",
+  "request": {},
+  "diagnostics": {},
+  "matches": {},
+  "selected_evidence": [],
+  "supporting_chunks": [],
+  "coverage": {},
   "warnings": [],
   "limitations": []
 }
 ```
 
-This command should build an evidence bundle for a future report draft. It should reuse existing search and related chunk helpers and should not change ranking or report scoring.
+This command builds an evidence bundle for a future report draft. It reuses existing search and related chunk helpers and does not change ranking or report scoring.
 
 ### Library Report
 

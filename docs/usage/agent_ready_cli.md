@@ -14,22 +14,16 @@ Future MCP support should be a read-only adapter over these same CLI/core helper
 
 ## Status
 
-v0.4.4-rc2 adds the first read-only agent-facing command: `open-chunk`.
+v0.4.4-rc3 completes the first agent-ready JSON command set with `open-chunk`, `locate-document --export-json`, and `build-report-context`.
 
 Current related commands:
 
 ```powershell
 python -m office2md.cli search-library .\library\library.db "vacuum pump fault" --export-json .\search.json
 python -m office2md.cli open-chunk .\library CHUNK_ID --context 2 --export-json .\open_chunk.json
-python -m office2md.cli library-report .\library --export-json .\library_report.json
-python -m office2md.cli locate-document .\library "manual"
-```
-
-Planned future commands:
-
-```powershell
 python -m office2md.cli locate-document .\library "manual" --export-json .\documents.json
-python -m office2md.cli build-report-context .\library "vacuum pump fault" --export-json .\report_context.json
+python -m office2md.cli build-report-context .\library "vacuum pump fault" --context 2 --export-json .\report_context.json
+python -m office2md.cli library-report .\library --export-json .\library_report.json
 ```
 
 ## Evidence Packet
@@ -85,7 +79,7 @@ The agent should answer using:
 
 ```powershell
 python -m office2md.cli locate-document .\library "operation manual" --export-json .\documents.json
-python -m office2md.cli open-chunk .\library CHUNK_ID --json
+python -m office2md.cli open-chunk .\library CHUNK_ID --context 2 --export-json .\open_chunk.json
 ```
 
 Use this workflow when the user names a document or source file.
@@ -96,7 +90,7 @@ Use this workflow when the user names a document or source file.
 python -m office2md.cli build-report-context .\library "CIP pump fault" --export-json .\report_context.json
 ```
 
-This planned command should collect evidence packets and coverage information for report drafting. It should not generate unsupported claims.
+This command collects evidence packets, supporting chunks, diagnostics, and coverage information for report drafting. It reuses existing search behavior and should not generate unsupported claims.
 
 ## Future MCP
 

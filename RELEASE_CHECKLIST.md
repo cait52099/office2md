@@ -1365,3 +1365,27 @@ v0.4.4-rc2 open-chunk checkpoint evidence:
 - [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
 - [ ] OfficeCLI remains `diagnostic_only`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc2.md`.
+
+v0.4.4-rc3 agent JSON completion checkpoint evidence:
+
+- [ ] `locate-document --export-json` exists.
+- [ ] `locate-document` JSON export uses `schema_version: office2md.locate_document.v1`.
+- [ ] `locate-document` matching, order, and limit behavior are unchanged.
+- [ ] `doc_id` is added to locate results as additive metadata only.
+- [ ] `build-report-context` CLI command exists.
+- [ ] `build-report-context` is read-only.
+- [ ] `build-report-context` JSON export uses `schema_version: office2md.report_context.v1`.
+- [ ] `build-report-context` reuses existing `search_library(..., related=context)` and `search_library_diagnostics()`.
+- [ ] `build-report-context` supports only filters already supported by existing search helpers.
+- [ ] JSON includes `request`, `diagnostics`, `matches`, `selected_evidence`, `supporting_chunks`, `coverage`, `limitations`, and `warnings`.
+- [ ] Evidence fields include `source_file`, `locator`, `chunk_id`, `document_id`, `document_title`, `document_kind`, `evidence_type`, `confidence`, and `limitation` where available.
+- [ ] Missing/no-result query is handled clearly with a warning.
+- [ ] Tests cover locate export JSON, default locate output, report context JSON, evidence fields, search ordering preservation, no-result handling, and parent directory creation.
+- [ ] Docs are updated for implemented rc3 commands.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] CLI help checks pass for `office2md`, `locate-document`, `build-report-context`, `search-library`, and `open-chunk`.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, locate-document matching, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, incremental update, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc3.md`.

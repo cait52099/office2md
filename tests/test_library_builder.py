@@ -5,7 +5,18 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from office2md.cli import _open_chunk_json_payload, _search_diagnostics_json_payload, _write_library_report_export_json, _write_open_chunk_export_json, _write_search_export_json, app
+from office2md.cli import (
+    _locate_document_export_json_payload,
+    _open_chunk_json_payload,
+    _report_context_json_payload,
+    _search_diagnostics_json_payload,
+    _write_library_report_export_json,
+    _write_locate_document_export_json,
+    _write_open_chunk_export_json,
+    _write_report_context_export_json,
+    _write_search_export_json,
+    app,
+)
 from office2md.gui.helpers import (
     build_obsidian_export_command_preview,
     build_library_command_preview,
@@ -767,6 +778,105 @@ def test_open_chunk_does_not_change_existing_search_behavior(tmp_path):
     after = search_library(library_dir, "pump fault", limit=3)
     assert [item["chunk_id"] for item in after] == [item["chunk_id"] for item in before]
     assert [item["rank"] for item in after] == [item["rank"] for item in before]
+
+
+def test_locate_document_export_json_writes_valid_contract(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    results = locate_document(library_dir, "Open", limit=5)
+    export_path = tmp_path / "nested" / "locate" / "documents.json"
+
+    payload = _locate_document_export_json_payload(library_dir, "Open", 5, results)
+    _write_locate_document_export_json(export_path, payload)
+    parsed = json.loads(export_path.read_text(encoding="utf-8"))
+
+    assert parsed["schema_version"] == "office2md.locate_document.v1"
+    assert parsed["request"]["query"] == "Open"
+    assert parsed["matches"] == [
+        {
+            "document_id": "open-doc",
+            "document_title": "Open Manual",
+            "source_file": "Open Manual.pdf",
+            "document_kind": "manual_pdf",
+            "output_dir": "manual",
+            "source_path": "C:/src/Open Manual.pdf",
+            "chunks_count": 3,
+        }
+    ]
+    assert parsed["warnings"] == []
+    assert parsed["limitations"] == []
+
+
+def test_locate_document_cli_default_output_and_export_json(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    export_path = tmp_path / "nested" / "locate" / "documents.json"
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["locate-document", str(library_dir), "Open", "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    assert "locate-document: Open" in result.stdout
+    assert "export_json:" in result.stdout
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "office2md.locate_document.v1"
+    assert payload["matches"][0]["document_id"] == "open-doc"
+
+
+def test_build_report_context_export_json_includes_evidence_fields(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    results = search_library(library_dir, "pump fault", limit=3, related=1)
+    diagnostics = search_library_diagnostics("pump fault", results)
+    export_path = tmp_path / "nested" / "reports" / "context.json"
+
+    payload = _report_context_json_payload(library_dir, "pump fault", 3, 1, {"kind": [], "evidence": [], "document": None, "output_dir": None, "entity": [], "exclude_doc": [], "has_locator": False}, results, diagnostics)
+    _write_report_context_export_json(export_path, payload)
+    parsed = json.loads(export_path.read_text(encoding="utf-8"))
+
+    assert parsed["schema_version"] == "office2md.report_context.v1"
+    assert parsed["request"]["query"] == "pump fault"
+    assert parsed["matches"]["shown_count"] == len(results)
+    first = parsed["selected_evidence"][0]
+    assert first["chunk_id"] == results[0]["chunk_id"]
+    assert first["source_file"] == "Open Manual.pdf"
+    assert first["locator"]
+    assert first["document_title"] == "Open Manual"
+    assert first["document_kind"] == "manual_pdf"
+    assert first["evidence_type"]
+    assert "confidence" in first
+    assert "limitation" in first
+    assert parsed["supporting_chunks"]
+    assert parsed["coverage"]["selected_evidence_count"] == len(results)
+
+
+def test_build_report_context_cli_export_json_and_preserves_search_order(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    before = search_library(library_dir, "pump fault", limit=3, related=1)
+    export_path = tmp_path / "nested" / "reports" / "context.json"
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["build-report-context", str(library_dir), "pump fault", "--limit", "3", "--context", "1", "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    assert "build-report-context" in result.stdout
+    assert "export_json:" in result.stdout
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+    assert [item["chunk_id"] for item in payload["selected_evidence"]] == [item["chunk_id"] for item in before]
+    after = search_library(library_dir, "pump fault", limit=3, related=1)
+    assert [item["chunk_id"] for item in after] == [item["chunk_id"] for item in before]
+
+
+def test_build_report_context_no_results_records_warning(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    runner = CliRunner()
+    export_path = tmp_path / "nested" / "reports" / "empty.json"
+
+    result = runner.invoke(app, ["build-report-context", str(library_dir), "no-such-query", "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+    assert payload["selected_evidence"] == []
+    assert payload["supporting_chunks"] == []
+    assert payload["warnings"] == ["no results found"]
+    assert payload["diagnostics"]["hints"] == ["no results found; try an identifier, known alias, or shorter terms"]
 
 
 def test_gui_search_helpers_reuse_existing_search_results(tmp_path):
