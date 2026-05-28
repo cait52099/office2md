@@ -1495,3 +1495,31 @@ v0.4.5-rc2 Windows-safe JSON console output checkpoint evidence:
 - [ ] `python -m ruff check .` passes.
 - [ ] CLI help checks pass for `scan-changes` and `library-status`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.5-rc2.md`.
+
+v0.4.5 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.5`.
+- [ ] `office2md.__version__` is updated to `0.4.5`.
+- [ ] Incremental Knowledge Base Foundation is included.
+- [ ] Source registry helpers are included with schema `office2md.source_registry.v1`.
+- [ ] `library-status` CLI is included with schema `office2md.library_status.v1`.
+- [ ] `scan-changes` CLI is included with schema `office2md.change_plan.v1`.
+- [ ] `scan-changes` supports `new`, `modified`, `unchanged`, `deleted_missing`, `moved_or_renamed_candidate`, `unsupported`, and `stale` classifications.
+- [ ] `scan-changes` is read-only except explicit `--export-json` writing `change_plan.json`.
+- [ ] `--export-json` remains UTF-8 pretty JSON with parent directory creation.
+- [ ] Windows-safe JSON console output is included for `--json`.
+- [ ] Real-source smoke against `C:\Users\hcai\Desktop\test` confirms `scan-changes --dry-run --json` parses.
+- [ ] Real-source smoke confirms `scan-changes --export-json` parses.
+- [ ] Real-source smoke confirms source snapshot remains unchanged.
+- [ ] No `update-library` implementation is included.
+- [ ] No row-level SQLite incremental update is included.
+- [ ] No automatic deletion of evidence is included.
+- [ ] No watcher or background update is included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `library-status`, `scan-changes`, `search-library`, `open-chunk`, `locate-document`, and `build-report-context`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.5.md`.
