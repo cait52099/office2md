@@ -9,12 +9,19 @@ from typer.testing import CliRunner
 from office2md.cli import app
 from office2md.incremental import (
     CHANGE_PLAN_SCHEMA_VERSION,
+    LIBRARY_STATE_SCHEMA_VERSION,
     LIBRARY_STATUS_SCHEMA_VERSION,
     SOURCE_REGISTRY_SCHEMA_VERSION,
     build_source_registry,
+    default_library_state_path,
+    default_source_registry_path,
     library_status,
+    load_library_state,
     load_source_registry,
+    save_library_state,
+    save_source_registry,
     scan_changes,
+    write_library_state,
     write_source_registry,
 )
 from office2md.library import build_library, open_chunk, search_library
@@ -40,6 +47,91 @@ def test_source_registry_write_and_read(tmp_path):
 
     assert loaded["schema_version"] == SOURCE_REGISTRY_SCHEMA_VERSION
     assert loaded["sources"][0]["source_file"] == "a.txt"
+
+
+def test_save_source_registry_default_and_export_path(tmp_path):
+    source = tmp_path / "source.txt"
+    source.write_text("source text", encoding="utf-8")
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    _write_doc(output_root / "doc", "doc-id", str(source), "generic_text", [_chunk("chunk-1", "source text")])
+    build_library(output_root, library)
+    export_path = tmp_path / "exports" / "source_registry.json"
+
+    saved_default = save_source_registry(library)
+    saved_export = save_source_registry(library, output_path=export_path)
+
+    assert default_source_registry_path(library).exists()
+    assert export_path.exists()
+    assert saved_default["schema_version"] == SOURCE_REGISTRY_SCHEMA_VERSION
+    assert saved_export["registry_path"] == str(export_path.resolve())
+
+
+def test_source_registry_cli_export_json(tmp_path):
+    source = tmp_path / "source.txt"
+    source.write_text("source text", encoding="utf-8")
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    _write_doc(output_root / "doc", "doc-id", str(source), "generic_text", [_chunk("chunk-1", "source text")])
+    build_library(output_root, library)
+    export_path = tmp_path / "exports" / "source_registry.json"
+
+    result = runner.invoke(app, ["source-registry", str(library), "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    loaded = json.loads(export_path.read_text(encoding="utf-8"))
+    assert loaded["schema_version"] == SOURCE_REGISTRY_SCHEMA_VERSION
+    assert len(loaded["sources"]) == 1
+
+
+def test_library_state_write_read_and_status_fallback(tmp_path):
+    library = tmp_path / "library"
+    library.mkdir()
+    state_path = default_library_state_path(library)
+    state = {
+        "schema_version": LIBRARY_STATE_SCHEMA_VERSION,
+        "generated_at": "now",
+        "library_path": str(library),
+        "library_state_path": str(state_path),
+        "status": "stale",
+        "counts": {"registered_sources": 0},
+        "warnings": [],
+    }
+
+    write_library_state(state_path, state)
+    loaded = load_library_state(library)
+    status = library_status(library)
+
+    assert loaded["schema_version"] == LIBRARY_STATE_SCHEMA_VERSION
+    assert loaded["status"] == "stale"
+    assert status["library_state_exists"] is True
+    assert status["state_status"] == "stale"
+    assert status["status"] == "stale"
+
+
+def test_save_library_state_writes_default_state(tmp_path):
+    library = tmp_path / "library"
+    library.mkdir()
+
+    state = save_library_state(library)
+    loaded = load_library_state(library)
+
+    assert default_library_state_path(library).exists()
+    assert state["schema_version"] == LIBRARY_STATE_SCHEMA_VERSION
+    assert loaded["schema_version"] == LIBRARY_STATE_SCHEMA_VERSION
+
+
+def test_library_status_cli_write_state(tmp_path):
+    library = tmp_path / "library"
+    library.mkdir()
+    state_path = tmp_path / "state" / "library_state.json"
+
+    result = runner.invoke(app, ["library-status", str(library), "--write-state", "--state-output", str(state_path)])
+
+    assert result.exit_code == 0
+    assert state_path.exists()
+    loaded = json.loads(state_path.read_text(encoding="utf-8"))
+    assert loaded["schema_version"] == LIBRARY_STATE_SCHEMA_VERSION
 
 
 def test_scan_changes_classifies_new_modified_unchanged_deleted_and_unsupported(tmp_path):

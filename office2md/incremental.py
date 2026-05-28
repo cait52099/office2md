@@ -12,6 +12,7 @@ from office2md.utils import utc_now_iso
 SOURCE_REGISTRY_SCHEMA_VERSION = "office2md.source_registry.v1"
 CHANGE_PLAN_SCHEMA_VERSION = "office2md.change_plan.v1"
 LIBRARY_STATUS_SCHEMA_VERSION = "office2md.library_status.v1"
+LIBRARY_STATE_SCHEMA_VERSION = "office2md.library_state.v1"
 
 
 def load_source_registry(library_path: Path, registry_path: Path | None = None) -> dict[str, Any]:
@@ -26,6 +27,14 @@ def load_source_registry(library_path: Path, registry_path: Path | None = None) 
 
 def write_source_registry(path: Path, registry: dict[str, Any]) -> None:
     _write_json(path, registry)
+
+
+def save_source_registry(library_path: Path, output_path: Path | None = None) -> dict[str, Any]:
+    registry = build_source_registry(library_path)
+    target = output_path.expanduser().resolve() if output_path else default_source_registry_path(library_path)
+    registry["registry_path"] = str(target)
+    write_source_registry(target, registry)
+    return registry
 
 
 def build_source_registry(library_path: Path) -> dict[str, Any]:
@@ -172,10 +181,77 @@ def build_change_plan(source_root: Path, library_path: Path, registry: dict[str,
     }
 
 
-def library_status(library_path: Path, *, change_plan_path: Path | None = None, registry_path: Path | None = None) -> dict[str, Any]:
+def load_library_state(library_path: Path, state_path: Path | None = None) -> dict[str, Any]:
+    path = _state_path(library_path, state_path)
+    if not path.exists():
+        return _empty_library_state(library_path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data.setdefault("schema_version", LIBRARY_STATE_SCHEMA_VERSION)
+    return data
+
+
+def write_library_state(path: Path, state: dict[str, Any]) -> None:
+    _write_json(path, state)
+
+
+def build_library_state(
+    library_path: Path,
+    *,
+    change_plan_path: Path | None = None,
+    registry_path: Path | None = None,
+    state_path: Path | None = None,
+) -> dict[str, Any]:
+    status = library_status(library_path, change_plan_path=change_plan_path, registry_path=registry_path, state_path=state_path)
+    db_path = _library_db_path(library_path)
+    return {
+        "schema_version": LIBRARY_STATE_SCHEMA_VERSION,
+        "generated_at": utc_now_iso(),
+        "library_path": status["library_path"],
+        "library_db": status["library_db"],
+        "library_db_exists": status["library_db_exists"],
+        "library_db_sha256": sha256_file(db_path) if db_path.exists() else None,
+        "source_registry_path": status["source_registry_path"],
+        "source_registry_exists": status["source_registry_exists"],
+        "change_plan_path": str(change_plan_path.expanduser().resolve()) if change_plan_path else None,
+        "change_plan_exists": bool(change_plan_path and change_plan_path.expanduser().resolve().exists()),
+        "status": status["status"],
+        "counts": status["counts"],
+        "pending_changes": status["pending_changes"],
+        "warnings": status["warnings"],
+        "limitations": [
+            "library_state.json is a status snapshot, not an update operation",
+            "agents must refresh status/scan before relying on old state snapshots",
+        ],
+    }
+
+
+def save_library_state(
+    library_path: Path,
+    *,
+    output_path: Path | None = None,
+    change_plan_path: Path | None = None,
+    registry_path: Path | None = None,
+) -> dict[str, Any]:
+    target = output_path.expanduser().resolve() if output_path else default_library_state_path(library_path)
+    state = build_library_state(library_path, change_plan_path=change_plan_path, registry_path=registry_path, state_path=target)
+    state["library_state_path"] = str(target)
+    write_library_state(target, state)
+    return state
+
+
+def library_status(
+    library_path: Path,
+    *,
+    change_plan_path: Path | None = None,
+    registry_path: Path | None = None,
+    state_path: Path | None = None,
+) -> dict[str, Any]:
     library_dir = _library_dir(library_path)
     db_path = _library_db_path(library_path)
     registry_file = _registry_path(library_path, registry_path)
+    state_file = _state_path(library_path, state_path)
+    state_exists = state_file.exists()
+    state = load_library_state(library_path, state_path) if state_exists else _empty_library_state(library_path)
     registry = load_source_registry(library_path, registry_path) if registry_file.exists() else build_source_registry(library_path)
     registry_exists = registry_file.exists()
     registry_records = [item for item in registry.get("sources", []) if isinstance(item, dict)]
@@ -191,6 +267,8 @@ def library_status(library_path: Path, *, change_plan_path: Path | None = None, 
         plan_counts = change_plan.get("counts", {})
         if any(int(plan_counts.get(key, 0) or 0) for key in ["new", "modified", "deleted_missing", "moved_or_renamed_candidate", "unsupported", "stale"]):
             status = "stale"
+    elif status == "unknown" and state_exists and state.get("status") in {"current", "stale", "unknown"}:
+        status = str(state.get("status"))
 
     return {
         "schema_version": LIBRARY_STATUS_SCHEMA_VERSION,
@@ -200,6 +278,9 @@ def library_status(library_path: Path, *, change_plan_path: Path | None = None, 
         "library_db_exists": db_path.exists(),
         "source_registry_path": str(registry_file),
         "source_registry_exists": registry_exists,
+        "library_state_path": str(state_file),
+        "library_state_exists": state_exists,
+        "state_status": state.get("status") if state_exists else None,
         "status": status,
         "counts": {
             "registered_sources": len(registry_records),
@@ -208,7 +289,7 @@ def library_status(library_path: Path, *, change_plan_path: Path | None = None, 
             "missing_sources": sum(1 for item in source_state if item["status"] == "missing"),
         },
         "pending_changes": None if not change_plan else change_plan.get("counts", {}),
-        "warnings": _library_status_warnings(status, db_path, registry_exists, stale_records, change_plan),
+        "warnings": _library_status_warnings(status, db_path, registry_exists, stale_records, change_plan, state_exists),
         "limitations": [
             "library-status is read-only",
             "library status is unknown without a registry or library document source paths",
@@ -223,6 +304,10 @@ def default_source_registry_path(library_path: Path) -> Path:
 
 def default_change_plan_path(library_path: Path) -> Path:
     return _library_dir(library_path) / "change_plan.json"
+
+
+def default_library_state_path(library_path: Path) -> Path:
+    return _library_dir(library_path) / "library_state.json"
 
 
 def _registry_record_from_document(library_dir: Path, conversion_root: Path | None, row: sqlite3.Row, generated_at: str) -> dict[str, Any]:
@@ -377,6 +462,7 @@ def _library_status_warnings(
     registry_exists: bool,
     stale_records: list[dict[str, Any]],
     change_plan: dict[str, Any] | None,
+    state_exists: bool,
 ) -> list[str]:
     warnings = []
     if not db_path.exists():
@@ -389,6 +475,8 @@ def _library_status_warnings(
         warnings.append(f"{len(stale_records)} registered sources are stale or missing")
     if change_plan and change_plan.get("warnings"):
         warnings.extend(str(item) for item in change_plan.get("warnings", []))
+    if state_exists:
+        warnings.append("library_state.json is a snapshot; refresh status/scan before agent use")
     return _dedupe(warnings)
 
 
@@ -400,6 +488,17 @@ def _empty_source_registry(library_path: Path) -> dict[str, Any]:
         "registry_path": str(default_source_registry_path(library_path)),
         "sources": [],
         "warnings": ["source_registry.json not found"],
+    }
+
+
+def _empty_library_state(library_path: Path) -> dict[str, Any]:
+    return {
+        "schema_version": LIBRARY_STATE_SCHEMA_VERSION,
+        "generated_at": None,
+        "library_path": str(_library_dir(library_path)),
+        "library_state_path": str(default_library_state_path(library_path)),
+        "status": "unknown",
+        "warnings": ["library_state.json not found"],
     }
 
 
@@ -429,6 +528,10 @@ def _library_conversion_root(library_dir: Path) -> Path | None:
 
 def _registry_path(library_path: Path, registry_path: Path | None) -> Path:
     return registry_path.expanduser().resolve() if registry_path else default_source_registry_path(library_path)
+
+
+def _state_path(library_path: Path, state_path: Path | None) -> Path:
+    return state_path.expanduser().resolve() if state_path else default_library_state_path(library_path)
 
 
 def _normalize_source_path(path: Path) -> str:

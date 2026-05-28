@@ -19,7 +19,7 @@ from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
-from office2md.incremental import library_status, scan_changes
+from office2md.incremental import build_source_registry, default_library_state_path, default_source_registry_path, library_status, save_library_state, save_source_registry, scan_changes
 from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.officecli_benchmark import run_officecli_benchmark
@@ -453,11 +453,23 @@ def library_status_command(
     library_path: Path,
     change_plan: Path = typer.Option(None, "--change-plan", help="Optional change_plan.json to summarize pending changes."),
     registry: Path = typer.Option(None, "--registry", help="Optional source_registry.json path."),
+    state: Path = typer.Option(None, "--state", help="Optional library_state.json path."),
+    write_state: bool = typer.Option(False, "--write-state", help="Write library_state.json snapshot after computing status."),
+    state_output: Path = typer.Option(None, "--state-output", help="Optional output path for --write-state."),
     json_output: bool = typer.Option(False, "--json", help="Print stable JSON only."),
 ) -> None:
     """Show read-only incremental library freshness status."""
     try:
-        status = library_status(library_path, change_plan_path=change_plan, registry_path=registry)
+        status = library_status(library_path, change_plan_path=change_plan, registry_path=registry, state_path=state)
+        written_state = None
+        if write_state:
+            written_state = save_library_state(
+                library_path,
+                output_path=state_output,
+                change_plan_path=change_plan,
+                registry_path=registry,
+            )
+            status["written_library_state_path"] = written_state.get("library_state_path") or str(state_output or default_library_state_path(library_path))
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
         raise typer.BadParameter(str(exc)) from exc
     if json_output:
@@ -477,8 +489,38 @@ def library_status_command(
     table.add_row("missing_sources", str(counts["missing_sources"]))
     if status.get("pending_changes"):
         table.add_row("pending_changes", json.dumps(status["pending_changes"], ensure_ascii=False))
+    if status.get("written_library_state_path"):
+        table.add_row("written_library_state_path", str(status["written_library_state_path"]))
     console.print(table)
     for warning in status["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+
+
+@app.command("source-registry")
+def source_registry_command(
+    library_path: Path,
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 source registry JSON to PATH; creates parent directories."),
+    save: bool = typer.Option(False, "--save", help="Save source_registry.json under the library folder."),
+    json_output: bool = typer.Option(False, "--json", help="Print source registry JSON only."),
+) -> None:
+    """Build and optionally save/export the source registry for a built library."""
+    try:
+        target = export_json or (default_source_registry_path(library_path) if save else None)
+        registry = save_source_registry(library_path, output_path=target) if target else build_source_registry(library_path)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if json_output:
+        _print_json(registry)
+        return
+    table = Table(title="office2md source-registry")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("library_path", registry["library_path"])
+    table.add_row("registry_path", registry.get("registry_path") or "")
+    table.add_row("sources", str(len(registry.get("sources", []))))
+    table.add_row("written", str(bool(target)))
+    console.print(table)
+    for warning in registry.get("warnings", []):
         console.print(f"[yellow]warning:[/yellow] {warning}")
 
 

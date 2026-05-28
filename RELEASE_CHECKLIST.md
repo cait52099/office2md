@@ -1523,3 +1523,35 @@ v0.4.5 final release readiness evidence:
 - [ ] `python -m compileall office2md/gui` succeeds.
 - [ ] CLI help checks pass for `office2md`, `library-status`, `scan-changes`, `search-library`, `open-chunk`, `locate-document`, and `build-report-context`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.5.md`.
+
+v0.4.6-rc1 Source Registry Persistence and Update Plan Foundation checkpoint evidence:
+
+- [ ] `source-registry` CLI exists.
+- [ ] `source-registry --save` writes default `source_registry.json`.
+- [ ] `source-registry --export-json` writes UTF-8 pretty JSON and creates parent directories.
+- [ ] `source-registry --json` prints JSON without writing files.
+- [ ] `source-registry` writes only when `--save` or `--export-json` is explicit.
+- [ ] Source registry schema remains `office2md.source_registry.v1`.
+- [ ] `library_state.json` schema/helper exists as `office2md.library_state.v1`.
+- [ ] `library-status --write-state` writes `library_state.json` only when explicit.
+- [ ] `library-status --state-output` can write state to an explicit path.
+- [ ] `library-status` includes additive state fields without changing `office2md.library_status.v1` compatibility.
+- [ ] `change_plan.json` remains compatible with schema `office2md.change_plan.v1`.
+- [ ] Deleted/missing sources are marked, not automatically removed.
+- [ ] Moved/renamed matches remain heuristic candidates.
+- [ ] Update-library contract docs are added in `docs/design/v046_update_library_contract.md`.
+- [ ] No update-library execution is included.
+- [ ] No source files, conversion output, library DB, library index, library graph, or evidence are modified except explicit registry/state/plan files.
+- [ ] No row-level SQLite incremental update is included.
+- [ ] No automatic deletion is included.
+- [ ] No watcher or background update is included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, open-chunk, locate-document, build-report-context, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Real-source smoke against `C:\Users\hcai\Desktop\test` confirms source snapshot remains unchanged.
+- [ ] Real-source smoke confirms registry, plan, and state JSON schemas parse.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `source-registry`, `library-status`, and `scan-changes`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.6-rc1.md`.

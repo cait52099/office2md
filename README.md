@@ -204,6 +204,8 @@ office2md scan-changes ./source ./library --export-json ./change_plan.json
 
 These commands do not run conversion, rebuild the library, update SQLite rows, delete evidence, or watch folders in the background. Agents must not assume new raw files are searchable until an explicit scan/update workflow has been run. See `docs/usage/incremental_update.md` and `docs/design/v045_incremental_update_workflow.md`.
 
+`source-registry` can explicitly save or export `source_registry.json`, and `library-status --write-state` can write a `library_state.json` snapshot. These files are status artifacts only; they do not update the library.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.
