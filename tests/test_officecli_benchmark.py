@@ -22,6 +22,8 @@ def test_officecli_benchmark_help_exists():
     assert result.exit_code == 0
     assert "officecli-benchmark" in result.output
     assert "--officecli-path" in result.output
+    assert "--skip-structure-json" in result.output
+    assert "--large-file-size-mb" in result.output
 
 
 def test_missing_officecli_path_gives_clear_error(tmp_path):
@@ -191,6 +193,7 @@ def test_failure_classification_for_timeout():
         json_parse_success=False,
         html_generated=False,
         skip_html=False,
+        skip_structure_json=False,
         selected=True,
     )
 
@@ -205,6 +208,7 @@ def test_failure_classification_for_json_parse_failure():
         json_parse_success=False,
         html_generated=True,
         skip_html=False,
+        skip_structure_json=False,
         selected=True,
     )
 
@@ -226,6 +230,7 @@ def test_report_includes_diagnostics_sections(tmp_path, monkeypatch):
     assert "## Failed Files" in report
     assert "## Per-Command Results" in report
     assert "## Checksum Safety Result" in report
+    assert "## Command Timeout Summary" in report
     assert "Failure category" in report
 
 
@@ -280,6 +285,70 @@ def test_summary_json_contains_additive_diagnostics_fields(tmp_path, monkeypatch
     assert "html_generated" in record
 
 
+def test_timeout_summary_and_rerun_suggestions_are_produced(tmp_path, monkeypatch):
+    source = tmp_path / "sample.docx"
+    source.write_text("content", encoding="utf-8")
+    output = tmp_path / "benchmark"
+    officecli = tmp_path / "officecli.exe"
+    officecli.write_text("fake", encoding="utf-8")
+    monkeypatch.setattr("office2md.officecli_benchmark.find_officecli", lambda path=None: officecli)
+    monkeypatch.setattr("office2md.officecli_benchmark.run_officecli_command", _fake_officecli_timeout)
+
+    summary = run_officecli_benchmark(source, output, officecli_path=officecli)
+
+    assert summary["timeout_summary"]
+    assert any(item["command"] == "html" for item in summary["timeout_summary"])
+    assert "--skip-html" in summary["suggested_rerun_options"]
+    assert "--timeout-seconds 120" in summary["suggested_rerun_options"]
+
+
+def test_skipped_commands_are_recorded_when_skip_options_are_used(tmp_path):
+    source = tmp_path / "sample.docx"
+    source.write_text("content", encoding="utf-8")
+    output = tmp_path / "benchmark"
+
+    summary = run_officecli_benchmark(
+        source,
+        output,
+        dry_run=True,
+        skip_html=True,
+        skip_structure_json=True,
+        skip_issues=True,
+        skip_validate=True,
+    )
+
+    assert summary["skipped_commands"] == ["html", "structure", "validate", "issues"]
+    planned = [command[0] for command in summary["planned_commands"]]
+    assert planned == ["view", "view"]
+    assert not output.exists()
+
+
+def test_report_includes_skipped_command_and_timeout_sections(tmp_path, monkeypatch):
+    source = tmp_path / "sample.docx"
+    source.write_text("content", encoding="utf-8")
+    output = tmp_path / "benchmark"
+    officecli = tmp_path / "officecli.exe"
+    officecli.write_text("fake", encoding="utf-8")
+    monkeypatch.setattr("office2md.officecli_benchmark.find_officecli", lambda path=None: officecli)
+    monkeypatch.setattr("office2md.officecli_benchmark.run_officecli_command", _fake_officecli_success)
+
+    run_officecli_benchmark(source, output, officecli_path=officecli, skip_html=True)
+
+    report = (output / "officecli_benchmark_report.md").read_text(encoding="utf-8")
+    assert "## Option Summary" in report
+    assert "Skipped commands: html" in report
+    assert "## Command Timeout Summary" in report
+
+
+def test_large_file_warning_is_recorded(tmp_path):
+    source = tmp_path / "sample.docx"
+    source.write_bytes(b"x" * (1024 * 1024))
+
+    summary = run_officecli_benchmark(source, tmp_path / "benchmark", dry_run=True, large_file_size_mb=1)
+
+    assert summary["large_file_warnings"]
+
+
 def _fake_officecli_success(officecli_path, arguments, *, timeout_seconds=60):
     stdout = "OfficeCLI 1.0.100"
     if "--version" not in arguments:
@@ -303,5 +372,17 @@ def _fake_officecli_failure(officecli_path, arguments, *, timeout_seconds=60):
         "timed_out": False,
         "stdout": "",
         "stderr": "failed",
+        "succeeded": False,
+    }
+
+
+def _fake_officecli_timeout(officecli_path, arguments, *, timeout_seconds=60):
+    return {
+        "command": [str(officecli_path), *arguments],
+        "exit_code": None,
+        "runtime_seconds": float(timeout_seconds),
+        "timed_out": True,
+        "stdout": "",
+        "stderr": f"Command timed out after {timeout_seconds} seconds.",
         "succeeded": False,
     }

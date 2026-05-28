@@ -6,6 +6,8 @@ Implementation note: v0.4.2 P1 adds a read-only `officecli-benchmark` harness fo
 
 v0.4.2 P2 adds report diagnostics and an advisory recommendation heuristic. These additions are reporting-only and do not change conversion behavior or promote OfficeCLI to an engine.
 
+v0.4.3 P1 adds benchmark usability controls for timeout-heavy files, including skip options for expensive read-only commands, timeout summaries, rerun suggestions, and large-file warnings. These changes remain benchmark-only.
+
 ## Purpose
 
 This benchmark evaluates whether `C:\Users\hcai\bin\officecli.exe` version `1.0.100` can improve office2md Office document processing for `DOCX`, `XLSX`, and `PPTX` files.

@@ -26,6 +26,10 @@ python -m office2md.cli officecli-benchmark INPUT_PATH OUTPUT_DIR --officecli-pa
 - `--formats EXTENSIONS`: comma-separated extensions. Default: `docx,xlsx,pptx`.
 - `--timeout-seconds INTEGER`: per-command timeout. Default: `60`.
 - `--skip-html`: skip HTML preview generation.
+- `--skip-structure-json`: skip structure JSON extraction.
+- `--skip-issues`: skip issue listing.
+- `--skip-validate`: skip validation.
+- `--large-file-size-mb INTEGER`: warn when selected files are at least this many MB. Use `0` to disable.
 - `--json`: print summary JSON.
 - `--dry-run`: preview selected files and planned commands without running OfficeCLI or writing artifacts.
 
@@ -90,12 +94,16 @@ The summary JSON and Markdown report include additive diagnostics:
 
 - per-file result status;
 - per-command exit code, timeout flag, runtime, and artifact path;
+- per-command timeout summary;
 - failed command names;
 - timed out command names;
 - failure category;
 - JSON parseability;
 - HTML generation;
 - checksum safety;
+- suggested rerun options for timeout-heavy files;
+- skipped command summary;
+- large-file warnings;
 - advisory recommendation.
 
 Failure categories are conservative:
@@ -115,6 +123,20 @@ The recommendation is advisory only. It does not change conversion behavior:
 - `diagnostic_only`
 - `sidecar_candidate`
 - `engine_candidate`
+
+## Timeout-Heavy Files
+
+For large or complex Office files, some OfficeCLI commands may be slow. The report includes timeout-focused suggestions such as:
+
+- rerun with `--skip-html`;
+- rerun with `--skip-structure-json`;
+- rerun with `--skip-issues`;
+- rerun with `--skip-validate`;
+- lower `--max-files`;
+- increase `--timeout-seconds`;
+- benchmark smaller batches.
+
+HTML preview may be slow for large files. Structure JSON may be slow for complex workbooks or presentations.
 
 ## Purpose
 

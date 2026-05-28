@@ -27,16 +27,25 @@ class OfficeCliCommandSpec:
     parse_json: bool = False
 
 
-def benchmark_command_specs(*, skip_html: bool = False) -> list[OfficeCliCommandSpec]:
+def benchmark_command_specs(
+    *,
+    skip_html: bool = False,
+    skip_structure_json: bool = False,
+    skip_validate: bool = False,
+    skip_issues: bool = False,
+) -> list[OfficeCliCommandSpec]:
     specs = [
         OfficeCliCommandSpec("outline", ("view", "{file}", "outline"), "outline.txt"),
         OfficeCliCommandSpec("text", ("view", "{file}", "text", "--max-lines", "200"), "text.txt"),
-        OfficeCliCommandSpec("structure", ("get", "{file}", "/", "--depth", "2", "--json"), "structure.json", parse_json=True),
-        OfficeCliCommandSpec("validate", ("validate", "{file}"), "validate.txt"),
-        OfficeCliCommandSpec("issues", ("view", "{file}", "issues", "--limit", "50"), "issues.txt"),
     ]
     if not skip_html:
-        specs.insert(2, OfficeCliCommandSpec("html", ("view", "{file}", "html"), "preview.html"))
+        specs.append(OfficeCliCommandSpec("html", ("view", "{file}", "html"), "preview.html"))
+    if not skip_structure_json:
+        specs.append(OfficeCliCommandSpec("structure", ("get", "{file}", "/", "--depth", "2", "--json"), "structure.json", parse_json=True))
+    if not skip_validate:
+        specs.append(OfficeCliCommandSpec("validate", ("validate", "{file}"), "validate.txt"))
+    if not skip_issues:
+        specs.append(OfficeCliCommandSpec("issues", ("view", "{file}", "issues", "--limit", "50"), "issues.txt"))
     _assert_no_mutating_commands(specs)
     return specs
 
@@ -141,10 +150,19 @@ def run_officecli_benchmark(
     formats: tuple[str, ...] = DEFAULT_FORMATS,
     timeout_seconds: int = 60,
     skip_html: bool = False,
+    skip_structure_json: bool = False,
+    skip_validate: bool = False,
+    skip_issues: bool = False,
+    large_file_size_mb: int | None = 25,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     selected_files = collect_office_files(input_path, formats=formats, include_hidden=include_hidden, max_files=max_files)
-    specs = benchmark_command_specs(skip_html=skip_html)
+    specs = benchmark_command_specs(
+        skip_html=skip_html,
+        skip_structure_json=skip_structure_json,
+        skip_validate=skip_validate,
+        skip_issues=skip_issues,
+    )
     resolved_officecli = None if dry_run else find_officecli(officecli_path)
     version_result = None if dry_run else run_officecli_command(resolved_officecli, ["--version"], timeout_seconds=timeout_seconds)
     officecli_version = None if version_result is None else (version_result["stdout"].strip() or version_result["stderr"].strip())
@@ -155,8 +173,18 @@ def run_officecli_benchmark(
         "formats": list(formats),
         "timeout_seconds": timeout_seconds,
         "skip_html": skip_html,
+        "skip_structure_json": skip_structure_json,
+        "skip_validate": skip_validate,
+        "skip_issues": skip_issues,
+        "large_file_size_mb": large_file_size_mb,
         "dry_run": dry_run,
     }
+    skipped_commands = _skipped_commands(
+        skip_html=skip_html,
+        skip_structure_json=skip_structure_json,
+        skip_validate=skip_validate,
+        skip_issues=skip_issues,
+    )
     summary = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": utc_now_iso(),
@@ -179,9 +207,14 @@ def run_officecli_benchmark(
         "errors": [],
         "dry_run": dry_run,
         "planned_commands": [_planned_command(spec) for spec in specs],
+        "skipped_commands": skipped_commands,
+        "timeout_summary": [],
+        "suggested_rerun_options": [],
+        "large_file_warnings": _large_file_warnings(selected_files, large_file_size_mb),
     }
     if dry_run:
         summary["files"] = [_dry_run_file_record(path, input_path, specs) for path in selected_files]
+        _finalize_diagnostics(summary)
         summary["recommendation"], summary["recommendation_reasons"] = recommend_benchmark(summary)
         return summary
 
@@ -201,6 +234,7 @@ def run_officecli_benchmark(
             summary["counts"]["json_parse_success"] += 1
         if "preview.html" in record["artifacts"]:
             summary["counts"]["html_generated"] += 1
+    _finalize_diagnostics(summary)
     summary["recommendation"], summary["recommendation_reasons"] = recommend_benchmark(summary)
     _write_summary(output_dir, summary)
     _write_report(output_dir, summary)
@@ -265,6 +299,7 @@ def _run_file_benchmark(
         json_parse_success=json_parse_success,
         html_generated=html_generated,
         skip_html=not any(spec.name == "html" for spec in specs),
+        skip_structure_json=not any(spec.name == "structure" for spec in specs),
         selected=True,
     )
     record = {
@@ -312,6 +347,12 @@ def _write_report(output_dir: Path, summary: dict[str, Any]) -> None:
         f"- OfficeCLI version: `{summary.get('officecli_version') or 'unknown'}`",
         f"- Selected files: {counts['files_selected']}",
         f"- Recommendation: `{recommendation}`",
+        f"- Per-command timeout seconds: {summary.get('options', {}).get('timeout_seconds')}",
+        "",
+        "## Option Summary",
+        "",
+        f"- Skipped commands: {', '.join(summary.get('skipped_commands') or []) or 'None'}",
+        f"- Large-file warning threshold: {summary.get('options', {}).get('large_file_size_mb')} MB",
         "",
         "## Per-Format Summary",
         "",
@@ -330,14 +371,15 @@ def _write_report(output_dir: Path, summary: dict[str, Any]) -> None:
             "",
             "## Per-File Results",
             "",
-            "| File | Format | Status | Failure category | Failed commands | Timed out commands | JSON parsed | HTML generated | Checksum unchanged |",
-            "|---|---|---|---|---|---|---|---|---|",
+            "| File | Format | Size bytes | Status | Failure category | Failed commands | Timed out commands | JSON parsed | HTML generated | Checksum unchanged |",
+            "|---|---|---:|---|---|---|---|---|---|---|",
         ]
     )
     for item in summary["files"]:
         status = "failed" if item.get("errors") else "succeeded"
         lines.append(
             f"| `{_md_escape(item.get('relative_path') or item.get('source_path') or '')}` | `{item.get('extension') or ''}` | "
+            f"{item.get('size_bytes') or 0} | "
             f"{status} | `{item.get('failure_category') or 'none'}` | "
             f"{', '.join(item.get('failed_commands') or []) or '-'} | "
             f"{', '.join(item.get('timed_out_commands') or []) or '-'} | "
@@ -378,6 +420,56 @@ def _write_report(output_dir: Path, summary: dict[str, Any]) -> None:
     lines.extend(
         [
             "",
+            "## Command Timeout Summary",
+            "",
+        ]
+    )
+    timeout_summary = summary.get("timeout_summary") or []
+    if not timeout_summary:
+        lines.append("No command timeouts recorded.")
+    else:
+        lines.extend(
+            [
+                "| Command | Timeouts | Affected files |",
+                "|---|---:|---|",
+            ]
+        )
+        for item in timeout_summary:
+            affected = ", ".join(f"`{_md_escape(path)}`" for path in item.get("affected_files", []))
+            lines.append(f"| `{item.get('command')}` | {item.get('timeouts')} | {affected} |")
+    lines.extend(
+        [
+            "",
+            "## Timeout Rerun Suggestions",
+            "",
+        ]
+    )
+    suggestions = summary.get("suggested_rerun_options") or []
+    if not suggestions:
+        lines.append("No timeout-focused rerun suggestions.")
+    for suggestion in suggestions:
+        lines.append(f"- `{suggestion}`")
+    lines.extend(
+        [
+            "",
+            "## Expensive Command Hints",
+            "",
+            "- HTML preview may be slow for large Office files.",
+            "- Structure JSON may be slow for complex workbooks or presentations.",
+            "- For timeout-heavy folders, benchmark smaller batches with lower `--max-files`.",
+            "",
+            "## Large File Warnings",
+            "",
+        ]
+    )
+    large_warnings = summary.get("large_file_warnings") or []
+    if not large_warnings:
+        lines.append("No large-file warnings recorded.")
+    for warning in large_warnings:
+        lines.append(f"- `{_md_escape(warning.get('relative_path') or warning.get('source_path') or '')}`: {warning.get('size_mb')} MB")
+    lines.extend(
+        [
+            "",
             "## JSON Parseability",
             "",
             f"- JSON parse successes: {counts['json_parse_success']} / {counts['files_selected']}",
@@ -410,6 +502,7 @@ def classify_file_failure(
     json_parse_success: bool,
     html_generated: bool,
     skip_html: bool,
+    skip_structure_json: bool = False,
     selected: bool,
 ) -> str | None:
     if not selected:
@@ -420,7 +513,7 @@ def classify_file_failure(
         return "command_timeout"
     if failed_commands:
         return "command_failed"
-    if not json_parse_success:
+    if not skip_structure_json and not json_parse_success:
         return "json_parse_failed"
     if not skip_html and not html_generated:
         return "html_not_generated"
@@ -439,7 +532,9 @@ def recommend_benchmark(summary: dict[str, Any]) -> tuple[str, list[str]]:
         return "diagnostic_only", ["At least one source checksum changed; do not use for sidecar or engine work."]
     failed = int(counts.get("files_failed") or 0)
     if failed:
-        return "diagnostic_only", [f"{failed} file(s) had command failures or timeouts."]
+        reasons = [f"{failed} file(s) had command failures or timeouts."]
+        reasons.extend(f"Consider rerun option: {item}" for item in summary.get("suggested_rerun_options", [])[:4])
+        return "diagnostic_only", reasons
     json_success = int(counts.get("json_parse_success") or 0)
     html_generated = int(counts.get("html_generated") or 0)
     text_like = sum(1 for item in files if _has_text_artifact(item))
@@ -448,6 +543,85 @@ def recommend_benchmark(summary: dict[str, Any]) -> tuple[str, list[str]]:
     if json_success >= max(1, selected * 2 // 3) and (html_generated > 0 or text_like > 0):
         return "sidecar_candidate", ["Most files produced parseable JSON and usable artifacts with unchanged checksums."]
     return "diagnostic_only", ["Read-only commands completed without checksum changes, but artifact coverage is limited."]
+
+
+def _finalize_diagnostics(summary: dict[str, Any]) -> None:
+    summary["timeout_summary"] = _timeout_summary(summary.get("files") or [])
+    summary["suggested_rerun_options"] = _suggested_rerun_options(summary)
+
+
+def _timeout_summary(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_command: dict[str, set[str]] = {}
+    for item in files:
+        file_label = item.get("relative_path") or item.get("source_path") or ""
+        for command in item.get("commands") or []:
+            if command.get("timed_out"):
+                by_command.setdefault(str(command.get("name") or "unknown"), set()).add(file_label)
+    return [
+        {"command": command, "timeouts": len(paths), "affected_files": sorted(paths)}
+        for command, paths in sorted(by_command.items())
+    ]
+
+
+def _suggested_rerun_options(summary: dict[str, Any]) -> list[str]:
+    if not summary.get("timeout_summary"):
+        return []
+    suggestions = ["--max-files 1", "--timeout-seconds 120"]
+    timed_out_commands = {item.get("command") for item in summary["timeout_summary"]}
+    skipped = set(summary.get("skipped_commands") or [])
+    if "html" in timed_out_commands and "html" not in skipped:
+        suggestions.insert(0, "--skip-html")
+    if "structure" in timed_out_commands and "structure" not in skipped:
+        suggestions.insert(0, "--skip-structure-json")
+    if "issues" in timed_out_commands and "issues" not in skipped:
+        suggestions.append("--skip-issues")
+    if "validate" in timed_out_commands and "validate" not in skipped:
+        suggestions.append("--skip-validate")
+    suggestions.append("benchmark smaller batches")
+    return _dedupe(suggestions)
+
+
+def _skipped_commands(*, skip_html: bool, skip_structure_json: bool, skip_validate: bool, skip_issues: bool) -> list[str]:
+    skipped = []
+    if skip_html:
+        skipped.append("html")
+    if skip_structure_json:
+        skipped.append("structure")
+    if skip_validate:
+        skipped.append("validate")
+    if skip_issues:
+        skipped.append("issues")
+    return skipped
+
+
+def _large_file_warnings(files: list[Path], threshold_mb: int | None) -> list[dict[str, Any]]:
+    if threshold_mb is None or threshold_mb <= 0:
+        return []
+    threshold_bytes = threshold_mb * 1024 * 1024
+    warnings = []
+    for path in files:
+        size = path.stat().st_size
+        if size >= threshold_bytes:
+            warnings.append(
+                {
+                    "source_path": str(path),
+                    "relative_path": path.name,
+                    "size_bytes": size,
+                    "size_mb": round(size / (1024 * 1024), 3),
+                    "threshold_mb": threshold_mb,
+                }
+            )
+    return warnings
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen = set()
+    result = []
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result
 
 
 def _failed_file_report_lines(item: dict[str, Any]) -> list[str]:

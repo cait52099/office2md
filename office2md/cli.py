@@ -353,6 +353,10 @@ def officecli_benchmark_command(
     formats: str = typer.Option("docx,xlsx,pptx", "--formats", help="Comma-separated Office extensions to include."),
     timeout_seconds: int = typer.Option(60, "--timeout-seconds", help="Per-command timeout in seconds."),
     skip_html: bool = typer.Option(False, "--skip-html", help="Skip OfficeCLI HTML preview command."),
+    skip_structure_json: bool = typer.Option(False, "--skip-structure-json", help="Skip OfficeCLI structure JSON command."),
+    skip_issues: bool = typer.Option(False, "--skip-issues", help="Skip OfficeCLI issues command."),
+    skip_validate: bool = typer.Option(False, "--skip-validate", help="Skip OfficeCLI validate command."),
+    large_file_size_mb: int = typer.Option(25, "--large-file-size-mb", help="Warn when selected files are at least this many MB. Use 0 to disable."),
     json_output: bool = typer.Option(False, "--json", help="Print benchmark summary JSON."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview selected files and commands without writing artifacts."),
 ) -> None:
@@ -370,6 +374,10 @@ def officecli_benchmark_command(
             formats=parsed_formats,
             timeout_seconds=timeout_seconds,
             skip_html=skip_html,
+            skip_structure_json=skip_structure_json,
+            skip_validate=skip_validate,
+            skip_issues=skip_issues,
+            large_file_size_mb=large_file_size_mb,
             dry_run=dry_run,
         )
     except (FileNotFoundError, ValueError) as exc:
@@ -394,6 +402,8 @@ def officecli_benchmark_command(
     table.add_row("checksum_changed", str(counts["checksum_changed"]))
     table.add_row("json_parse_success", str(counts["json_parse_success"]))
     table.add_row("html_generated", str(counts["html_generated"]))
+    table.add_row("recommendation", str(summary.get("recommendation") or ""))
+    table.add_row("timeouts", str(sum(item.get("timeouts", 0) for item in summary.get("timeout_summary", []))))
     console.print(table)
     if dry_run:
         console.print("Dry run: OfficeCLI was not executed and no artifacts were written.")

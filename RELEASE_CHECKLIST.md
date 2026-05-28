@@ -1268,3 +1268,35 @@ v0.4.2 final release readiness evidence:
 - [ ] Existing convert, build-library, search-library, locate-document, library-report, export-obsidian, workspace commands, and GUI pages remain unchanged.
 - [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.2.md`.
+
+v0.4.3-rc1 OfficeCLI benchmark usability and timeout-control checkpoint evidence:
+
+- [ ] `--skip-structure-json` option exists.
+- [ ] `--skip-issues` option exists.
+- [ ] `--skip-validate` option exists.
+- [ ] `--large-file-size-mb` option exists.
+- [ ] Existing `--skip-html` remains.
+- [ ] Existing `--timeout-seconds` remains and is documented as a per-command timeout.
+- [ ] Summary JSON additively includes `timeout_summary`, `suggested_rerun_options`, `large_file_warnings`, and `skipped_commands`.
+- [ ] Report includes option summary.
+- [ ] Report includes command timeout summary.
+- [ ] Report includes timeout rerun suggestions.
+- [ ] Report includes expensive command hints.
+- [ ] Report includes large-file warnings.
+- [ ] Per-file result table includes file size.
+- [ ] Timeout recommendations can include `--skip-structure-json`, `--skip-html`, `--max-files 1`, `--timeout-seconds 120`, `--skip-issues`, `--skip-validate`, and benchmark smaller batches.
+- [ ] Skipped commands are not run.
+- [ ] Skipped commands are recorded in summary JSON and visible in the report.
+- [ ] OfficeCLI remains optional and no dependency is added.
+- [ ] Only read-only OfficeCLI command plan is used.
+- [ ] Source SHA-256 before/after safety remains in place.
+- [ ] Artifacts are written only under `OUTPUT_DIR`.
+- [ ] Per-file failures are recorded without stopping the benchmark.
+- [ ] Dry-run writes no artifacts.
+- [ ] Real OfficeCLI smoke against `C:\Users\hcai\Desktop\test` selected 3 files, recorded 6 command timeouts on the large XLSX, reported `diagnostic_only`, changed 0 checksums, and kept all source checksums unchanged.
+- [ ] `--skip-html` smoke recorded `skipped_commands: [html]`, reduced timeout count from 6 to 4, changed 0 checksums, and kept all source checksums unchanged.
+- [ ] `python -m pytest` reports 164 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
+- [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, source Office file modifications, AI/OCR/Marker/vector/cloud work, or OfficeCLI dependency changes are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.3-rc1.md`.
