@@ -554,6 +554,132 @@ def _related_chunks(conn: sqlite3.Connection, chunk_id: str, limit: int) -> List
     ]
 
 
+def open_chunk(path: Path, chunk_id: str, context: int = 0) -> Dict | None:
+    db_path = _resolve_db_path(path)
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        target = _chunk_by_id(conn, chunk_id)
+        if target is None:
+            return None
+        return {
+            "target_chunk": _open_chunk_record(target, include_text=True),
+            "context_chunks": [_open_chunk_record(row, include_text=False) for row in _context_chunk_rows(conn, chunk_id, max(context, 0))],
+        }
+
+
+def _chunk_by_id(conn: sqlite3.Connection, chunk_id: str) -> sqlite3.Row | None:
+    return conn.execute(
+        """
+        SELECT c.chunk_id, c.doc_id, c.evidence_type, c.heading_path_json,
+               c.title, c.text, c.locator, c.page_number, c.slide_number,
+               c.sheet_name, c.table_name, c.section_number, c.section_title,
+               c.topic_label, c.batch_id, c.confidence, c.provenance_status,
+               c.source_map_json, c.is_noisy, c.noise_score, c.noise_reasons_json,
+               d.title AS document_title, d.source_file, d.document_kind,
+               d.output_dir, d.source_path
+        FROM chunks c
+        JOIN documents d ON d.doc_id = c.doc_id
+        WHERE c.chunk_id = ?
+        """,
+        (chunk_id,),
+    ).fetchone()
+
+
+def _context_chunk_rows(conn: sqlite3.Connection, chunk_id: str, limit: int) -> List[sqlite3.Row]:
+    if limit <= 0:
+        return []
+    target = conn.execute(
+        """
+        SELECT rowid AS row_number, doc_id, page_number, slide_number, sheet_name, section_number
+        FROM chunks
+        WHERE chunk_id = ?
+        """,
+        (chunk_id,),
+    ).fetchone()
+    if target is None:
+        return []
+    return conn.execute(
+        """
+        SELECT c.chunk_id, c.doc_id, c.evidence_type, c.heading_path_json,
+               c.title, c.text, c.locator, c.page_number, c.slide_number,
+               c.sheet_name, c.table_name, c.section_number, c.section_title,
+               c.topic_label, c.batch_id, c.confidence, c.provenance_status,
+               c.source_map_json, c.is_noisy, c.noise_score, c.noise_reasons_json,
+               d.title AS document_title, d.source_file, d.document_kind,
+               d.output_dir, d.source_path,
+               CASE
+                 WHEN c.page_number IS NOT NULL AND c.page_number = ? THEN 0
+                 WHEN c.slide_number IS NOT NULL AND c.slide_number = ? THEN 0
+                 WHEN c.sheet_name IS NOT NULL AND c.sheet_name = ? THEN 1
+                 WHEN c.section_number IS NOT NULL AND c.section_number = ? THEN 1
+                 ELSE 2
+               END AS context_rank,
+               ABS(c.rowid - ?) AS distance
+        FROM chunks c
+        JOIN documents d ON d.doc_id = c.doc_id
+        WHERE c.doc_id = ? AND c.chunk_id != ?
+        ORDER BY context_rank, distance
+        LIMIT ?
+        """,
+        (
+            target["page_number"],
+            target["slide_number"],
+            target["sheet_name"],
+            target["section_number"],
+            target["row_number"],
+            target["doc_id"],
+            chunk_id,
+            limit,
+        ),
+    ).fetchall()
+
+
+def _open_chunk_record(row: sqlite3.Row, include_text: bool) -> Dict:
+    source_map = _json_dict(row["source_map_json"])
+    heading_path = _json_list(row["heading_path_json"])
+    record = {
+        "chunk_id": row["chunk_id"],
+        "document_id": row["doc_id"],
+        "document_title": row["document_title"],
+        "document_kind": row["document_kind"],
+        "source_file": row["source_file"],
+        "source_path": row["source_path"],
+        "output_dir": row["output_dir"],
+        "chunk_title": row["title"],
+        "evidence_type": row["evidence_type"],
+        "locator": row["locator"],
+        "confidence": row["confidence"],
+        "limitation": _chunk_limitation(row),
+        "heading_path": heading_path,
+        "page_number": row["page_number"],
+        "slide_number": row["slide_number"],
+        "sheet_name": row["sheet_name"],
+        "table_name": row["table_name"],
+        "section_number": row["section_number"],
+        "section_title": row["section_title"],
+        "topic_label": row["topic_label"],
+        "batch_id": row["batch_id"],
+        "provenance_status": row["provenance_status"],
+        "source_map": source_map,
+        "is_noisy": bool(row["is_noisy"]),
+        "noise_score": row["noise_score"],
+        "noise_reasons": _json_list(row["noise_reasons_json"]),
+        "preview": _preview(row["text"], limit=220),
+    }
+    if include_text:
+        record["text"] = row["text"]
+    return record
+
+
+def _chunk_limitation(row: sqlite3.Row) -> str | None:
+    limitations = []
+    if not row["locator"]:
+        limitations.append("missing locator")
+    if row["is_noisy"]:
+        limitations.append("chunk marked noisy")
+    return "; ".join(limitations) if limitations else None
+
+
 def _is_multi_term_query(query: str) -> bool:
     return len(_search_tokens(query)) > 1
 
@@ -1862,6 +1988,16 @@ def _json_list(value: str | None) -> List:
     except json.JSONDecodeError:
         return []
     return parsed if isinstance(parsed, list) else []
+
+
+def _json_dict(value: str | None) -> Dict:
+    if not value:
+        return {}
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def _dedupe_list(values: List[Any]) -> List[Any]:

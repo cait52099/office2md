@@ -172,25 +172,24 @@ The implementation should reuse existing `search_library()` and `search_library_
 Command shape:
 
 ```powershell
-python -m office2md.cli open-chunk LIBRARY_DB_OR_DIR CHUNK_ID --json
+python -m office2md.cli open-chunk LIBRARY_DB_OR_DIR CHUNK_ID --context 2 --export-json open_chunk.json
 ```
 
-Planned payload:
+Implemented v0.4.4-rc2 payload:
 
 ```json
 {
-  "schema_name": "office2md.open_chunk.v1",
-  "schema_version": "1",
-  "chunk_id": "manual_page_12",
+  "schema_version": "office2md.open_chunk.v1",
+  "request": {},
+  "target_chunk": {},
+  "context_chunks": [],
   "evidence": {},
-  "text": "full chunk text",
-  "related_chunks": [],
-  "warnings": [],
-  "limitations": []
+  "limitations": [],
+  "warnings": []
 }
 ```
 
-`open-chunk` should be a read-only lookup by `chunk_id`. It should not run search or alter ranking. Related context can reuse the existing related chunk data access pattern when requested.
+`open-chunk` is a read-only lookup by exact `chunk_id`. It does not run search or alter ranking. Optional context uses same-document chunk proximity and source locator hints.
 
 ### Locate Document
 
@@ -315,4 +314,3 @@ Recommended v0.4.4 slicing:
 - rc2: `open_chunk()` core helper and `open-chunk` CLI.
 - rc3: `locate-document --export-json` polish and `build-report-context`.
 - rc4: agent workflow examples and JSON consistency audit.
-

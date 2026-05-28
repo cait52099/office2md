@@ -14,12 +14,13 @@ Future MCP support should be a read-only adapter over these same CLI/core helper
 
 ## Status
 
-v0.4.4-rc1 is documentation only. It does not add new commands yet.
+v0.4.4-rc2 adds the first read-only agent-facing command: `open-chunk`.
 
 Current related commands:
 
 ```powershell
 python -m office2md.cli search-library .\library\library.db "vacuum pump fault" --export-json .\search.json
+python -m office2md.cli open-chunk .\library CHUNK_ID --context 2 --export-json .\open_chunk.json
 python -m office2md.cli library-report .\library --export-json .\library_report.json
 python -m office2md.cli locate-document .\library "manual"
 ```
@@ -27,7 +28,6 @@ python -m office2md.cli locate-document .\library "manual"
 Planned future commands:
 
 ```powershell
-python -m office2md.cli open-chunk .\library CHUNK_ID --json
 python -m office2md.cli locate-document .\library "manual" --export-json .\documents.json
 python -m office2md.cli build-report-context .\library "vacuum pump fault" --export-json .\report_context.json
 ```
@@ -69,7 +69,7 @@ Agents should prefer evidence with a `locator`. If evidence lacks a locator, the
 
 ```powershell
 python -m office2md.cli search-library .\library\library.db "vacuum pump fault" --export-json .\search.json
-python -m office2md.cli open-chunk .\library\library.db CHUNK_ID --json
+python -m office2md.cli open-chunk .\library\library.db CHUNK_ID --context 2 --export-json .\open_chunk.json
 ```
 
 The agent should answer using:
@@ -115,4 +115,3 @@ It should not expose unrestricted SQL, shell execution, write-back, conversion, 
 OfficeCLI remains `diagnostic_only`.
 
 Do not use OfficeCLI sidecar extraction, do not add `--office-engine officecli`, and do not integrate OfficeCLI into the main conversion pipeline based on the current benchmark evidence.
-

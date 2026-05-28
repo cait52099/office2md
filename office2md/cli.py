@@ -18,7 +18,7 @@ from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
-from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
+from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.officecli_benchmark import run_officecli_benchmark
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
@@ -657,6 +657,43 @@ def _write_library_report_export_json(path: Path, report: dict) -> None:
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _open_chunk_json_payload(library_path: Path, chunk_id: str, context: int, result: dict) -> dict:
+    target_chunk = result["target_chunk"]
+    context_chunks = result["context_chunks"]
+    limitations = [target_chunk["limitation"]] if target_chunk.get("limitation") else []
+    limitations.extend(item["limitation"] for item in context_chunks if item.get("limitation"))
+    return {
+        "schema_version": "office2md.open_chunk.v1",
+        "request": {
+            "library_path": str(library_path),
+            "chunk_id": chunk_id,
+            "context": context,
+        },
+        "target_chunk": target_chunk,
+        "context_chunks": context_chunks,
+        "evidence": {
+            "source_file": target_chunk.get("source_file"),
+            "locator": target_chunk.get("locator"),
+            "chunk_id": target_chunk.get("chunk_id"),
+            "document_id": target_chunk.get("document_id"),
+            "document_title": target_chunk.get("document_title"),
+            "document_kind": target_chunk.get("document_kind"),
+            "evidence_type": target_chunk.get("evidence_type"),
+            "confidence": target_chunk.get("confidence"),
+            "limitation": target_chunk.get("limitation"),
+        },
+        "limitations": limitations,
+        "warnings": [],
+    }
+
+
+def _write_open_chunk_export_json(path: Path, payload: dict) -> None:
+    target = path.expanduser()
+    if target.parent != Path("."):
+        target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def _print_workspace_status(status: dict, *, show_history: bool) -> None:
     workspace = status["workspace"]
     source = status["source_manifest"]
@@ -739,6 +776,40 @@ def locate_document_command(library_db_or_output_dir: Path, query: str, limit: i
             str(item.get("chunks_count", "")),
         )
     console.print(table)
+
+
+@app.command("open-chunk")
+def open_chunk_command(
+    library_db_or_output_dir: Path,
+    chunk_id: str,
+    context: int = typer.Option(0, "--context", help="Number of same-document context chunks to include."),
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 open-chunk JSON to PATH; creates parent directories."),
+) -> None:
+    """Open one library chunk by exact chunk_id without changing the library."""
+    result = open_chunk(library_db_or_output_dir, chunk_id, context=context)
+    if result is None:
+        raise typer.BadParameter(f"chunk_id not found: {chunk_id}")
+    payload = _open_chunk_json_payload(library_db_or_output_dir, chunk_id, context, result)
+    target = payload["target_chunk"]
+    table = Table(title=f"office2md open-chunk: {chunk_id}")
+    table.add_column("Field")
+    table.add_column("Value")
+    table.add_row("chunk_id", target.get("chunk_id") or "")
+    table.add_row("document_id", target.get("document_id") or "")
+    table.add_row("document_title", target.get("document_title") or "")
+    table.add_row("source_file", target.get("source_file") or "")
+    table.add_row("document_kind", target.get("document_kind") or "")
+    table.add_row("evidence_type", target.get("evidence_type") or "")
+    table.add_row("locator", target.get("locator") or "")
+    table.add_row("context_chunks", str(len(payload["context_chunks"])))
+    table.add_row("preview", target.get("preview") or "")
+    console.print(table)
+    if payload["limitations"]:
+        for limitation in payload["limitations"]:
+            console.print(f"[yellow]limitation:[/yellow] {limitation}")
+    if export_json is not None:
+        _write_open_chunk_export_json(export_json, payload)
+        console.print(f"export_json: {export_json}")
 
 
 @app.command("library-report")

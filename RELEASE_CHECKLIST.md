@@ -1344,3 +1344,24 @@ v0.4.4-rc1 Agent-ready JSON Contract Foundation checkpoint evidence:
 - [ ] `python -m ruff check .` passes.
 - [ ] `python -m office2md.cli --help` passes.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc1.md`.
+
+v0.4.4-rc2 open-chunk checkpoint evidence:
+
+- [ ] `open_chunk()` core helper exists.
+- [ ] `open-chunk` CLI command exists.
+- [ ] `open-chunk` is read-only and exact `chunk_id` based.
+- [ ] `--context` returns same-document context only.
+- [ ] `--export-json` writes UTF-8 pretty JSON and creates parent directories.
+- [ ] JSON export uses `schema_version: office2md.open_chunk.v1`.
+- [ ] JSON export includes `request`, `target_chunk`, `context_chunks`, `evidence`, `limitations`, and `warnings`.
+- [ ] Evidence fields include `source_file`, `locator`, `chunk_id`, `document_id`, `document_title`, `document_kind`, `evidence_type`, `confidence`, and `limitation` where available.
+- [ ] Missing `chunk_id` fails clearly.
+- [ ] Tests cover existing chunk lookup, `context=0`, same-document context, export JSON, missing chunks, CLI smoke, and unchanged search behavior.
+- [ ] Docs are updated for implemented `open-chunk`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] CLI help checks pass for `office2md`, `open-chunk`, and `search-library`.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, locate-document matching, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc2.md`.

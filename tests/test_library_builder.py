@@ -3,8 +3,9 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
-from office2md.cli import _search_diagnostics_json_payload, _write_library_report_export_json, _write_search_export_json
+from office2md.cli import _open_chunk_json_payload, _search_diagnostics_json_payload, _write_library_report_export_json, _write_open_chunk_export_json, _write_search_export_json, app
 from office2md.gui.helpers import (
     build_obsidian_export_command_preview,
     build_library_command_preview,
@@ -41,7 +42,7 @@ from office2md.gui.helpers import (
     workspace_status_json_for_download,
     workspace_traceability_display,
 )
-from office2md.library import build_library, library_report, locate_document, search_library, search_library_diagnostics, search_library_facets
+from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
 from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources
 
 
@@ -661,6 +662,111 @@ def test_search_library_export_json_file_is_stable_and_creates_parent(tmp_path):
             "preview": "Alarm history active faults",
         }
     ]
+
+
+def test_open_chunk_returns_existing_chunk_by_exact_id(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+
+    result = open_chunk(library_dir, "target_chunk", context=0)
+
+    assert result is not None
+    assert result["context_chunks"] == []
+    target = result["target_chunk"]
+    assert target["chunk_id"] == "target_chunk"
+    assert target["document_id"] == "open-doc"
+    assert target["document_title"] == "Open Manual"
+    assert target["source_file"] == "Open Manual.pdf"
+    assert target["document_kind"] == "manual_pdf"
+    assert target["evidence_type"] == "page"
+    assert target["locator"] == "Page 2"
+    assert target["confidence"] == "high"
+    assert target["limitation"] is None
+    assert target["text"] == "Target pump fault evidence"
+
+
+def test_open_chunk_context_zero_returns_no_context(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+
+    result = open_chunk(library_dir / "library.db", "target_chunk", context=0)
+
+    assert result is not None
+    assert result["context_chunks"] == []
+
+
+def test_open_chunk_context_returns_same_document_context(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+
+    result = open_chunk(library_dir, "target_chunk", context=2)
+
+    assert result is not None
+    context_ids = [item["chunk_id"] for item in result["context_chunks"]]
+    assert context_ids == ["neighbor_page", "intro_chunk"]
+    assert all(item["document_id"] == "open-doc" for item in result["context_chunks"])
+    assert all("text" not in item for item in result["context_chunks"])
+    assert result["context_chunks"][0]["locator"] == "Page 2"
+
+
+def test_open_chunk_export_json_creates_parent_and_uses_contract(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    result = open_chunk(library_dir, "target_chunk", context=1)
+    export_path = tmp_path / "nested" / "agent" / "open_chunk.json"
+
+    payload = _open_chunk_json_payload(library_dir, "target_chunk", 1, result)
+    _write_open_chunk_export_json(export_path, payload)
+    parsed = json.loads(export_path.read_text(encoding="utf-8"))
+
+    assert parsed["schema_version"] == "office2md.open_chunk.v1"
+    assert parsed["request"]["chunk_id"] == "target_chunk"
+    assert parsed["target_chunk"]["chunk_id"] == "target_chunk"
+    assert parsed["context_chunks"][0]["chunk_id"] == "neighbor_page"
+    assert parsed["evidence"] == {
+        "source_file": "Open Manual.pdf",
+        "locator": "Page 2",
+        "chunk_id": "target_chunk",
+        "document_id": "open-doc",
+        "document_title": "Open Manual",
+        "document_kind": "manual_pdf",
+        "evidence_type": "page",
+        "confidence": "high",
+        "limitation": None,
+    }
+    assert parsed["limitations"] == []
+    assert parsed["warnings"] == []
+
+
+def test_open_chunk_missing_chunk_cli_fails_clearly(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["open-chunk", str(library_dir), "missing_chunk"])
+
+    assert result.exit_code != 0
+    assert "chunk_id not found: missing_chunk" in result.output
+
+
+def test_open_chunk_cli_export_json_smoke(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    export_path = tmp_path / "nested" / "open" / "chunk.json"
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["open-chunk", str(library_dir), "target_chunk", "--context", "1", "--export-json", str(export_path)])
+
+    assert result.exit_code == 0
+    assert "export_json:" in result.stdout
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+    assert payload["target_chunk"]["chunk_id"] == "target_chunk"
+    assert len(payload["context_chunks"]) == 1
+
+
+def test_open_chunk_does_not_change_existing_search_behavior(tmp_path):
+    library_dir = _open_chunk_library(tmp_path)
+    before = search_library(library_dir, "pump fault", limit=3)
+
+    assert open_chunk(library_dir, "target_chunk", context=2) is not None
+
+    after = search_library(library_dir, "pump fault", limit=3)
+    assert [item["chunk_id"] for item in after] == [item["chunk_id"] for item in before]
+    assert [item["rank"] for item in after] == [item["rank"] for item in before]
 
 
 def test_gui_search_helpers_reuse_existing_search_results(tmp_path):
@@ -1298,6 +1404,26 @@ def _write_tiny_gui_obsidian_vault(path: Path) -> Path:
         encoding="utf-8",
     )
     return path
+
+
+def _open_chunk_library(tmp_path: Path) -> Path:
+    output_root = tmp_path / "output"
+    output_root.mkdir()
+    _write_doc(
+        output_root / "manual",
+        "open-doc",
+        "Open Manual.pdf",
+        "manual_pdf",
+        [
+            _chunk("intro_chunk", "section", ["Intro"], "Intro context", "Page 1", page_number=1),
+            _chunk("target_chunk", "page", ["Faults"], "Target pump fault evidence", "Page 2", page_number=2, confidence="high"),
+            _chunk("neighbor_page", "page", ["Faults"], "Neighbor pump fault context", "Page 2", page_number=2),
+        ],
+        {"equipment": ["pump"]},
+    )
+    library_dir = tmp_path / "library"
+    build_library(output_root, library_dir)
+    return library_dir
 
 
 def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, chunks: list[dict], entities: dict, quality_status: str = "ok"):
