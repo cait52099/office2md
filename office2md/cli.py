@@ -18,6 +18,7 @@ from office2md.detector import detect_file_type, is_legacy_office, sha256_file
 from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
+from office2md.incremental import library_status, scan_changes
 from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.officecli_benchmark import run_officecli_benchmark
@@ -429,6 +430,87 @@ def build_library_command(input_output_root: Path, library_output_dir: Path) -> 
     table.add_row("warnings", str(len(result["warnings"])))
     console.print(table)
     for warning in result["warnings"][:20]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+
+
+@app.command("library-status")
+def library_status_command(
+    library_path: Path,
+    change_plan: Path = typer.Option(None, "--change-plan", help="Optional change_plan.json to summarize pending changes."),
+    registry: Path = typer.Option(None, "--registry", help="Optional source_registry.json path."),
+    json_output: bool = typer.Option(False, "--json", help="Print stable JSON only."),
+) -> None:
+    """Show read-only incremental library freshness status."""
+    try:
+        status = library_status(library_path, change_plan_path=change_plan, registry_path=registry)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if json_output:
+        print(json.dumps(status, ensure_ascii=False, indent=2))
+        return
+    table = Table(title="office2md library-status")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("library_path", status["library_path"])
+    table.add_row("library_db_exists", str(status["library_db_exists"]))
+    table.add_row("source_registry_exists", str(status["source_registry_exists"]))
+    table.add_row("status", status["status"])
+    counts = status["counts"]
+    table.add_row("registered_sources", str(counts["registered_sources"]))
+    table.add_row("current_sources", str(counts["current_sources"]))
+    table.add_row("stale_sources", str(counts["stale_sources"]))
+    table.add_row("missing_sources", str(counts["missing_sources"]))
+    if status.get("pending_changes"):
+        table.add_row("pending_changes", json.dumps(status["pending_changes"], ensure_ascii=False))
+    console.print(table)
+    for warning in status["warnings"]:
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+
+
+@app.command("scan-changes")
+def scan_changes_command(
+    source_path: Path,
+    library_path: Path,
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 change_plan.json to PATH; creates parent directories."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview changes without writing change_plan.json."),
+    include_hidden: bool = typer.Option(False, "--include-hidden", help="Include files under dot-prefixed paths where feasible."),
+    registry: Path = typer.Option(None, "--registry", help="Optional source_registry.json path."),
+    json_output: bool = typer.Option(False, "--json", help="Print change plan JSON only."),
+) -> None:
+    """Compare source files against registry/library state without updating the library."""
+    try:
+        plan = scan_changes(
+            source_path,
+            library_path,
+            registry_path=registry,
+            export_json=export_json,
+            dry_run=dry_run,
+            include_hidden=include_hidden,
+        )
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if json_output:
+        print(json.dumps(plan, ensure_ascii=False, indent=2))
+        return
+    counts = plan["counts"]
+    table = Table(title="office2md scan-changes")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("source_path", plan["source_path"])
+    table.add_row("library_path", plan["library_path"])
+    table.add_row("new", str(counts["new"]))
+    table.add_row("modified", str(counts["modified"]))
+    table.add_row("unchanged", str(counts["unchanged"]))
+    table.add_row("deleted_missing", str(counts["deleted_missing"]))
+    table.add_row("moved_or_renamed_candidate", str(counts["moved_or_renamed_candidate"]))
+    table.add_row("unsupported", str(counts["unsupported"]))
+    table.add_row("stale", str(counts["stale"]))
+    console.print(table)
+    if export_json and not dry_run:
+        console.print(f"change_plan_json: {export_json.expanduser().resolve()}")
+    else:
+        console.print("Dry run: change_plan.json was not written.")
+    for warning in plan["warnings"]:
         console.print(f"[yellow]warning:[/yellow] {warning}")
 
 

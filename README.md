@@ -192,6 +192,18 @@ The optional Streamlit GUI also includes a read-only Workspace Status page for t
 
 office2md is preparing stable, read-only CLI JSON contracts for future AI-agent workflows. The planned interface is evidence-first: search a built Knowledge Library, open selected chunks by `chunk_id`, and cite `source_file`, `locator`, and `document_id` in downstream answers or report drafts. See `docs/usage/agent_ready_cli.md` and `docs/design/v044_agent_ready_json_contract.md`.
 
+### Incremental Status Foundation
+
+`library-status` and `scan-changes` provide a read-only foundation for checking whether a built Knowledge Library may be stale relative to source files:
+
+```bash
+office2md library-status ./library
+office2md scan-changes ./source ./library --dry-run
+office2md scan-changes ./source ./library --export-json ./change_plan.json
+```
+
+These commands do not run conversion, rebuild the library, update SQLite rows, delete evidence, or watch folders in the background. Agents must not assume new raw files are searchable until an explicit scan/update workflow has been run. See `docs/usage/incremental_update.md` and `docs/design/v045_incremental_update_workflow.md`.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

@@ -1438,3 +1438,34 @@ v0.4.4 final release readiness evidence:
 - [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, incremental update, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
 - [ ] OfficeCLI remains `diagnostic_only`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.4.md`.
+
+v0.4.5-rc1 Incremental Knowledge Base Foundation checkpoint evidence:
+
+- [ ] Source registry helpers are implemented.
+- [ ] Source registry schema is `office2md.source_registry.v1`.
+- [ ] Source registry records normalized source path, source path, relative path, file name, extension, size, `mtime_ns`, SHA-256, converter/profile metadata where available, Knowledge Pack path, manifest path, and status.
+- [ ] `library-status` CLI exists.
+- [ ] `library-status` is read-only and reports `current`, `stale`, or `unknown`.
+- [ ] `library-status --json` outputs parseable JSON with schema `office2md.library_status.v1`.
+- [ ] `scan-changes` CLI exists.
+- [ ] `scan-changes` compares a source folder against registry/library state.
+- [ ] `scan-changes` classifies `new`, `modified`, `unchanged`, `deleted_missing`, `moved_or_renamed_candidate`, `unsupported`, and `stale`.
+- [ ] `scan-changes` is read-only except explicit `--export-json` writing `change_plan.json`.
+- [ ] `change_plan.json` export uses schema `office2md.change_plan.v1`.
+- [ ] `scan-changes --dry-run` writes no change plan.
+- [ ] Docs are added in `docs/design/v045_incremental_update_workflow.md` and `docs/usage/incremental_update.md`.
+- [ ] README includes a short incremental status foundation pointer.
+- [ ] Tests cover registry creation/reading, new/modified/unchanged/deleted/unsupported classifications, moved/renamed candidates, change plan export, dry-run behavior, library status output, and unchanged search/open-chunk behavior.
+- [ ] Smoke confirms `library-status --json` parses and `scan-changes --export-json` writes parseable change plan JSON.
+- [ ] No source files, conversion output, library DB, library index, library graph, or evidence are modified.
+- [ ] No `update-library` implementation is included.
+- [ ] No row-level SQLite incremental update is included.
+- [ ] No automatic deletion is included.
+- [ ] No watcher or background update is included.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] CLI help checks pass for `office2md`, `library-status`, `scan-changes`, `search-library`, and `open-chunk`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.5-rc1.md`.
