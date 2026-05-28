@@ -4,6 +4,8 @@ Status: design with v0.4.2 P1 benchmark harness.
 
 Implementation note: v0.4.2 P1 adds a read-only `officecli-benchmark` harness for this plan. It remains optional, does not change conversion behavior, and does not add OfficeCLI as a dependency.
 
+v0.4.2 P2 adds report diagnostics and an advisory recommendation heuristic. These additions are reporting-only and do not change conversion behavior or promote OfficeCLI to an engine.
+
 ## Purpose
 
 This benchmark evaluates whether `C:\Users\hcai\bin\officecli.exe` version `1.0.100` can improve office2md Office document processing for `DOCX`, `XLSX`, and `PPTX` files.

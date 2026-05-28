@@ -1213,3 +1213,30 @@ v0.4.2-rc1 OfficeCLI read-only benchmark harness checkpoint evidence:
 - [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
 - [ ] No conversion, runner, build-library, search/ranking, Graph View, Obsidian export, workspace behavior, OfficeCLI sidecar extraction, `--office-engine officecli`, or AI/OCR/Marker/vector/cloud changes are included.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.2-rc1.md`.
+
+v0.4.2-rc2 OfficeCLI benchmark diagnostics/report polish checkpoint evidence:
+
+- [ ] `officecli_benchmark_report.md` includes per-file result table.
+- [ ] `officecli_benchmark_report.md` includes per-command result table.
+- [ ] `officecli_benchmark_report.md` includes failed files section.
+- [ ] Failed command details include command name, exit code, stderr/stdout excerpts, timeout flag, runtime, and artifact path.
+- [ ] Report includes checksum safety section.
+- [ ] Report includes JSON parseability section.
+- [ ] Report includes HTML generation section.
+- [ ] Report includes per-format DOCX/XLSX/PPTX summary.
+- [ ] Summary JSON keeps existing fields and additively includes `failure_category`, `failed_commands`, `timed_out_commands`, `html_generated`, `recommendation`, and `recommendation_reasons`.
+- [ ] Failure classification covers `command_timeout`, `command_failed`, `json_parse_failed`, `html_not_generated`, `checksum_changed`, `unsupported_file`, and reserved/documented `unknown`.
+- [ ] Recommendation heuristic returns `not_evaluated` for dry-run/no files, `diagnostic_only` for failures/timeouts/checksum changes, `sidecar_candidate` only for mostly parseable/safe usable artifacts, and conservative `engine_candidate` only when all files succeed with JSON, HTML, and text-like artifacts.
+- [ ] Existing output structure remains backward compatible.
+- [ ] OfficeCLI remains optional and no dependency is added.
+- [ ] Only read-only OfficeCLI command plan is used.
+- [ ] Source SHA-256 before/after safety remains in place.
+- [ ] Artifacts are written only under `OUTPUT_DIR`.
+- [ ] Per-file failures are recorded without stopping the benchmark.
+- [ ] Real OfficeCLI smoke against `C:\Users\hcai\Desktop\test` recorded 3 selected files, 1 `command_timeout` failed file, recommendation `diagnostic_only`, 0 checksum changes, and all source checksums unchanged.
+- [ ] Dry-run smoke writes no artifacts.
+- [ ] `python -m pytest` reports 160 passed.
+- [ ] `python -m ruff check .` reports all checks passed.
+- [ ] CLI help checks pass for officecli-benchmark, workspace-status, convert, build-library, search-library, and export-obsidian.
+- [ ] No OfficeCLI sidecar extraction, `--office-engine officecli`, conversion behavior changes, runner behavior changes, build-library behavior changes, search/ranking changes, Graph View behavior changes, Obsidian export behavior changes, workspace behavior changes, AI/OCR/Marker/vector/cloud work, or source Office file modifications are included.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.2-rc2.md`.

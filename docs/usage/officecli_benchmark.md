@@ -84,6 +84,38 @@ OUTPUT_DIR/
 
 If a command fails, the command result is still recorded in `command_results.json` and the summary.
 
+## Diagnostics
+
+The summary JSON and Markdown report include additive diagnostics:
+
+- per-file result status;
+- per-command exit code, timeout flag, runtime, and artifact path;
+- failed command names;
+- timed out command names;
+- failure category;
+- JSON parseability;
+- HTML generation;
+- checksum safety;
+- advisory recommendation.
+
+Failure categories are conservative:
+
+- `officecli_unavailable`
+- `command_failed`
+- `command_timeout`
+- `json_parse_failed`
+- `html_not_generated`
+- `checksum_changed`
+- `unsupported_file`
+- `unknown`
+
+The recommendation is advisory only. It does not change conversion behavior:
+
+- `not_evaluated`
+- `diagnostic_only`
+- `sidecar_candidate`
+- `engine_candidate`
+
 ## Purpose
 
 The benchmark output is evidence for a future decision. It does not change conversion behavior.

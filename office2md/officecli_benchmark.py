@@ -16,6 +16,7 @@ from office2md.utils import ensure_directory, utc_now_iso
 SCHEMA_VERSION = "1"
 DEFAULT_FORMATS = ("docx", "xlsx", "pptx")
 FORBIDDEN_COMMAND_TOKENS = {"create", "add", "set", "remove", "open", "close"}
+TEXT_ARTIFACTS = {"outline.txt", "text.txt", "validate.txt", "issues.txt"}
 
 
 @dataclass(frozen=True)
@@ -181,6 +182,7 @@ def run_officecli_benchmark(
     }
     if dry_run:
         summary["files"] = [_dry_run_file_record(path, input_path, specs) for path in selected_files]
+        summary["recommendation"], summary["recommendation_reasons"] = recommend_benchmark(summary)
         return summary
 
     ensure_directory(output_dir)
@@ -199,6 +201,7 @@ def run_officecli_benchmark(
             summary["counts"]["json_parse_success"] += 1
         if "preview.html" in record["artifacts"]:
             summary["counts"]["html_generated"] += 1
+    summary["recommendation"], summary["recommendation_reasons"] = recommend_benchmark(summary)
     _write_summary(output_dir, summary)
     _write_report(output_dir, summary)
     return summary
@@ -233,11 +236,11 @@ def _run_file_benchmark(
         arguments = [str(source) if item == "{file}" else item for item in spec.arguments]
         result = run_officecli_command(officecli_path, arguments, timeout_seconds=timeout_seconds)
         result_for_record = _command_result_for_record(spec.name, result)
-        commands.append(result_for_record)
         if result["succeeded"] and spec.artifact is not None:
             artifact_path = file_dir / spec.artifact
             artifact_path.write_text(result["stdout"], encoding="utf-8", errors="replace")
             artifacts[spec.artifact] = str(artifact_path)
+            result_for_record["artifact_path"] = str(artifact_path)
             if spec.parse_json:
                 try:
                     json.loads(result["stdout"])
@@ -246,11 +249,24 @@ def _run_file_benchmark(
                     warnings.append(f"structure JSON did not parse: {exc}")
         elif not result["succeeded"]:
             errors.append(f"{spec.name} failed")
+        commands.append(result_for_record)
 
     sha_after = compute_sha256(source)
     checksum_unchanged = sha_before == sha_after
     if not checksum_unchanged:
         errors.append("critical: source checksum changed during OfficeCLI benchmark")
+    failed_commands = [command["name"] for command in commands if not command["succeeded"]]
+    timed_out_commands = [command["name"] for command in commands if command["timed_out"]]
+    html_generated = "preview.html" in artifacts
+    failure_category = classify_file_failure(
+        checksum_unchanged=checksum_unchanged,
+        failed_commands=failed_commands,
+        timed_out_commands=timed_out_commands,
+        json_parse_success=json_parse_success,
+        html_generated=html_generated,
+        skip_html=not any(spec.name == "html" for spec in specs),
+        selected=True,
+    )
     record = {
         "source_path": str(source),
         "relative_path": _relative_path(source, input_path),
@@ -264,6 +280,10 @@ def _run_file_benchmark(
         "warnings": warnings,
         "errors": errors,
         "json_parse_success": json_parse_success,
+        "html_generated": html_generated,
+        "failed_commands": failed_commands,
+        "timed_out_commands": timed_out_commands,
+        "failure_category": failure_category,
     }
     (file_dir / "metadata.json").write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
     (file_dir / "command_results.json").write_text(json.dumps(commands, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -278,6 +298,8 @@ def _write_summary(output_dir: Path, summary: dict[str, Any]) -> None:
 
 def _write_report(output_dir: Path, summary: dict[str, Any]) -> None:
     counts = summary["counts"]
+    recommendation = summary.get("recommendation") or "not_evaluated"
+    recommendation_reasons = summary.get("recommendation_reasons") or []
     lines = [
         "# OfficeCLI Benchmark Report",
         "",
@@ -289,37 +311,218 @@ def _write_report(output_dir: Path, summary: dict[str, Any]) -> None:
         f"- OfficeCLI path: `{summary['officecli_path']}`",
         f"- OfficeCLI version: `{summary.get('officecli_version') or 'unknown'}`",
         f"- Selected files: {counts['files_selected']}",
+        f"- Recommendation: `{recommendation}`",
         "",
         "## Per-Format Summary",
         "",
+        "| Format | Files | Succeeded | Failed | JSON parsed | HTML generated | Checksum changed |",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
-    for extension, count in _format_counts(summary["files"]).items():
-        lines.append(f"- `{extension}`: {count}")
+    for extension, row in _format_summary(summary["files"]).items():
+        lines.append(
+            f"| `{extension}` | {row['files']} | {row['succeeded']} | {row['failed']} | "
+            f"{row['json_parse_success']} | {row['html_generated']} | {row['checksum_changed']} |"
+        )
     if not summary["files"]:
-        lines.append("- No supported Office files selected.")
+        lines.append("| none | 0 | 0 | 0 | 0 | 0 | 0 |")
     lines.extend(
         [
             "",
-            "## Failures",
+            "## Per-File Results",
+            "",
+            "| File | Format | Status | Failure category | Failed commands | Timed out commands | JSON parsed | HTML generated | Checksum unchanged |",
+            "|---|---|---|---|---|---|---|---|---|",
+        ]
+    )
+    for item in summary["files"]:
+        status = "failed" if item.get("errors") else "succeeded"
+        lines.append(
+            f"| `{_md_escape(item.get('relative_path') or item.get('source_path') or '')}` | `{item.get('extension') or ''}` | "
+            f"{status} | `{item.get('failure_category') or 'none'}` | "
+            f"{', '.join(item.get('failed_commands') or []) or '-'} | "
+            f"{', '.join(item.get('timed_out_commands') or []) or '-'} | "
+            f"{bool(item.get('json_parse_success'))} | {bool(item.get('html_generated'))} | {bool(item.get('checksum_unchanged'))} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Per-Command Results",
+            "",
+            "| File | Command | Exit code | Timed out | Succeeded | Runtime seconds | Artifact |",
+            "|---|---|---:|---|---|---:|---|",
+        ]
+    )
+    for item in summary["files"]:
+        file_label = _md_escape(item.get("relative_path") or item.get("source_path") or "")
+        for command in item.get("commands") or []:
+            exit_code = command.get("exit_code")
+            lines.append(
+                f"| `{file_label}` | `{command.get('name')}` | {exit_code if exit_code is not None else ''} | "
+                f"{bool(command.get('timed_out'))} | {bool(command.get('succeeded'))} | "
+                f"{command.get('runtime_seconds') or 0} | `{_md_escape(command.get('artifact_path') or '')}` |"
+            )
+    lines.extend(
+        [
+            "",
+            "## Failed Files",
             "",
             f"- Files failed: {counts['files_failed']}",
-            f"- JSON parse successes: {counts['json_parse_success']}",
-            f"- HTML generated: {counts['html_generated']}",
+            "",
+        ]
+    )
+    failed_files = [item for item in summary["files"] if item.get("errors")]
+    if not failed_files:
+        lines.append("No failed files recorded.")
+    for item in failed_files:
+        lines.extend(_failed_file_report_lines(item))
+    lines.extend(
+        [
+            "",
+            "## JSON Parseability",
+            "",
+            f"- JSON parse successes: {counts['json_parse_success']} / {counts['files_selected']}",
+            "",
+            "## HTML Generation",
+            "",
+            f"- HTML generated: {counts['html_generated']} / {counts['files_selected']}",
             "",
             "## Checksum Safety Result",
             "",
             f"- Files with changed checksum: {counts['checksum_changed']}",
+            f"- All source checksums unchanged: {counts['checksum_changed'] == 0}",
             "",
-            "## Recommendation Placeholder",
+            "## Recommendation",
             "",
-            "- not evaluated",
-            "- diagnostic only",
-            "- sidecar candidate",
-            "- engine candidate",
+            f"`{recommendation}`",
             "",
         ]
     )
+    for reason in recommendation_reasons:
+        lines.append(f"- {reason}")
     (output_dir / "officecli_benchmark_report.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def classify_file_failure(
+    *,
+    checksum_unchanged: bool | None,
+    failed_commands: list[str],
+    timed_out_commands: list[str],
+    json_parse_success: bool,
+    html_generated: bool,
+    skip_html: bool,
+    selected: bool,
+) -> str | None:
+    if not selected:
+        return "unsupported_file"
+    if checksum_unchanged is False:
+        return "checksum_changed"
+    if timed_out_commands:
+        return "command_timeout"
+    if failed_commands:
+        return "command_failed"
+    if not json_parse_success:
+        return "json_parse_failed"
+    if not skip_html and not html_generated:
+        return "html_not_generated"
+    return None
+
+
+def recommend_benchmark(summary: dict[str, Any]) -> tuple[str, list[str]]:
+    if summary.get("dry_run"):
+        return "not_evaluated", ["Dry-run did not execute OfficeCLI commands."]
+    counts = summary.get("counts") or {}
+    files = summary.get("files") or []
+    selected = int(counts.get("files_selected") or 0)
+    if selected == 0:
+        return "not_evaluated", ["No Office files were processed."]
+    if int(counts.get("checksum_changed") or 0) > 0:
+        return "diagnostic_only", ["At least one source checksum changed; do not use for sidecar or engine work."]
+    failed = int(counts.get("files_failed") or 0)
+    if failed:
+        return "diagnostic_only", [f"{failed} file(s) had command failures or timeouts."]
+    json_success = int(counts.get("json_parse_success") or 0)
+    html_generated = int(counts.get("html_generated") or 0)
+    text_like = sum(1 for item in files if _has_text_artifact(item))
+    if json_success == selected and html_generated == selected and text_like == selected:
+        return "engine_candidate", ["All files succeeded with JSON, HTML, and text-like artifacts."]
+    if json_success >= max(1, selected * 2 // 3) and (html_generated > 0 or text_like > 0):
+        return "sidecar_candidate", ["Most files produced parseable JSON and usable artifacts with unchanged checksums."]
+    return "diagnostic_only", ["Read-only commands completed without checksum changes, but artifact coverage is limited."]
+
+
+def _failed_file_report_lines(item: dict[str, Any]) -> list[str]:
+    lines = [
+        "",
+        f"### `{_md_escape(item.get('relative_path') or item.get('source_path') or '')}`",
+        "",
+        f"- Failure category: `{item.get('failure_category') or 'unknown'}`",
+        f"- Errors: {'; '.join(item.get('errors') or [])}",
+        "",
+        "| Command | Exit code | Timed out | Stderr excerpt | Stdout excerpt | Artifact |",
+        "|---|---:|---|---|---|---|",
+    ]
+    artifacts = item.get("artifacts") or {}
+    for command in item.get("commands") or []:
+        if command.get("succeeded"):
+            continue
+        artifact_path = command.get("artifact_path") or _artifact_for_command(command.get("name"), artifacts)
+        exit_code = command.get("exit_code")
+        lines.append(
+            f"| `{command.get('name')}` | {exit_code if exit_code is not None else ''} | {bool(command.get('timed_out'))} | "
+            f"{_excerpt(command.get('stderr') or '')} | {_excerpt(command.get('stdout') or '')} | `{_md_escape(artifact_path or '')}` |"
+        )
+    return lines
+
+
+def _format_summary(files: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
+    summary: dict[str, dict[str, int]] = {}
+    for item in files:
+        extension = item.get("extension") or "(none)"
+        row = summary.setdefault(
+            extension,
+            {"files": 0, "succeeded": 0, "failed": 0, "json_parse_success": 0, "html_generated": 0, "checksum_changed": 0},
+        )
+        row["files"] += 1
+        if item.get("errors"):
+            row["failed"] += 1
+        else:
+            row["succeeded"] += 1
+        if item.get("json_parse_success"):
+            row["json_parse_success"] += 1
+        if item.get("html_generated"):
+            row["html_generated"] += 1
+        if item.get("checksum_unchanged") is False:
+            row["checksum_changed"] += 1
+    return dict(sorted(summary.items()))
+
+
+def _has_text_artifact(item: dict[str, Any]) -> bool:
+    artifacts = item.get("artifacts") or {}
+    return any(name in artifacts for name in TEXT_ARTIFACTS)
+
+
+def _artifact_for_command(name: str | None, artifacts: dict[str, str]) -> str:
+    mapping = {
+        "outline": "outline.txt",
+        "text": "text.txt",
+        "html": "preview.html",
+        "structure": "structure.json",
+        "validate": "validate.txt",
+        "issues": "issues.txt",
+    }
+    artifact_name = mapping.get(str(name or ""))
+    return artifacts.get(artifact_name, "") if artifact_name else ""
+
+
+def _excerpt(value: str, limit: int = 120) -> str:
+    text = " ".join(str(value or "").split())
+    if len(text) > limit:
+        text = text[: limit - 3] + "..."
+    return _md_escape(text)
+
+
+def _md_escape(value: str) -> str:
+    return str(value or "").replace("|", "\\|").replace("\n", " ")
 
 
 def _is_supported_office_file(path: Path, allowed: set[str], *, include_hidden: bool) -> bool:
@@ -358,6 +561,11 @@ def _dry_run_file_record(path: Path, input_path: Path, specs: list[OfficeCliComm
         "artifacts": {},
         "warnings": ["dry-run only: OfficeCLI was not executed"],
         "errors": [],
+        "json_parse_success": False,
+        "html_generated": False,
+        "failed_commands": [],
+        "timed_out_commands": [],
+        "failure_category": None,
     }
 
 
@@ -371,6 +579,7 @@ def _command_result_for_record(name: str, result: dict[str, Any]) -> dict[str, A
         "succeeded": result["succeeded"],
         "stdout": result["stdout"],
         "stderr": result["stderr"],
+        "artifact_path": None,
     }
 
 

@@ -6,8 +6,10 @@ from typer.testing import CliRunner
 from office2md.cli import app
 from office2md.officecli_benchmark import (
     benchmark_command_specs,
+    classify_file_failure,
     collect_office_files,
     compute_sha256,
+    recommend_benchmark,
     run_officecli_benchmark,
     run_officecli_command,
     safe_file_id,
@@ -176,6 +178,106 @@ def test_command_result_capture_handles_per_file_failure(tmp_path, monkeypatch):
     assert summary["counts"]["files_failed"] == 1
     assert (output / "files").is_dir()
     assert summary["files"][0]["errors"]
+    assert summary["files"][0]["failure_category"] == "command_failed"
+    assert summary["files"][0]["failed_commands"]
+    assert summary["recommendation"] == "diagnostic_only"
+
+
+def test_failure_classification_for_timeout():
+    category = classify_file_failure(
+        checksum_unchanged=True,
+        failed_commands=["outline"],
+        timed_out_commands=["outline"],
+        json_parse_success=False,
+        html_generated=False,
+        skip_html=False,
+        selected=True,
+    )
+
+    assert category == "command_timeout"
+
+
+def test_failure_classification_for_json_parse_failure():
+    category = classify_file_failure(
+        checksum_unchanged=True,
+        failed_commands=[],
+        timed_out_commands=[],
+        json_parse_success=False,
+        html_generated=True,
+        skip_html=False,
+        selected=True,
+    )
+
+    assert category == "json_parse_failed"
+
+
+def test_report_includes_diagnostics_sections(tmp_path, monkeypatch):
+    source = tmp_path / "sample.docx"
+    source.write_text("content", encoding="utf-8")
+    output = tmp_path / "benchmark"
+    officecli = tmp_path / "officecli.exe"
+    officecli.write_text("fake", encoding="utf-8")
+    monkeypatch.setattr("office2md.officecli_benchmark.find_officecli", lambda path=None: officecli)
+    monkeypatch.setattr("office2md.officecli_benchmark.run_officecli_command", _fake_officecli_failure)
+
+    run_officecli_benchmark(source, output, officecli_path=officecli)
+
+    report = (output / "officecli_benchmark_report.md").read_text(encoding="utf-8")
+    assert "## Failed Files" in report
+    assert "## Per-Command Results" in report
+    assert "## Checksum Safety Result" in report
+    assert "Failure category" in report
+
+
+def test_recommendation_sidecar_candidate_when_safe_readable_conditions_pass():
+    summary = {
+        "dry_run": False,
+        "counts": {"files_selected": 3, "files_failed": 0, "checksum_changed": 0, "json_parse_success": 2, "html_generated": 1},
+        "files": [
+            {"artifacts": {"text.txt": "a"}},
+            {"artifacts": {"outline.txt": "b"}},
+            {"artifacts": {}},
+        ],
+    }
+
+    recommendation, reasons = recommend_benchmark(summary)
+
+    assert recommendation == "sidecar_candidate"
+    assert reasons
+
+
+def test_recommendation_diagnostic_only_when_partial_failures_exist():
+    summary = {
+        "dry_run": False,
+        "counts": {"files_selected": 2, "files_failed": 1, "checksum_changed": 0, "json_parse_success": 1, "html_generated": 1},
+        "files": [{"artifacts": {"text.txt": "a"}}, {"artifacts": {}}],
+    }
+
+    recommendation, reasons = recommend_benchmark(summary)
+
+    assert recommendation == "diagnostic_only"
+    assert "failure" in reasons[0] or "timeout" in reasons[0]
+
+
+def test_summary_json_contains_additive_diagnostics_fields(tmp_path, monkeypatch):
+    source = tmp_path / "sample.docx"
+    source.write_text("content", encoding="utf-8")
+    output = tmp_path / "benchmark"
+    officecli = tmp_path / "officecli.exe"
+    officecli.write_text("fake", encoding="utf-8")
+    monkeypatch.setattr("office2md.officecli_benchmark.find_officecli", lambda path=None: officecli)
+    monkeypatch.setattr("office2md.officecli_benchmark.run_officecli_command", _fake_officecli_success)
+
+    run_officecli_benchmark(source, output, officecli_path=officecli)
+
+    data = json.loads((output / "officecli_benchmark_summary.json").read_text(encoding="utf-8"))
+    record = data["files"][0]
+    assert data["recommendation"] in {"engine_candidate", "sidecar_candidate"}
+    assert "recommendation_reasons" in data
+    assert "failure_category" in record
+    assert "failed_commands" in record
+    assert "timed_out_commands" in record
+    assert "html_generated" in record
 
 
 def _fake_officecli_success(officecli_path, arguments, *, timeout_seconds=60):
