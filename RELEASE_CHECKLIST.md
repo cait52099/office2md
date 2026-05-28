@@ -1411,3 +1411,30 @@ v0.4.4-rc4 consistency audit checkpoint evidence:
 - [ ] `python -m ruff check .` passes.
 - [ ] CLI help checks pass for `office2md`, `search-library`, `open-chunk`, `locate-document`, `build-report-context`, and `library-report`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.4-rc4.md`.
+
+v0.4.4 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.4`.
+- [ ] `office2md.__version__` is updated to `0.4.4`.
+- [ ] Agent-ready JSON Contract Foundation docs are included.
+- [ ] `open_chunk()` core helper exists.
+- [ ] `open-chunk` CLI exists and is read-only.
+- [ ] `open-chunk` JSON export uses `schema_version: office2md.open_chunk.v1`.
+- [ ] `locate-document --export-json` exists.
+- [ ] `locate-document` JSON export uses `schema_version: office2md.locate_document.v1`.
+- [ ] `locate-document` matching, order, and limit behavior are unchanged.
+- [ ] `build-report-context` CLI exists and is read-only.
+- [ ] `build-report-context` JSON export uses `schema_version: office2md.report_context.v1`.
+- [ ] `build-report-context` reuses existing search/context/diagnostics helpers without ranking changes.
+- [ ] Agent workflow docs and examples are included.
+- [ ] `search-library --export-json` remains a legacy export without a schema identifier.
+- [ ] `library-report --export-json` remains a legacy export without a schema identifier.
+- [ ] Smoke checks parse generated JSON for `open-chunk`, `locate-document`, and `build-report-context`.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `search-library`, `open-chunk`, `locate-document`, `build-report-context`, `library-report`, `officecli-benchmark`, and `workspace-status`.
+- [ ] No conversion, build-library, search/ranking/aliases/token fallback, locate-document matching, runner, workspace, GUI, or OfficeCLI integration status changes are included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, shell execution, incremental update, OfficeCLI sidecar extraction, or `--office-engine officecli` work is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.4.md`.
