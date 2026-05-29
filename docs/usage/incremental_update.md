@@ -118,6 +118,12 @@ Preview first:
 python -m office2md.cli update-library .\source .\conversion-output .\library --dry-run
 ```
 
+Write a review report:
+
+```powershell
+python -m office2md.cli update-library .\source .\conversion-output .\library --dry-run --review-report .\update_review.md
+```
+
 Use or write a plan:
 
 ```powershell
@@ -134,6 +140,8 @@ After a successful update, it rebuilds `library.db`, `library_index.json`, and `
 ```text
 office2md.update_result.v1
 ```
+
+The result includes `review_summary`, `large_folder_warnings`, and `next_steps` so humans and agents can decide whether to proceed, split a large folder into smaller batches, or resolve unsupported/deleted/stale entries first.
 
 ## Agent Guidance
 

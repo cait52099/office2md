@@ -1650,3 +1650,38 @@ v0.4.7 final release readiness evidence:
 - [ ] `python -m compileall office2md/gui` succeeds.
 - [ ] CLI help checks pass for `office2md`, `update-library`, `scan-changes`, `source-registry`, `library-status`, `search-library`, and `open-chunk`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.7.md`.
+
+v0.4.8-rc1 Multi-library Agent Access and Update Review Foundation checkpoint evidence:
+
+- [ ] `update-library` includes additive review fields: `review_summary`, `large_folder_warnings`, and `next_steps`.
+- [ ] `update-library --review-report` writes a Markdown review report.
+- [ ] `--review-report` does not change conversion or update execution behavior.
+- [ ] `update-library` execution semantics remain unchanged.
+- [ ] Existing single-library commands remain compatible.
+- [ ] `library-catalog` CLI exists.
+- [ ] Library catalog JSON uses schema `office2md.library_catalog.v1`.
+- [ ] Catalog records include `library_id`, `library_name`, `library_path`, and `source_root`.
+- [ ] Library catalog writes only the explicit catalog file.
+- [ ] Library catalog does not modify source files, library DB, library index, library graph, or evidence.
+- [ ] Multi-library agent access docs are added.
+- [ ] Agent provenance requirements include `library_id`, `library_name`, `library_path`, `source_file`, `locator`, `chunk_id`, and `document_id`.
+- [ ] No multi-library search execution is included.
+- [ ] No MCP implementation is included.
+- [ ] No conversion behavior changes are included.
+- [ ] No build-library behavior changes are included.
+- [ ] No search ranking, alias, or token fallback changes are included.
+- [ ] No open-chunk, locate-document, or build-report-context behavior changes are included.
+- [ ] No runner, workspace, or GUI behavior changes are included.
+- [ ] No OfficeCLI main-pipeline integration is included.
+- [ ] No embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] No automatic deletion, watcher, or background update is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Temp smoke confirms review report creation, catalog JSON parsing, and existing search/open-chunk behavior after update.
+- [ ] Real-source dry-run/review smoke against `C:\Users\hcai\Desktop\test` confirms source snapshot remains unchanged.
+- [ ] Real-source dry-run/review smoke confirms no `update_result.json` is written.
+- [ ] Real-source dry-run/review smoke confirms temp conversion/library outputs are unchanged by dry-run.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `update-library`, `library-catalog`, `scan-changes`, `search-library`, and `open-chunk`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.8-rc1.md`.

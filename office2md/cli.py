@@ -21,6 +21,7 @@ from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.incremental import build_source_registry, default_library_state_path, default_source_registry_path, library_status, save_library_state, save_source_registry, scan_changes
 from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
+from office2md.library_catalog import add_library_to_catalog, list_library_catalog
 from office2md.models import ConvertOptions, ConvertResult
 from office2md.officecli_benchmark import run_officecli_benchmark
 from office2md.postprocess.chunker import chunk_markdown, chunk_pdf_pages
@@ -581,6 +582,7 @@ def update_library_command(
     change_plan: Path = typer.Option(None, "--change-plan", help="Use an existing change_plan.json instead of scanning."),
     export_plan: Path = typer.Option(None, "--export-plan", help="Write change_plan.json before updating; creates parent directories."),
     update_result_json: Path = typer.Option(None, "--update-result-json", help="Write update_result.json to PATH. Defaults to LIBRARY_PATH/update_result.json."),
+    review_report: Path = typer.Option(None, "--review-report", help="Write a Markdown update review report to PATH."),
     include_hidden: bool = typer.Option(False, "--include-hidden", help="Include files under dot-prefixed paths where feasible when scanning."),
     engine: str = typer.Option("auto", "--engine", help="Conversion engine for new/modified files: auto, docling, markitdown, or marker."),
     profile: str = typer.Option("kb", "--profile", help="Conversion profile for new/modified files."),
@@ -597,6 +599,7 @@ def update_library_command(
             change_plan_path=change_plan,
             export_plan_path=export_plan,
             update_result_path=update_result_json,
+            review_report_path=review_report,
             include_hidden=include_hidden,
             options=options,
         )
@@ -614,17 +617,64 @@ def update_library_command(
     table.add_row("planned_convert", str(result["planned"].get("convert", 0)))
     table.add_row("planned_reuse", str(result["planned"].get("reuse", 0)))
     table.add_row("unsupported", str(result["planned"].get("unsupported", 0)))
+    table.add_row("review_status", str(result["review_summary"].get("status", "")))
+    table.add_row("pending_total", str(result["review_summary"].get("pending_total", 0)))
     table.add_row("converted", str(len(result["converted"])))
     table.add_row("reused_packs", str(len(result["reused_packs"])))
     table.add_row("missing_sources", str(len(result["missing_sources"])))
     console.print(table)
     for warning in result.get("warnings", []):
         console.print(f"[yellow]warning:[/yellow] {warning}")
+    for warning in result.get("large_folder_warnings", []):
+        console.print(f"[yellow]review warning:[/yellow] {warning}")
     if dry_run:
         console.print("Dry run: conversion output, library files, registry, state, and update_result.json were not written.")
     elif result.get("written_files"):
         for key, value in result["written_files"].items():
             console.print(f"{key}: {value}")
+
+
+@app.command("library-catalog")
+def library_catalog_command(
+    catalog_path: Path,
+    add_library: Path = typer.Option(None, "--add-library", help="Register a library path in the catalog."),
+    library_id: str = typer.Option(None, "--library-id", help="Stable library id for --add-library."),
+    library_name: str = typer.Option(None, "--library-name", help="Human-readable library name for --add-library."),
+    source_root: Path = typer.Option(None, "--source-root", help="Optional source root metadata for --add-library."),
+    json_output: bool = typer.Option(False, "--json", help="Print catalog JSON only."),
+) -> None:
+    """List or update a local library catalog for agent routing."""
+    if add_library:
+        if not library_id:
+            raise typer.BadParameter("--library-id is required with --add-library")
+        catalog = add_library_to_catalog(
+            catalog_path,
+            library_path=add_library,
+            library_id=library_id,
+            library_name=library_name,
+            source_root=source_root,
+        )
+    else:
+        catalog = list_library_catalog(catalog_path)
+
+    if json_output:
+        _print_json(catalog)
+        return
+
+    libraries = catalog.get("libraries", [])
+    table = Table(title="office2md library-catalog")
+    table.add_column("Library ID")
+    table.add_column("Name")
+    table.add_column("Path")
+    table.add_column("Source Root")
+    for item in libraries:
+        table.add_row(
+            str(item.get("library_id") or ""),
+            str(item.get("library_name") or ""),
+            str(item.get("library_path") or ""),
+            str(item.get("source_root") or ""),
+        )
+    console.print(table)
 
 
 @app.command("search-library")

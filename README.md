@@ -215,6 +215,15 @@ office2md update-library ./source ./conversion-output ./library
 
 It converts only new/modified files, reuses unchanged valid Knowledge Packs, records deleted/missing and stale sources without deleting evidence, rebuilds the library through the existing build path, and writes `update_result.json`.
 
+`library-catalog` records multiple local libraries for agent routing:
+
+```bash
+office2md library-catalog ./libraries.json --add-library ./library-a --library-id lib-a --library-name "Library A"
+office2md library-catalog ./libraries.json --json
+```
+
+Catalog records carry `library_id`, `library_name`, `library_path`, and optional `source_root`. Multi-library search execution is future work; existing single-library commands remain compatible.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

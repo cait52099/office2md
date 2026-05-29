@@ -36,6 +36,7 @@ def update_library(
     change_plan_path: Path | None = None,
     export_plan_path: Path | None = None,
     update_result_path: Path | None = None,
+    review_report_path: Path | None = None,
     include_hidden: bool = False,
     options: ConvertOptions | None = None,
 ) -> dict[str, Any]:
@@ -65,6 +66,12 @@ def update_library(
     result["missing_sources"] = [_missing_source_summary(item) for item in changes if item.get("status") == "deleted_missing"]
     result["stale_sources"] = [_source_summary(item) for item in changes if item.get("status") == "stale"]
     result["unsupported_sources"] = [_source_summary(item) for item in changes if item.get("status") == "unsupported"]
+    result["review_summary"] = _build_review_summary(plan, result)
+    result["large_folder_warnings"] = _large_folder_warnings(result["review_summary"])
+    result["next_steps"] = _next_steps(result["review_summary"], dry_run=dry_run)
+    if review_report_path:
+        _write_review_report(review_report_path, result)
+        result["written_files"]["review_report"] = str(review_report_path.expanduser().resolve())
 
     if dry_run:
         result["warnings"].append("dry-run: conversion output, library files, registry, state, and update_result.json were not written")
@@ -113,11 +120,11 @@ def update_library(
 
     registry = save_source_registry(library_dir)
     state = save_library_state(library_dir, change_plan_path=export_plan_path or change_plan_path)
-    result["written_files"] = {
+    result["written_files"].update({
         "source_registry": registry.get("registry_path") or str(default_source_registry_path(library_dir)),
         "library_state": state.get("library_state_path") or str(default_library_state_path(library_dir)),
         "update_result": str((update_result_path or library_dir / "update_result.json").expanduser().resolve()),
-    }
+    })
     result["status"] = "updated"
     if result["missing_sources"]:
         result["warnings"].append("deleted/missing sources were recorded but no evidence was deleted")
@@ -187,6 +194,9 @@ def _base_update_result(
         "staging_root": None,
         "build_result": None,
         "written_files": {},
+        "review_summary": {},
+        "large_folder_warnings": [],
+        "next_steps": [],
         "warnings": list(plan.get("warnings", [])),
         "limitations": [
             "update-library is explicit and never runs automatically",
@@ -195,6 +205,92 @@ def _base_update_result(
             "library rebuild uses existing build_library behavior rather than row-level SQLite updates",
         ],
     }
+
+
+def _build_review_summary(plan: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+    counts = dict(plan.get("counts", {}))
+    pending_keys = ["new", "modified", "deleted_missing", "moved_or_renamed_candidate", "unsupported", "stale"]
+    pending_total = sum(int(counts.get(key, 0) or 0) for key in pending_keys)
+    convert_total = int(result.get("planned", {}).get("convert", 0) or 0)
+    total = int(counts.get("total", 0) or 0)
+    unchanged = int(counts.get("unchanged", 0) or 0)
+    status = "current" if pending_total == 0 and total > 0 else "stale" if pending_total else "unknown"
+    return {
+        "status": status,
+        "total_sources": total,
+        "pending_total": pending_total,
+        "convert_total": convert_total,
+        "reuse_total": int(result.get("planned", {}).get("reuse", 0) or 0),
+        "unchanged_total": unchanged,
+        "deleted_missing_total": int(counts.get("deleted_missing", 0) or 0),
+        "stale_total": int(counts.get("stale", 0) or 0),
+        "unsupported_total": int(counts.get("unsupported", 0) or 0),
+        "moved_or_renamed_candidate_total": int(counts.get("moved_or_renamed_candidate", 0) or 0),
+        "large_folder": total >= 500,
+        "high_pending_changes": pending_total >= 100,
+        "guidance": _review_guidance(status, convert_total, pending_total),
+    }
+
+
+def _review_guidance(status: str, convert_total: int, pending_total: int) -> str:
+    if status == "current":
+        return "Library appears current; no update run is needed."
+    if status == "unknown":
+        return "Library freshness is unknown; inspect registry and change plan before answering from this library."
+    if convert_total:
+        return f"Review {pending_total} pending changes; running update-library will convert {convert_total} new/modified files."
+    return f"Review {pending_total} pending changes; no new/modified conversions are planned."
+
+
+def _large_folder_warnings(summary: dict[str, Any]) -> list[str]:
+    warnings = []
+    if summary.get("large_folder"):
+        warnings.append("large source set detected; review the change plan before running update-library")
+    if summary.get("high_pending_changes"):
+        warnings.append("high pending-change count detected; consider smaller batches or reviewing unsupported files first")
+    return warnings
+
+
+def _next_steps(summary: dict[str, Any], *, dry_run: bool) -> list[str]:
+    if summary.get("status") == "current":
+        return ["No update required; agents may answer from the current built library."]
+    steps = ["Review change counts and unsupported/deleted/stale entries."]
+    if dry_run and summary.get("convert_total"):
+        steps.append("Run update-library without --dry-run to convert new/modified files and rebuild the library.")
+    elif dry_run:
+        steps.append("Resolve review items or refresh source_registry/library_state as needed.")
+    else:
+        steps.append("Run library-status and agent search/open-chunk checks against the rebuilt library.")
+    return steps
+
+
+def _write_review_report(path: Path, result: dict[str, Any]) -> None:
+    target = path.expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    summary = result.get("review_summary", {})
+    counts = result.get("change_counts", {})
+    lines = [
+        "# office2md update-library review",
+        "",
+        f"- Status: {summary.get('status')}",
+        f"- Total sources: {summary.get('total_sources', 0)}",
+        f"- Pending changes: {summary.get('pending_total', 0)}",
+        f"- Planned conversions: {summary.get('convert_total', 0)}",
+        f"- Planned reuse: {summary.get('reuse_total', 0)}",
+        "",
+        "## Change Counts",
+        "",
+    ]
+    for key in ["new", "modified", "unchanged", "deleted_missing", "moved_or_renamed_candidate", "unsupported", "stale", "total"]:
+        lines.append(f"- {key}: {counts.get(key, 0)}")
+    lines.extend(["", "## Guidance", "", str(summary.get("guidance") or "")])
+    if result.get("large_folder_warnings"):
+        lines.extend(["", "## Warnings", ""])
+        lines.extend(f"- {item}" for item in result["large_folder_warnings"])
+    if result.get("next_steps"):
+        lines.extend(["", "## Next Steps", ""])
+        lines.extend(f"{index}. {item}" for index, item in enumerate(result["next_steps"], start=1))
+    target.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
 def _reusable_pack_paths(changes: list[dict[str, Any]]) -> list[Path]:

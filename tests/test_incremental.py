@@ -371,11 +371,16 @@ def test_update_library_dry_run_does_not_modify_outputs(tmp_path):
         library,
         convert_file=_fake_convert_one,
         dry_run=True,
+        review_report_path=tmp_path / "review" / "update_review.md",
         options=ConvertOptions(engine="markitdown"),
     )
 
     assert result["status"] == "dry_run"
     assert result["planned"]["convert"] == 1
+    assert result["review_summary"]["status"] == "stale"
+    assert result["review_summary"]["convert_total"] == 1
+    assert result["next_steps"]
+    assert (tmp_path / "review" / "update_review.md").exists()
     assert sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*")) == before_output
     assert sorted(path.relative_to(library).as_posix() for path in library.rglob("*")) == before_library
     assert not (library / "update_result.json").exists()
@@ -435,6 +440,28 @@ def test_update_library_cli_help(tmp_path):
     assert result.exit_code == 0
     assert "--dry-run" in result.stdout
     assert "--change-plan" in result.stdout
+
+
+def test_update_library_review_summary_flags_large_pending_plan(tmp_path):
+    source = tmp_path / "source"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    for index in range(101):
+        (source / f"new-{index}.txt").write_text("new evidence", encoding="utf-8")
+
+    result = update_library(
+        source,
+        tmp_path / "output",
+        library,
+        convert_file=_fake_convert_one,
+        dry_run=True,
+        options=ConvertOptions(engine="markitdown"),
+    )
+
+    assert result["review_summary"]["pending_total"] == 101
+    assert result["review_summary"]["high_pending_changes"] is True
+    assert result["large_folder_warnings"]
 
 
 def _write_registry(library: Path, registry: dict) -> Path:
