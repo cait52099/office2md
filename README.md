@@ -2,9 +2,11 @@
 
 > **Local evidence-first knowledge backend for Office/PDF documents and AI agents**
 
-[![PyPI version](https://img.shields.io/pypi/v/office2md.svg)](https://pypi.org/project/office2md/)
+[![GitHub release](https://img.shields.io/github/v/release/cait52099/office2md?style=flat-square)](https://github.com/cait52099/office2md/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
+> **Warning**: This repository is not currently published to PyPI as `office2md`. The PyPI name `office2md` refers to a different project. Do not use `pip install office2md` for this project.
 
 **office2md** is a local, evidence-first knowledge backend. It converts Office documents and PDFs into structured, provenance-tracked Knowledge Packs, builds searchable libraries, and exposes read-only agent gateway commands — no AI required by default, no cloud dependency.
 
@@ -24,17 +26,29 @@ The conversion and Markdown output is the foundation; the knowledge backend and 
 
 ## Quick Start
 
-```bash
-pip install office2md
+### Installation
+
+**Windows:**
+
+```powershell
+git clone https://github.com/cait52099/office2md.git
+cd office2md
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
 ```
 
-Or for development with all features:
+**macOS / Linux:**
 
 ```bash
 git clone https://github.com/cait52099/office2md.git
 cd office2md
-pip install -e ".[dev]"
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
 ```
+
+This project is not published to PyPI. Do not use `pip install office2md`.
 
 ### Basic Usage
 
