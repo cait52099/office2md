@@ -1614,3 +1614,39 @@ v0.4.7-rc1 Explicit update-library MVP checkpoint evidence:
 - [ ] `python -m compileall office2md/gui` succeeds.
 - [ ] CLI help checks pass for `office2md`, `update-library`, `scan-changes`, `source-registry`, `library-status`, `search-library`, and `open-chunk`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.7-rc1.md`.
+
+v0.4.7 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.4.7`.
+- [ ] `office2md.__version__` is updated to `0.4.7`.
+- [ ] Explicit `update-library` MVP is included.
+- [ ] `update-library` CLI exists with dry-run / plan-first workflow.
+- [ ] `update_result.json` uses schema `office2md.update_result.v1`.
+- [ ] `update-library --dry-run` writes no `update_result.json`.
+- [ ] Source files are never modified.
+- [ ] Only `new` and `modified` source files are converted.
+- [ ] Unchanged valid Knowledge Packs are reused.
+- [ ] `deleted_missing` and `stale` sources are recorded without automatically deleting old evidence.
+- [ ] Library rebuild uses existing `build_library()` behavior.
+- [ ] `source_registry.json` is refreshed after successful update.
+- [ ] `library_state.json` is refreshed after successful update.
+- [ ] Existing conversion behavior is unchanged.
+- [ ] Existing build-library behavior is unchanged.
+- [ ] Search ranking, aliases, and token fallback behavior are unchanged.
+- [ ] open-chunk, locate-document, and build-report-context JSON behavior is unchanged.
+- [ ] Runner, workspace, and GUI behavior are unchanged.
+- [ ] No row-level SQLite incremental update is included.
+- [ ] No automatic deletion is included.
+- [ ] No watcher or background update is included.
+- [ ] No MCP, embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Temp-only smoke confirms dry-run writes no `update_result.json`.
+- [ ] Temp-only smoke confirms real update converts new/modified files, reuses unchanged pack, records missing source, refreshes registry/state, rebuilds library, and search/open-chunk work after rebuild.
+- [ ] Real-source dry-run smoke against `C:\Users\hcai\Desktop\test` confirms source snapshot remains unchanged.
+- [ ] Real-source dry-run smoke confirms 76 PPTX files, with 3 unchanged baseline PPTX files and 73 new PPTX files.
+- [ ] Real-source dry-run smoke confirms no `update_result.json` is written and temp conversion/library outputs are unchanged by dry-run.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `update-library`, `scan-changes`, `source-registry`, `library-status`, `search-library`, and `open-chunk`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.7.md`.
