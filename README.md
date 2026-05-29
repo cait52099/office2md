@@ -224,6 +224,16 @@ office2md library-catalog ./libraries.json --json
 
 Catalog records carry `library_id`, `library_name`, `library_path`, and optional `source_root`. Multi-library search execution is future work; existing single-library commands remain compatible.
 
+`kb-list`, `kb-context`, and `kb-review` provide a simplified read-only agent gateway over registered libraries:
+
+```bash
+office2md kb-list ./libraries.json --json
+office2md kb-context ./libraries.json "query" --libraries lib-a,lib-b
+office2md kb-review ./libraries.json lib-a
+```
+
+The gateway returns evidence/context only, with per-library provenance. It does not update libraries or generate final AI answers.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

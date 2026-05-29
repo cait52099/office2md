@@ -20,6 +20,7 @@ from office2md.docling_diagnostics import diagnose_docling, warmup_docling
 from office2md.doctor import run_checks
 from office2md.exports.obsidian import ObsidianExportError, export_obsidian
 from office2md.incremental import build_source_registry, default_library_state_path, default_source_registry_path, library_status, save_library_state, save_source_registry, scan_changes
+from office2md.kb_gateway import kb_context, kb_list, kb_review
 from office2md.library import build_library, library_report, locate_document, open_chunk, search_library, search_library_diagnostics, search_library_facets
 from office2md.library_catalog import add_library_to_catalog, list_library_catalog
 from office2md.models import ConvertOptions, ConvertResult
@@ -86,6 +87,22 @@ def _print_json(data: object) -> None:
         sys.stdout.write(text + "\n")
     except UnicodeEncodeError:
         sys.stdout.write(json.dumps(data, ensure_ascii=True, indent=2) + "\n")
+
+
+def _write_generic_json(path: Path, data: object) -> None:
+    target = path.expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _parse_library_ids(library: List[str] | None, libraries: str | None) -> list[str] | None:
+    values: list[str] = []
+    for item in library or []:
+        if item:
+            values.append(item)
+    if libraries:
+        values.extend(item.strip() for item in libraries.split(",") if item.strip())
+    return values or None
 
 
 def choose_engine(path: Path, options: ConvertOptions) -> str:
@@ -675,6 +692,62 @@ def library_catalog_command(
             str(item.get("source_root") or ""),
         )
     console.print(table)
+
+
+@app.command("kb-list")
+def kb_list_command(
+    catalog_path: Path,
+    json_output: bool = typer.Option(False, "--json", help="Print registered libraries JSON only."),
+) -> None:
+    """List registered Knowledge Libraries for agent workflows."""
+    payload = kb_list(catalog_path)
+    if json_output:
+        _print_json(payload)
+        return
+    table = Table(title="office2md kb-list")
+    table.add_column("Library ID")
+    table.add_column("Name")
+    table.add_column("Path")
+    for item in payload.get("libraries", []):
+        table.add_row(str(item.get("library_id") or ""), str(item.get("library_name") or ""), str(item.get("library_path") or ""))
+    console.print(table)
+
+
+@app.command("kb-context")
+def kb_context_command(
+    catalog_path: Path,
+    query: str,
+    library: List[str] = typer.Option(None, "--library", help="Library id to include. Can be repeated."),
+    libraries: str = typer.Option(None, "--libraries", help="Comma-separated library ids to include."),
+    limit: int = typer.Option(5, "--limit", help="Search results per selected library."),
+    context: int = typer.Option(1, "--context", help="Same-document context chunks per selected evidence item."),
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 agent context JSON to PATH; creates parent directories."),
+) -> None:
+    """Build one read-only agent context packet from registered libraries."""
+    library_ids = _parse_library_ids(library, libraries)
+    try:
+        payload = kb_context(catalog_path, query, library_ids=library_ids, limit=limit, context=context)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if export_json:
+        _write_generic_json(export_json, payload)
+    _print_json(payload)
+
+
+@app.command("kb-review")
+def kb_review_command(
+    catalog_path: Path,
+    library_id: str,
+    export_json: Path = typer.Option(None, "--export-json", help="Write UTF-8 review JSON to PATH; creates parent directories."),
+) -> None:
+    """Review update readiness for one registered library without executing updates."""
+    try:
+        payload = kb_review(catalog_path, library_id)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if export_json:
+        _write_generic_json(export_json, payload)
+    _print_json(payload)
 
 
 @app.command("search-library")

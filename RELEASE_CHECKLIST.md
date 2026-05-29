@@ -1722,3 +1722,33 @@ v0.4.8 final release readiness evidence:
 - [ ] `python -m compileall office2md/gui` succeeds.
 - [ ] CLI help checks pass for `office2md`, `update-library`, `library-catalog`, `scan-changes`, `search-library`, and `open-chunk`.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.4.8.md`.
+
+v0.4.9-rc1 Agent Gateway Simplification checkpoint evidence:
+
+- [ ] `office2md.kb_gateway` read-only helper is added.
+- [ ] `kb-list` CLI lists registered libraries from a library catalog.
+- [ ] `kb-context` CLI builds agent context JSON with schema `office2md.agent_context.v1`.
+- [ ] `kb-review` CLI reviews update readiness without executing updates.
+- [ ] `kb-context` is read-only and does not auto-update libraries.
+- [ ] `kb-review` is dry-run/review only and does not execute update-library.
+- [ ] Stale and unknown libraries return warnings and `next_steps`.
+- [ ] Multi-library context preserves `library_id`, `library_name`, and `library_path`.
+- [ ] Existing single-library search, open-chunk, and update-library behavior remains compatible.
+- [ ] No conversion behavior changes are included.
+- [ ] No build-library behavior changes are included.
+- [ ] No update-library execution semantic changes are included.
+- [ ] No source registry, library state, change plan, or update result schema breaking changes are included.
+- [ ] No search ranking, alias, or token fallback changes are included.
+- [ ] No open-chunk, locate-document, or build-report-context JSON behavior changes are included.
+- [ ] No runner, workspace, or GUI behavior changes are included.
+- [ ] No MCP implementation is included.
+- [ ] No embeddings, OCR, Obsidian plugin, write-back, unrestricted SQL, or shell execution is included.
+- [ ] No automatic update, deletion, watcher, or background process is included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Temp smoke confirms `kb-list --json`, one-library `kb-context`, two-library `kb-context`, and `kb-review` all parse as JSON.
+- [ ] Temp smoke confirms evidence provenance is present.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `kb-list`, `kb-context`, `kb-review`, `library-catalog`, `search-library`, and `open-chunk`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.4.9-rc1.md`.
