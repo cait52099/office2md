@@ -234,6 +234,8 @@ office2md kb-review ./libraries.json lib-a
 
 The gateway returns evidence/context only, with per-library provenance. It does not update libraries or generate final AI answers.
 
+The optional MCP adapter exposes the same read-only gateway tools as `kb_list`, `kb_context`, and `kb_review` for MCP clients. It wraps the existing gateway and does not expose SQL, shell execution, write-back, or automatic updates. See `docs/usage/mcp_adapter.md`.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.
