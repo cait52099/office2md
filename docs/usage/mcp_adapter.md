@@ -1,12 +1,18 @@
 # office2md MCP Adapter
 
-The office2md MCP adapter exposes the Agent Gateway as read-only tools for AI clients.
+The office2md MCP adapter exposes the Agent Gateway as read-only tools for MCP-capable AI clients.
 
-Available tools:
+## When to Use MCP vs CLI
 
-- `kb_list`
-- `kb_context`
-- `kb_review`
+**CLI** — stable, debuggable interface. Best for scripts, CI, direct workflows.
+
+**MCP** — read-only adapter for MCP-capable AI clients. Exposes only `kb_list`, `kb_context`, `kb_review` — no additional functionality beyond the CLI gateway.
+
+## Available Tools
+
+- `kb_list` — list registered libraries from catalog
+- `kb_context` — build evidence-first context across libraries
+- `kb_review` — dry-run library update readiness review
 
 The adapter wraps the same helpers used by:
 

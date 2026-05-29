@@ -1,26 +1,28 @@
 # office2md
 
-> **Convert Office, PDF, and text documents into structured, knowledge-base-ready Markdown**
+> **Local evidence-first knowledge backend for Office/PDF documents and AI agents**
 
 [![PyPI version](https://img.shields.io/pypi/v/office2md.svg)](https://pypi.org/project/office2md/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
-**office2md** transforms Office documents (Word, Excel, PowerPoint), PDFs, and text files into clean Markdown with structured metadata, entities, and searchable knowledge libraries — entirely local, no AI required by default.
+**office2md** is a local, evidence-first knowledge backend. It converts Office documents and PDFs into structured, provenance-tracked Knowledge Packs, builds searchable libraries, and exposes read-only agent gateway commands — no AI required by default, no cloud dependency.
+
+The conversion and Markdown output is the foundation; the knowledge backend and agent interface are the product.
 
 ## Key Features
 
+- **Evidence-first knowledge backend** — provenance-tracked chunks with source_file, locator, chunk_id, document_id
+- **Local and self-contained** — no AI required, no cloud dependency, no vector DB required
 - **Multi-format conversion** — PDF, DOCX, XLSX, PPTX, HTML, TXT, CSV, JSON, MD
 - **Rich Knowledge Pack output** — chunks, entities, source maps, provenance metadata
 - **Knowledge Library Builder** — SQLite FTS5 search, document graph, interop exports (LlamaIndex, Haystack, txtai, GraphRAG)
-- **Visual PDF rendering** — page snapshots for technical drawings and diagrams
-- **HMI/PLC translation support** — structured extraction for Chinese/English field device tables
-- **Optional AI enrichment** — opt-in framework for CLI-based AI adapters
-- **Fully local** — no external APIs, no cloud dependencies, no vector DB required
+- **Agent Gateway** — `kb-list`, `kb-context`, `kb-review` for evidence-first AI agent workflows
+- **Optional read-only MCP adapter** — for MCP-capable AI clients
+- **Workspace traceability** — source → library → output lineage with SHA-256 checksums
+- **Incremental update** — dry-run → plan → execute workflow, no auto-delete
 
 ## Quick Start
-
-### Installation
 
 ```bash
 pip install office2md
@@ -74,29 +76,60 @@ office2md search-library ./library/library.db "PLC wiring diagram"
 | `memory` | `![Page 1](assets/page_001.png)` | Memory systems |
 | `obsidian` | `![[assets/page_001.png]]` | Obsidian vault |
 
+## For AI Agents
+
+office2md is an evidence-first knowledge backend for AI agents. It provides provenance-tracked context without generating final answers.
+
+**Minimal agent workflow:**
+
+```bash
+# Register libraries for agent access
+python -m office2md.cli library-catalog ./libraries.json --add-library ./library --library-id lib-a --library-name "Library A"
+
+# List registered libraries
+python -m office2md.cli kb-list ./libraries.json --json
+
+# Query evidence across libraries
+python -m office2md.cli kb-context ./libraries.json "pump fault" --libraries lib-a --export-json context.json
+
+# Review library freshness before relying on it
+python -m office2md.cli kb-review ./libraries.json lib-a
+```
+
+Evidence fields returned: `library_id`, `library_name`, `library_path`, `source_file`, `locator`, `chunk_id`, `document_id`.
+
+The gateway is read-only. It does not update libraries, execute shell commands, or generate answers.
+
+**Optional MCP adapter** exposes `kb_list`, `kb_context`, `kb_review` for MCP-capable clients. See `docs/usage/mcp_adapter.md`.
+
 ## Supported Formats
 
 | Format | Extensions | Engine |
 |--------|------------|--------|
 | PDF | `.pdf` | Docling → MarkItDown fallback |
 | Modern Office | `.docx`, `.xlsx`, `.pptx` | MarkItDown |
-| Legacy Office | `.doc`, `.xls`, `.ppt` | LibreOffice → MarkItDown |
+| Legacy Office | `.doc`, `.xls`, `.ppt` | LibreOffice (optional) → MarkItDown |
 | Web | `.html`, `.htm` | MarkItDown |
 | Text | `.txt`, `.csv`, `.json`, `.md` | Direct copy |
+
+Legacy Office support requires LibreOffice to be installed. It is experimental.
 
 ## Project Architecture
 
 ```
-Input Files → office2md convert → Knowledge Pack per document
-                                       ↓
-                    office2md build-library → Knowledge Library
-                                               ↓
-                    ┌─────────────────────────┼─────────────────────────┐
-                    ↓                         ↓                         ↓
-              library.db              library_graph.json         _library.md
-           (SQLite FTS5)            (document relationships)   (Markdown portal)
-                    ↓                         ↓                         ↓
-        search-library CLI          graph analysis              human browsing
+Raw documents
+  → office2md convert
+  → Knowledge Pack per document
+      chunks.jsonl, entities.json, source_map.json, assets/
+
+  → office2md build-library
+  → library.db / library_index.json / library_graph.json
+      (SQLite FTS5, document graph, interop exports)
+
+  → office2md library-catalog
+  → kb-list / kb-context / kb-review
+  → optional read-only MCP adapter
+  → AI agents / reports / evidence packages
 ```
 
 ## Knowledge Pack Output
@@ -272,6 +305,25 @@ office2md warmup-docling
 | `--use-ai` | Enable AI enrichment | `false` |
 | `--render-pdf-pages` | Render PDF pages to images | `false` |
 | `--max-render-pages` | Max pages to render | `3` |
+
+## What It Is / What It Is Not
+
+### What it is
+
+- **Local knowledge backend** — self-contained, no cloud dependency
+- **Evidence-first context provider** — provenance-tracked chunks for AI agents
+- **CLI-first agent interface** — `kb-list`, `kb-context`, `kb-review`, `library-catalog`
+- **Optional read-only MCP adapter** — for MCP-capable AI clients
+- **Incremental update system** — dry-run → plan → execute, no auto-delete
+
+### What it is not
+
+- **Not an AI answer generator** — office2md provides evidence, not answers
+- **Not a vector DB** — uses SQLite FTS5, no embeddings required
+- **Not an Obsidian-only workflow** — exports to any folder, not tied to Obsidian
+- **Not a cloud service** — fully local, no external APIs
+- **Not a write-back system** — read-only agent gateway, no source modification
+- **Not an unrestricted SQL or shell gateway** — no raw SQL exposure, no shell execution
 
 ## Comparison
 
