@@ -1818,3 +1818,42 @@ v0.5.0-rc1 read-only MCP adapter foundation checkpoint evidence:
 - [ ] CLI help checks pass for `office2md`, `kb-list`, `kb-context`, `kb-review`, `library-catalog`, `search-library`, and `open-chunk`.
 - [ ] MCP adapter import check passes without requiring MCP server startup.
 - [ ] Release notes are written in `RELEASE_NOTES_v0.5.0-rc1.md`.
+
+v0.5.0 final release readiness evidence:
+
+- [ ] `pyproject.toml` version is updated to `0.5.0`.
+- [ ] `office2md.__version__` is updated to `0.5.0`.
+- [ ] Read-only MCP adapter foundation over Agent Gateway is included.
+- [ ] Optional `office2md.mcp_adapter` module is included.
+- [ ] MCP wrapper functions are available: `kb_list`, `kb_context`, and `kb_review`.
+- [ ] MCP wrappers call `office2md.kb_gateway` helpers.
+- [ ] Wrapper functions import without the optional MCP package installed.
+- [ ] FastMCP server starts only when the optional `mcp` package is available.
+- [ ] Adapter exposes only `kb_list`, `kb_context`, and `kb_review`.
+- [ ] `kb_context` returns `office2md.agent_context.v1`-compatible output.
+- [ ] Multi-library evidence preserves `library_id`, `library_name`, and `library_path`.
+- [ ] `kb_review` remains dry-run/review only.
+- [ ] No SQL exposure is included.
+- [ ] No shell execution is included.
+- [ ] No write-back is included.
+- [ ] No source file modification is included.
+- [ ] No conversion output modification is included.
+- [ ] No library DB, library index, library graph, or evidence modification is included.
+- [ ] No registry, state, change plan, or update result modification is included.
+- [ ] No automatic update, deletion, watcher, or background process is included.
+- [ ] No conversion behavior changes are included.
+- [ ] No build-library behavior changes are included.
+- [ ] No update-library execution semantic changes are included.
+- [ ] No search ranking, alias, or token fallback changes are included.
+- [ ] No open-chunk, locate-document, or build-report-context JSON behavior changes are included.
+- [ ] No runner, workspace, or GUI behavior changes are included.
+- [ ] OfficeCLI remains `diagnostic_only`.
+- [ ] Temp smoke confirms `kb_list`, one-library `kb_context`, two-library `kb_context`, and `kb_review` wrapper outputs are JSON-compatible.
+- [ ] Temp smoke confirms provenance is present.
+- [ ] Import works without optional MCP package installed.
+- [ ] Server startup reports optional MCP package unavailable clearly when not installed.
+- [ ] `python -m pytest` passes.
+- [ ] `python -m ruff check .` passes.
+- [ ] `python -m compileall office2md/gui` succeeds.
+- [ ] CLI help checks pass for `office2md`, `kb-list`, `kb-context`, `kb-review`, `library-catalog`, `search-library`, and `open-chunk`.
+- [ ] Release notes are written in `RELEASE_NOTES_v0.5.0.md`.
