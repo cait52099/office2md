@@ -206,6 +206,15 @@ These commands do not run conversion, rebuild the library, update SQLite rows, d
 
 `source-registry` can explicitly save or export `source_registry.json`, and `library-status --write-state` can write a `library_state.json` snapshot. These files are status artifacts only; they do not update the library.
 
+`update-library` is the explicit update path. Preview first, then run it with the source folder, conversion output folder, and library folder:
+
+```bash
+office2md update-library ./source ./conversion-output ./library --dry-run
+office2md update-library ./source ./conversion-output ./library
+```
+
+It converts only new/modified files, reuses unchanged valid Knowledge Packs, records deleted/missing and stale sources without deleting evidence, rebuilds the library through the existing build path, and writes `update_result.json`.
+
 ### AI Enrichment (Optional)
 
 AI enrichment is opt-in. AI is disabled by default, and the MiniMax CLI is not required for normal conversion, library building, search, reports, or the GUI workflow.

@@ -25,6 +25,8 @@ from office2md.incremental import (
     write_source_registry,
 )
 from office2md.library import build_library, open_chunk, search_library
+from office2md.models import ConvertOptions
+from office2md.update_library import UPDATE_RESULT_SCHEMA_VERSION, update_library
 
 
 runner = CliRunner()
@@ -349,6 +351,92 @@ def test_existing_search_and_open_chunk_behavior_still_work(tmp_path):
     assert opened["target_chunk"]["chunk_id"] == "chunk-1"
 
 
+def test_update_library_dry_run_does_not_modify_outputs(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("old pump evidence", encoding="utf-8")
+    _write_doc(output_root / "doc", "doc-id", str(doc), "generic_text", [_chunk("chunk-1", "old pump evidence")])
+    build_library(output_root, library)
+    save_source_registry(library)
+    before_output = sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*"))
+    before_library = sorted(path.relative_to(library).as_posix() for path in library.rglob("*"))
+    doc.write_text("new pump evidence", encoding="utf-8")
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=_fake_convert_one,
+        dry_run=True,
+        options=ConvertOptions(engine="markitdown"),
+    )
+
+    assert result["status"] == "dry_run"
+    assert result["planned"]["convert"] == 1
+    assert sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*")) == before_output
+    assert sorted(path.relative_to(library).as_posix() for path in library.rglob("*")) == before_library
+    assert not (library / "update_result.json").exists()
+
+
+def test_update_library_updates_new_modified_reuses_unchanged_and_records_deleted(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    unchanged = source / "unchanged.txt"
+    modified = source / "modified.txt"
+    deleted = source / "deleted.txt"
+    unchanged.write_text("unchanged pump evidence", encoding="utf-8")
+    modified.write_text("old valve evidence", encoding="utf-8")
+    deleted.write_text("deleted motor evidence", encoding="utf-8")
+    _write_doc(output_root / "unchanged", "unchanged-id", str(unchanged), "generic_text", [_chunk("unchanged-1", "unchanged pump evidence")])
+    _write_doc(output_root / "modified", "modified-id", str(modified), "generic_text", [_chunk("modified-old", "old valve evidence")])
+    _write_doc(output_root / "deleted", "deleted-id", str(deleted), "generic_text", [_chunk("deleted-1", "deleted motor evidence")])
+    build_library(output_root, library)
+    save_source_registry(library)
+    modified.write_text("new valve evidence", encoding="utf-8")
+    deleted.unlink()
+    new_file = source / "new.txt"
+    new_file.write_text("new gearbox evidence", encoding="utf-8")
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=_fake_convert_one,
+        dry_run=False,
+        options=ConvertOptions(engine="markitdown"),
+    )
+    update_result = json.loads((library / "update_result.json").read_text(encoding="utf-8"))
+    state = load_library_state(library)
+
+    assert result["status"] == "updated"
+    assert update_result["schema_version"] == UPDATE_RESULT_SCHEMA_VERSION
+    assert result["planned"]["convert"] == 2
+    assert len(result["converted"]) == 2
+    assert len(result["reused_packs"]) == 2
+    assert result["missing_sources"][0]["source_file"].endswith("deleted.txt")
+    assert (library / "library.db").exists()
+    assert default_source_registry_path(library).exists()
+    assert default_library_state_path(library).exists()
+    assert state["schema_version"] == LIBRARY_STATE_SCHEMA_VERSION
+    search_results = search_library(library / "library.db", "gearbox")
+    opened = open_chunk(library, search_results[0]["chunk_id"], context=0)
+    assert search_results[0]["source_file"].endswith("new.txt")
+    assert "gearbox" in opened["target_chunk"]["text"]
+
+
+def test_update_library_cli_help(tmp_path):
+    result = runner.invoke(app, ["update-library", "--help"])
+
+    assert result.exit_code == 0
+    assert "--dry-run" in result.stdout
+    assert "--change-plan" in result.stdout
+
+
 def _write_registry(library: Path, registry: dict) -> Path:
     path = library / "source_registry.json"
     write_source_registry(path, registry)
@@ -418,3 +506,13 @@ def _write_doc(path: Path, doc_id: str, source_file: str, document_kind: str, ch
     with (path / "chunks.jsonl").open("w", encoding="utf-8") as handle:
         for chunk in chunks:
             handle.write(json.dumps(chunk) + "\n")
+
+
+def _fake_convert_one(source_path: Path, output_root: Path, options: ConvertOptions):
+    from office2md.detector import sha256_file
+
+    checksum = sha256_file(source_path).split(":", 1)[-1][:8]
+    pack = output_root / f"{source_path.stem}-{checksum}"
+    text = source_path.read_text(encoding="utf-8")
+    _write_doc(pack, f"{source_path.stem}-{checksum}", str(source_path), "generic_text", [_chunk(f"{source_path.stem}-{checksum}-chunk", text)])
+    return pack, "success"

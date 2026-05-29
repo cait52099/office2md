@@ -64,6 +64,7 @@ from office2md.scanner import scan_input
 from office2md.storage.index import rebuild_output_index
 from office2md.storage.manifest import build_manifest
 from office2md.storage.writer import output_dir_for_source, write_document_output
+from office2md.update_library import update_library
 from office2md.utils import ensure_directory, utc_now_iso
 from office2md.workspace import init_workspace, register_library_version, register_output_version, scan_workspace_sources, summarize_workspace_status
 
@@ -569,6 +570,61 @@ def scan_changes_command(
         console.print("Dry run: change_plan.json was not written.")
     for warning in plan["warnings"]:
         console.print(f"[yellow]warning:[/yellow] {warning}")
+
+
+@app.command("update-library")
+def update_library_command(
+    source_path: Path,
+    conversion_output: Path,
+    library_path: Path,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Plan the update without converting, rebuilding, or writing update artifacts."),
+    change_plan: Path = typer.Option(None, "--change-plan", help="Use an existing change_plan.json instead of scanning."),
+    export_plan: Path = typer.Option(None, "--export-plan", help="Write change_plan.json before updating; creates parent directories."),
+    update_result_json: Path = typer.Option(None, "--update-result-json", help="Write update_result.json to PATH. Defaults to LIBRARY_PATH/update_result.json."),
+    include_hidden: bool = typer.Option(False, "--include-hidden", help="Include files under dot-prefixed paths where feasible when scanning."),
+    engine: str = typer.Option("auto", "--engine", help="Conversion engine for new/modified files: auto, docling, markitdown, or marker."),
+    profile: str = typer.Option("kb", "--profile", help="Conversion profile for new/modified files."),
+) -> None:
+    """Explicitly update a library from a source folder and conversion output."""
+    options = ConvertOptions(engine=engine, profile=profile)
+    try:
+        result = update_library(
+            source_path,
+            conversion_output,
+            library_path,
+            convert_file=convert_one,
+            dry_run=dry_run,
+            change_plan_path=change_plan,
+            export_plan_path=export_plan,
+            update_result_path=update_result_json,
+            include_hidden=include_hidden,
+            options=options,
+        )
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    table = Table(title="office2md update-library")
+    table.add_column("Metric")
+    table.add_column("Value")
+    table.add_row("status", str(result["status"]))
+    table.add_row("dry_run", str(result["dry_run"]))
+    table.add_row("source_path", str(result["source_path"]))
+    table.add_row("conversion_output", str(result["conversion_output"]))
+    table.add_row("library_path", str(result["library_path"]))
+    table.add_row("planned_convert", str(result["planned"].get("convert", 0)))
+    table.add_row("planned_reuse", str(result["planned"].get("reuse", 0)))
+    table.add_row("unsupported", str(result["planned"].get("unsupported", 0)))
+    table.add_row("converted", str(len(result["converted"])))
+    table.add_row("reused_packs", str(len(result["reused_packs"])))
+    table.add_row("missing_sources", str(len(result["missing_sources"])))
+    console.print(table)
+    for warning in result.get("warnings", []):
+        console.print(f"[yellow]warning:[/yellow] {warning}")
+    if dry_run:
+        console.print("Dry run: conversion output, library files, registry, state, and update_result.json were not written.")
+    elif result.get("written_files"):
+        for key, value in result["written_files"].items():
+            console.print(f"{key}: {value}")
 
 
 @app.command("search-library")

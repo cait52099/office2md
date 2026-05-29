@@ -104,6 +104,37 @@ It uses schema `office2md.library_state.v1` and records current/stale/unknown st
 
 It is a snapshot only. Refresh it before agent use.
 
+## Explicit Update Library
+
+v0.4.7 adds an explicit update command:
+
+```powershell
+python -m office2md.cli update-library .\source .\conversion-output .\library
+```
+
+Preview first:
+
+```powershell
+python -m office2md.cli update-library .\source .\conversion-output .\library --dry-run
+```
+
+Use or write a plan:
+
+```powershell
+python -m office2md.cli update-library .\source .\conversion-output .\library --change-plan .\change_plan.json
+python -m office2md.cli update-library .\source .\conversion-output .\library --export-plan .\change_plan.json
+```
+
+`update-library` converts only `new` and `modified` files. It reuses unchanged valid Knowledge Packs, records `deleted_missing` and `stale` sources in `update_result.json`, and does not delete old evidence.
+
+After a successful update, it rebuilds `library.db`, `library_index.json`, and `library_graph.json` using the existing `build_library()` path, then refreshes `source_registry.json` and `library_state.json`.
+
+`update_result.json` uses schema:
+
+```text
+office2md.update_result.v1
+```
+
 ## Agent Guidance
 
 Agents must not assume new raw files are searchable until the scan/update workflow is run.
@@ -122,6 +153,6 @@ Before answering, agents should check `library-status` and, when stale or unknow
 
 ## Non-Goals
 
-This foundation does not include `update-library`, row-level SQLite incremental updates, automatic deletion of evidence, a background watcher, MCP, embeddings, OCR, Obsidian plugin work, write-back, unrestricted SQL, shell execution, or OfficeCLI main-pipeline integration.
+This foundation does not include row-level SQLite incremental updates, automatic deletion of evidence, a background watcher, MCP, embeddings, OCR, Obsidian plugin work, write-back, unrestricted SQL, shell execution, or OfficeCLI main-pipeline integration.
 
-See `docs/design/v046_update_library_contract.md` for the future `update-library` contract.
+See `docs/design/v046_update_library_contract.md` for the original update contract and `docs/design/v047_explicit_update_library_mvp.md` for the MVP execution design.

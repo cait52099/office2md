@@ -91,16 +91,17 @@ Agents must determine whether raw sources have pending changes before answering:
 3. Treat `change_plan.json` as pending-work status, not library evidence.
 4. Use `search-library`, `open-chunk`, `locate-document`, or `build-report-context` only for facts already present in the built library.
 
-## Future update-library Contract
+## update-library Contract
 
-A future `update-library` command should:
+v0.4.7 implements the first explicit MVP of this contract. The command:
 
-- accept an explicit `change_plan.json`;
-- rebuild Knowledge Packs for `new` and `modified` files;
-- preserve deleted/missing evidence unless a separate reviewed deletion mode exists;
-- treat moved/renamed candidates as review items unless explicitly confirmed;
-- rebuild or refresh the library through controlled existing build paths;
-- write an update manifest with source registry version, change plan hash, and output library state.
+- accepts an explicit `change_plan.json` or scans first;
+- rebuilds Knowledge Packs for `new` and `modified` files;
+- preserves deleted/missing evidence and records it in `update_result.json`;
+- records stale sources for review rather than converting them automatically;
+- treats moved/renamed candidates as review items and reuses existing packs;
+- rebuilds the library through controlled existing build paths;
+- writes an update result and refreshes source registry/library state after success.
 
 ## Non-Goals
 
@@ -127,4 +128,3 @@ v0.4.6 does not include:
 - shell execution.
 
 OfficeCLI remains `diagnostic_only`.
-
