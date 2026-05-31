@@ -524,6 +524,82 @@ def test_update_library_cli_exits_nonzero_when_conversion_fails(tmp_path, monkey
     assert "RuntimeError: planned cli update failure" in result.stdout
 
 
+def test_update_library_does_not_reuse_failed_manifest(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("unchanged evidence", encoding="utf-8")
+    failed_pack = output_root / "doc"
+    failed_pack.mkdir(parents=True)
+    failed_manifest = failed_pack / "manifest.json"
+    failed_manifest.write_text(json.dumps({"status": "failed", "source_file": str(doc), "errors": ["old failure"]}), encoding="utf-8")
+    record = _source_record(doc, source)
+    record["knowledge_pack_path"] = str(failed_pack)
+    record["manifest_path"] = str(failed_manifest)
+    _write_registry(library, _registry(library, [record]))
+
+    def unexpected_convert(source_path: Path, output_root: Path, options: ConvertOptions):
+        raise AssertionError("unchanged failed manifest should not be silently converted or reused")
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=unexpected_convert,
+        dry_run=False,
+        options=ConvertOptions(engine="markitdown"),
+    )
+    update_result = json.loads((library / "update_result.json").read_text(encoding="utf-8"))
+    unsafe = result["unsafe_reuse_packs"][0]
+
+    assert result["status"] == "failed"
+    assert update_result["status"] == "failed"
+    assert result["planned"]["reuse"] == 1
+    assert result["reused_packs"] == []
+    assert result["build_result"] is None
+    assert unsafe["source_file"] == "doc.txt"
+    assert unsafe["change_status"] == "unchanged"
+    assert "status is failed" in unsafe["reason"]
+    assert result["review_summary"]["unsafe_reuse_total"] == 1
+    assert any("not rebuilt" in step for step in result["next_steps"])
+    assert not (library / "library.db").exists()
+
+
+def test_update_library_does_not_reuse_incomplete_manifest(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("unchanged evidence", encoding="utf-8")
+    incomplete_pack = output_root / "doc"
+    incomplete_pack.mkdir(parents=True)
+    incomplete_manifest = incomplete_pack / "manifest.json"
+    incomplete_manifest.write_text(json.dumps({"source_file": str(doc)}), encoding="utf-8")
+    record = _source_record(doc, source)
+    record["knowledge_pack_path"] = str(incomplete_pack)
+    record["manifest_path"] = str(incomplete_manifest)
+    _write_registry(library, _registry(library, [record]))
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=_fake_convert_one,
+        dry_run=False,
+        options=ConvertOptions(engine="markitdown"),
+    )
+
+    assert result["status"] == "failed"
+    assert result["reused_packs"] == []
+    assert result["unsafe_reuse_packs"][0]["reason"] == "Knowledge Pack manifest status is missing"
+    assert result["review_summary"]["unsafe_reuse_total"] == 1
+
+
 def test_update_library_cli_help(tmp_path):
     result = runner.invoke(app, ["update-library", "--help"])
 

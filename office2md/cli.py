@@ -643,6 +643,7 @@ def update_library_command(
     table.add_row("converted", str(len(result["converted"])))
     table.add_row("conversion_failures", str(len(result.get("conversion_failures", []))))
     table.add_row("reused_packs", str(len(result["reused_packs"])))
+    table.add_row("unsafe_reuse_packs", str(len(result.get("unsafe_reuse_packs", []))))
     table.add_row("missing_sources", str(len(result["missing_sources"])))
     console.print(table)
     for warning in result.get("warnings", []):
@@ -658,6 +659,9 @@ def update_library_command(
         for failure in result.get("conversion_failures", []):
             console.print(f"[red]failed:[/red] {failure.get('source_path')}")
             console.print(f"error: {failure.get('error')}")
+        for unsafe in result.get("unsafe_reuse_packs", []):
+            console.print(f"[red]unsafe_reuse:[/red] {unsafe.get('source_path')}")
+            console.print(f"reason: {unsafe.get('reason')}")
         raise typer.Exit(1)
 
 

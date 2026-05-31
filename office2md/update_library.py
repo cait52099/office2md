@@ -123,8 +123,18 @@ def update_library(
         _write_update_result(update_result_path or library_dir / "update_result.json", result)
         return result
 
-    reusable_packs = _reusable_pack_paths(reusable_changes)
+    reusable_packs, unsafe_reuse_packs = _classify_reusable_packs(reusable_changes)
+    result["unsafe_reuse_packs"] = unsafe_reuse_packs
     result["reused_packs"] = [{"knowledge_pack_path": str(path)} for path in reusable_packs]
+    if unsafe_reuse_packs:
+        result["status"] = "failed"
+        _refresh_execution_review_fields(result)
+        result["warnings"].append("one or more planned reuse candidates were unsafe; library rebuild was not run")
+        result["next_steps"] = _unsafe_reuse_next_steps(result)
+        result["written_files"]["update_result"] = str((update_result_path or library_dir / "update_result.json").expanduser().resolve())
+        _write_update_result(update_result_path or library_dir / "update_result.json", result)
+        return result
+
     selected_packs = reusable_packs + converted_packs
     staging_root = _stage_valid_packs(selected_packs, library_dir)
     result["staging_root"] = str(staging_root)
@@ -203,6 +213,7 @@ def _base_update_result(
         "converted": [],
         "conversion_failures": [],
         "reused_packs": [],
+        "unsafe_reuse_packs": [],
         "missing_sources": [],
         "stale_sources": [],
         "unsupported_sources": [],
@@ -238,6 +249,7 @@ def _build_review_summary(plan: dict[str, Any], result: dict[str, Any]) -> dict[
         "reuse_total": int(result.get("planned", {}).get("reuse", 0) or 0),
         "converted_total": len(result.get("converted", []) or []),
         "conversion_failure_total": len(result.get("conversion_failures", []) or []),
+        "unsafe_reuse_total": len(result.get("unsafe_reuse_packs", []) or []),
         "unchanged_total": unchanged,
         "deleted_missing_total": int(counts.get("deleted_missing", 0) or 0),
         "stale_total": int(counts.get("stale", 0) or 0),
@@ -287,6 +299,7 @@ def _refresh_execution_review_fields(result: dict[str, Any]) -> None:
         return
     summary["converted_total"] = len(result.get("converted", []) or [])
     summary["conversion_failure_total"] = len(result.get("conversion_failures", []) or [])
+    summary["unsafe_reuse_total"] = len(result.get("unsafe_reuse_packs", []) or [])
 
 
 def _failure_next_steps(result: dict[str, Any]) -> list[str]:
@@ -298,6 +311,17 @@ def _failure_next_steps(result: dict[str, Any]) -> list[str]:
     ]
     if failures:
         steps.insert(1, "The library was not rebuilt, so previous library evidence remains unchanged.")
+    return steps
+
+
+def _unsafe_reuse_next_steps(result: dict[str, Any]) -> list[str]:
+    steps = [
+        "Inspect unsafe_reuse_packs before relying on this update result.",
+        "Regenerate or remove failed, unreadable, or incomplete Knowledge Packs before rerunning update-library.",
+        "Run scan-changes and update-library again after reuse candidates are repaired or reconverted.",
+    ]
+    if result.get("unsafe_reuse_packs"):
+        steps.insert(1, "The library was not rebuilt because reuse safety could not be proven.")
     return steps
 
 
@@ -354,17 +378,60 @@ def _failure_engine(path: Path, options: ConvertOptions) -> str:
     return "markitdown"
 
 
-def _reusable_pack_paths(changes: list[dict[str, Any]]) -> list[Path]:
+def _classify_reusable_packs(changes: list[dict[str, Any]]) -> tuple[list[Path], list[dict[str, Any]]]:
     paths: list[Path] = []
+    unsafe: list[dict[str, Any]] = []
     for change in changes:
         previous = change.get("previous") if isinstance(change.get("previous"), dict) else {}
         pack = previous.get("knowledge_pack_path")
         manifest = previous.get("manifest_path")
-        if pack and Path(str(pack)).exists():
-            paths.append(Path(str(pack)).expanduser().resolve())
-        elif manifest and Path(str(manifest)).exists():
-            paths.append(Path(str(manifest)).expanduser().resolve().parent)
-    return _dedupe_paths(paths)
+        pack_path = Path(str(pack)).expanduser().resolve() if pack else None
+        manifest_path = Path(str(manifest)).expanduser().resolve() if manifest else None
+        if pack_path and not manifest_path:
+            manifest_path = pack_path / "manifest.json"
+        elif manifest_path and not pack_path:
+            pack_path = manifest_path.parent
+
+        reason = _reuse_safety_issue(pack_path, manifest_path)
+        if reason:
+            unsafe.append(_unsafe_reuse_record(change, pack_path, manifest_path, reason))
+            continue
+        if pack_path:
+            paths.append(pack_path)
+    return _dedupe_paths(paths), unsafe
+
+
+def _reuse_safety_issue(pack_path: Path | None, manifest_path: Path | None) -> str | None:
+    if not pack_path:
+        return "missing Knowledge Pack path"
+    if not pack_path.exists():
+        return "Knowledge Pack path does not exist"
+    if not manifest_path:
+        return "missing manifest path"
+    if not manifest_path.exists():
+        return "Knowledge Pack manifest is missing"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "Knowledge Pack manifest is unreadable"
+    if not isinstance(manifest, dict):
+        return "Knowledge Pack manifest is not an object"
+    status = manifest.get("status")
+    if status != "success":
+        return f"Knowledge Pack manifest status is {status or 'missing'}"
+    return None
+
+
+def _unsafe_reuse_record(change: dict[str, Any], pack_path: Path | None, manifest_path: Path | None, reason: str) -> dict[str, Any]:
+    return {
+        "source_path": change.get("source_path"),
+        "relative_path": change.get("relative_path"),
+        "source_file": change.get("source_file"),
+        "change_status": change.get("status"),
+        "knowledge_pack_path": None if pack_path is None else str(pack_path),
+        "manifest_path": None if manifest_path is None else str(manifest_path),
+        "reason": reason,
+    }
 
 
 def _stage_valid_packs(pack_paths: list[Path], library_dir: Path) -> Path:
