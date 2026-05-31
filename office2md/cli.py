@@ -513,6 +513,10 @@ def library_status_command(
     console.print(table)
     for warning in status["warnings"]:
         console.print(f"[yellow]warning:[/yellow] {warning}")
+    if status.get("next_steps"):
+        console.print("[bold]next steps:[/bold]")
+        for index, step in enumerate(status["next_steps"], start=1):
+            console.print(f"{index}. {step}")
 
 
 @app.command("source-registry")

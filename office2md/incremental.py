@@ -275,6 +275,8 @@ def library_status(
     elif status == "unknown" and state_exists and state.get("status") in {"current", "stale", "unknown"}:
         status = str(state.get("status"))
 
+    warnings = _library_status_warnings(status, db_path, registry_exists, stale_records, change_plan, state_exists)
+    pending_changes = None if not change_plan else change_plan.get("counts", {})
     return {
         "schema_version": LIBRARY_STATUS_SCHEMA_VERSION,
         "generated_at": utc_now_iso(),
@@ -293,13 +295,14 @@ def library_status(
             "stale_sources": len(stale_records),
             "missing_sources": sum(1 for item in source_state if item["status"] == "missing"),
         },
-        "pending_changes": None if not change_plan else change_plan.get("counts", {}),
-        "warnings": _library_status_warnings(status, db_path, registry_exists, stale_records, change_plan, state_exists),
+        "pending_changes": pending_changes,
+        "warnings": warnings,
         "limitations": [
             "library-status is read-only",
             "library status is unknown without a registry or library document source paths",
             "agents must not assume new raw files are visible until scan/update workflow is run",
         ],
+        "next_steps": _library_status_next_steps(status, registry_exists=registry_exists, stale_records=stale_records, pending_changes=pending_changes, state_exists=state_exists),
     }
 
 
@@ -483,6 +486,31 @@ def _library_status_warnings(
     if state_exists:
         warnings.append("library_state.json is a snapshot; refresh status/scan before agent use")
     return _dedupe(warnings)
+
+
+def _library_status_next_steps(
+    status: str,
+    *,
+    registry_exists: bool,
+    stale_records: list[dict[str, Any]],
+    pending_changes: dict[str, Any] | None,
+    state_exists: bool,
+) -> list[str]:
+    if status == "current":
+        steps = ["No update is required before agents use this built library."]
+    elif status == "stale":
+        steps = ["Run scan-changes with the source folder to refresh the change plan before updating or answering from new source files."]
+        if pending_changes:
+            steps.append("Review pending_changes counts and run update-library only after confirming new/modified/deleted/stale entries.")
+        if stale_records:
+            steps.append("Inspect stale or missing registered sources before relying on existing evidence.")
+    else:
+        steps = ["Build or register a source registry, then rerun library-status to establish freshness."]
+    if not registry_exists:
+        steps.append("Run source-registry --save after building a library so future freshness checks can compare source files.")
+    if state_exists:
+        steps.append("Refresh library_state.json with library-status --write-state after reviewing current source and change-plan status.")
+    return _dedupe(steps)
 
 
 def _empty_source_registry(library_path: Path) -> dict[str, Any]:

@@ -251,6 +251,8 @@ def test_library_status_summarizes_change_plan(tmp_path):
 
     assert status["status"] == "stale"
     assert status["pending_changes"]["new"] == 1
+    assert status["next_steps"]
+    assert any("update-library" in step for step in status["next_steps"])
 
 
 def test_library_status_cli_json(tmp_path):
@@ -262,6 +264,18 @@ def test_library_status_cli_json(tmp_path):
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["schema_version"] == LIBRARY_STATUS_SCHEMA_VERSION
+    assert payload["next_steps"]
+    assert any("source registry" in step for step in payload["next_steps"])
+
+
+def test_library_status_readable_output_shows_next_steps(tmp_path):
+    library = tmp_path / "library"
+    library.mkdir()
+
+    result = runner.invoke(app, ["library-status", str(library)])
+
+    assert result.exit_code == 0
+    assert "next steps" in result.stdout
 
 
 def test_scan_changes_cli_help_and_export(tmp_path):
