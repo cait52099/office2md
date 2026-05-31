@@ -1,5 +1,33 @@
 # office2md Release Readiness Checklist
 
+v0.5.1 final release evidence:
+
+- [x] `v0.5.1-rc1` tag is present.
+- [x] `v0.5.1-rc2` tag is present.
+- [x] Working tree was clean before final release metadata changes.
+- [x] `pyproject.toml` version is updated to `0.5.1`.
+- [x] `office2md/__init__.py` version is updated to `0.5.1`.
+- [x] `RELEASE_NOTES_v0.5.1.md` summarizes rc1 and rc2.
+- [x] `.venv/bin/python -m pytest` reports 214 passed, 5 warnings.
+- [x] `.venv/bin/python -m ruff check .` reports all checks passed.
+- [x] `.venv/bin/python -m compileall office2md/gui` succeeds.
+- [x] `.venv/bin/python -m office2md.cli --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli scan-changes --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli update-library --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli library-status --help` succeeds.
+- [x] `.venv/bin/python -m json.tool docs/agents/agent_queue.json` succeeds.
+- [x] `bash -n scripts/agent_run_next.sh` succeeds.
+- [x] Conversion behavior is unchanged.
+- [x] Build-library behavior is unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] GUI behavior is unchanged.
+- [x] Agent Gateway / MCP behavior is unchanged.
+- [x] Source files are unchanged.
+- [x] No OfficeCLI main-pipeline integration is included.
+- [x] No AI, OCR, embedding, vector, cloud, unrestricted SQL, shell execution, or write-back work is included.
+- [x] No push was performed.
+
 v0.5.1-rc2 Codex App task workflow checkpoint evidence:
 
 - [x] `.venv/bin/python -m pytest` reports 214 passed, 5 warnings.
