@@ -455,6 +455,75 @@ def test_update_library_updates_new_modified_reuses_unchanged_and_records_delete
     assert "gearbox" in opened["target_chunk"]["text"]
 
 
+def test_update_library_conversion_failure_writes_failed_manifest_and_stops_before_rebuild(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("oldonly evidence", encoding="utf-8")
+    _write_doc(output_root / "doc", "doc-id", str(doc), "generic_text", [_chunk("chunk-1", "oldonly evidence")])
+    build_library(output_root, library)
+    save_source_registry(library)
+    doc.write_text("newonly evidence", encoding="utf-8")
+
+    def fail_convert(source_path: Path, output_root: Path, options: ConvertOptions):
+        raise RuntimeError("planned update failure")
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=fail_convert,
+        dry_run=False,
+        options=ConvertOptions(engine="markitdown"),
+    )
+    update_result = json.loads((library / "update_result.json").read_text(encoding="utf-8"))
+    failure = result["conversion_failures"][0]
+    manifest = json.loads(Path(failure["manifest_path"]).read_text(encoding="utf-8"))
+
+    assert result["status"] == "failed"
+    assert update_result["status"] == "failed"
+    assert result["build_result"] is None
+    assert result["reused_packs"] == []
+    assert failure["status"] == "failed"
+    assert failure["source_file"] == "doc.txt"
+    assert "RuntimeError: planned update failure" == failure["error"]
+    assert manifest["status"] == "failed"
+    assert manifest["errors"] == ["planned update failure"]
+    assert (output_root / "_index.json").exists()
+    assert result["review_summary"]["converted_total"] == 0
+    assert result["review_summary"]["conversion_failure_total"] == 1
+    assert any("not rebuilt" in step for step in result["next_steps"])
+    assert search_library(library / "library.db", "newonly") == []
+    assert search_library(library / "library.db", "oldonly")
+
+
+def test_update_library_cli_exits_nonzero_when_conversion_fails(tmp_path, monkeypatch):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("oldonly evidence", encoding="utf-8")
+    _write_doc(output_root / "doc", "doc-id", str(doc), "generic_text", [_chunk("chunk-1", "oldonly evidence")])
+    build_library(output_root, library)
+    save_source_registry(library)
+    doc.write_text("newonly evidence", encoding="utf-8")
+
+    def fail_convert(source_path: Path, output_root: Path, options: ConvertOptions):
+        raise RuntimeError("planned cli update failure")
+
+    monkeypatch.setattr("office2md.cli.convert_one", fail_convert)
+
+    result = runner.invoke(app, ["update-library", str(source), str(output_root), str(library)])
+
+    assert result.exit_code == 1
+    assert "conversion_failures" in result.stdout
+    assert "failed:" in result.stdout
+    assert "RuntimeError: planned cli update failure" in result.stdout
+
+
 def test_update_library_cli_help(tmp_path):
     result = runner.invoke(app, ["update-library", "--help"])
 

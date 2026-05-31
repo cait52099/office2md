@@ -641,6 +641,7 @@ def update_library_command(
     table.add_row("review_status", str(result["review_summary"].get("status", "")))
     table.add_row("pending_total", str(result["review_summary"].get("pending_total", 0)))
     table.add_row("converted", str(len(result["converted"])))
+    table.add_row("conversion_failures", str(len(result.get("conversion_failures", []))))
     table.add_row("reused_packs", str(len(result["reused_packs"])))
     table.add_row("missing_sources", str(len(result["missing_sources"])))
     console.print(table)
@@ -653,6 +654,11 @@ def update_library_command(
     elif result.get("written_files"):
         for key, value in result["written_files"].items():
             console.print(f"{key}: {value}")
+    if result.get("status") == "failed":
+        for failure in result.get("conversion_failures", []):
+            console.print(f"[red]failed:[/red] {failure.get('source_path')}")
+            console.print(f"error: {failure.get('error')}")
+        raise typer.Exit(1)
 
 
 @app.command("library-catalog")

@@ -6,6 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from office2md.detector import sha256_file
 from office2md.incremental import (
     default_change_plan_path,
     default_library_state_path,
@@ -15,8 +16,10 @@ from office2md.incremental import (
     scan_changes,
 )
 from office2md.library import build_library
-from office2md.models import ConvertOptions
+from office2md.models import ConvertOptions, ConvertResult
 from office2md.storage.index import rebuild_output_index
+from office2md.storage.manifest import build_manifest
+from office2md.storage.writer import write_document_output
 from office2md.utils import utc_now_iso
 
 
@@ -94,17 +97,29 @@ def update_library(
                 }
             )
         except Exception as exc:  # pragma: no cover - exercised through CLI/manual failures
+            failed_pack = _write_failure_manifest(source, output_root, convert_options, exc)
             result["conversion_failures"].append(
                 {
                     "source_path": str(source),
                     "relative_path": change.get("relative_path"),
+                    "source_file": change.get("source_file"),
+                    "status": "failed",
+                    "knowledge_pack_path": str(failed_pack),
+                    "manifest_path": str(failed_pack / "manifest.json"),
                     "error": f"{exc.__class__.__name__}: {exc}",
                 }
             )
 
     if result["conversion_failures"]:
+        rebuild_output_index(output_root, profile=convert_options.profile)
         result["status"] = "failed"
-        result["warnings"].append("one or more conversions failed; library rebuild was not run")
+        _refresh_execution_review_fields(result)
+        result["warnings"].append("one or more conversions failed; failed manifests were written and library rebuild was not run")
+        result["next_steps"] = _failure_next_steps(result)
+        result["written_files"].update({
+            "output_index": str(output_root / "_index.json"),
+            "update_result": str((update_result_path or library_dir / "update_result.json").expanduser().resolve()),
+        })
         _write_update_result(update_result_path or library_dir / "update_result.json", result)
         return result
 
@@ -221,6 +236,8 @@ def _build_review_summary(plan: dict[str, Any], result: dict[str, Any]) -> dict[
         "pending_total": pending_total,
         "convert_total": convert_total,
         "reuse_total": int(result.get("planned", {}).get("reuse", 0) or 0),
+        "converted_total": len(result.get("converted", []) or []),
+        "conversion_failure_total": len(result.get("conversion_failures", []) or []),
         "unchanged_total": unchanged,
         "deleted_missing_total": int(counts.get("deleted_missing", 0) or 0),
         "stale_total": int(counts.get("stale", 0) or 0),
@@ -264,6 +281,26 @@ def _next_steps(summary: dict[str, Any], *, dry_run: bool) -> list[str]:
     return steps
 
 
+def _refresh_execution_review_fields(result: dict[str, Any]) -> None:
+    summary = result.get("review_summary")
+    if not isinstance(summary, dict):
+        return
+    summary["converted_total"] = len(result.get("converted", []) or [])
+    summary["conversion_failure_total"] = len(result.get("conversion_failures", []) or [])
+
+
+def _failure_next_steps(result: dict[str, Any]) -> list[str]:
+    failures = result.get("conversion_failures") or []
+    steps = [
+        "Inspect conversion_failures and failed manifests before relying on this update result.",
+        "Fix or exclude failed source files, then rerun update-library.",
+        "Run library-status after a successful rerun before agent use.",
+    ]
+    if failures:
+        steps.insert(1, "The library was not rebuilt, so previous library evidence remains unchanged.")
+    return steps
+
+
 def _write_review_report(path: Path, result: dict[str, Any]) -> None:
     target = path.expanduser().resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -291,6 +328,30 @@ def _write_review_report(path: Path, result: dict[str, Any]) -> None:
         lines.extend(["", "## Next Steps", ""])
         lines.extend(f"{index}. {item}" for index, item in enumerate(result["next_steps"], start=1))
     target.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+
+
+def _write_failure_manifest(source_path: Path, output_root: Path, options: ConvertOptions, exc: Exception) -> Path:
+    source = source_path.expanduser().resolve()
+    checksum = sha256_file(source) if source.exists() else "sha256:"
+    engine = _failure_engine(source, options)
+    result = ConvertResult(markdown="", raw_markdown="", engine=engine, errors=[str(exc)])
+    manifest = build_manifest(
+        source_path=source,
+        checksum=checksum,
+        engine=engine,
+        status="failed",
+        warnings=[],
+        errors=[str(exc)],
+    )
+    return write_document_output(source, output_root, result, "", [], manifest)
+
+
+def _failure_engine(path: Path, options: ConvertOptions) -> str:
+    if options.engine != "auto":
+        return options.engine
+    if path.suffix.lower() == ".pdf":
+        return "docling"
+    return "markitdown"
 
 
 def _reusable_pack_paths(changes: list[dict[str, Any]]) -> list[Path]:
