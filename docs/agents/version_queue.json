@@ -1,0 +1,22 @@
+{
+  "schema": "office2md.version_workflow.v1",
+  "workspace_root": "/Volumes/seagate 2t/offic2md",
+  "repo_root": "/Volumes/seagate 2t/offic2md/repo",
+  "obsidian_vault": "/Volumes/seagate 2t/offic2md/office2md-vault",
+  "active_version": {
+    "version": "v0.5.2",
+    "status": "committed",
+    "goal_file": "docs/agents/tasks/VERSION_GOAL_v0.5.2.md",
+    "allow_code_changes": true,
+    "allow_final_commit": true,
+    "allow_tag": false,
+    "allow_push": false,
+    "commit_policy": "final_only",
+    "max_execution_tasks": 3,
+    "stop_after_each_task": false,
+    "stop_before_final_commit": false,
+    "completed_at": "2026-05-31",
+    "result": "validation_passed"
+  },
+  "tasks": []
+}
