@@ -76,6 +76,41 @@ A version moves through these states:
 
 Stop on `blocked`.
 
+## Optimizer Loop Mode
+
+When `docs/agents/version_queue.json` sets:
+
+```json
+"mode": "optimizer_loop"
+```
+
+run exactly one small improvement loop:
+
+```text
+CHECK -> PLAN -> OPTIMIZE -> REVIEW -> COMMIT -> STOP
+```
+
+The optimizer loop is for ongoing office2md improvement and correction. It should favor small, high-value changes that improve user friendliness, efficiency, bug reduction, agent workflow usability, large-folder update workflow, JSON contract clarity, or source-file safety.
+
+Default optimizer-loop rules:
+- identify up to three candidate tasks
+- select exactly one P1 task
+- keep the selected task small and bounded
+- prefer docs, workflow, CLI help, validation, and UX hardening before deeper runtime changes
+- create exactly one final local commit only if validation passes and policy allows it
+- do not create tags
+- do not push
+- stop after the commit
+
+The optimizer loop must not:
+- run multiple loops in one invocation
+- perform broad refactors
+- modify source documents
+- modify Knowledge Packs without explicit permission
+- add AI/OCR/embedding/vector/cloud work
+- add unrestricted SQL or shell access
+- change protected behaviors unless explicitly scoped and tested
+
 ## Automation Safety Gates
 
 Automation may continue to the next task only when:
@@ -126,7 +161,9 @@ Before the final commit:
 .venv/bin/python -m compileall office2md/gui
 .venv/bin/python -m office2md.cli --help
 .venv/bin/python -m json.tool docs/agents/agent_queue.json
+.venv/bin/python -m json.tool docs/agents/version_queue.json
 bash -n scripts/agent_run_next.sh
+bash -n scripts/agent_run_version.sh
 ```
 
 5. Run task-specific smoke tests.
