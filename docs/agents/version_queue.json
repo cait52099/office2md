@@ -4,19 +4,42 @@
   "repo_root": "/Volumes/seagate 2t/offic2md/repo",
   "obsidian_vault": "/Volumes/seagate 2t/offic2md/office2md-vault",
   "active_version": {
-    "version": "v0.5.2",
+    "version": "v0.5.3",
     "status": "committed",
-    "goal_file": "docs/agents/tasks/VERSION_GOAL_v0.5.2.md",
+    "mode": "optimizer_loop",
+    "goal_file": "docs/agents/tasks/VERSION_GOAL_OPTIMIZER_LOOP.md",
     "allow_code_changes": true,
     "allow_final_commit": true,
     "allow_tag": false,
     "allow_push": false,
     "commit_policy": "final_only",
-    "max_execution_tasks": 3,
-    "stop_after_each_task": false,
+    "max_candidate_tasks": 3,
+    "max_selected_tasks": 1,
+    "max_execution_tasks": 1,
+    "stop_after_commit": true,
     "stop_before_final_commit": false,
     "completed_at": "2026-05-31",
     "result": "validation_passed"
   },
+  "optimizer_priorities": [
+    "user friendliness",
+    "higher efficiency",
+    "fewer bugs",
+    "agent workflow usability",
+    "large-folder update workflow",
+    "JSON contract clarity",
+    "source-file safety"
+  ],
+  "protected_behaviors": [
+    "conversion behavior",
+    "build-library behavior",
+    "search ranking",
+    "search aliases",
+    "token fallback",
+    "runner process-control behavior",
+    "GUI behavior",
+    "Agent Gateway behavior",
+    "MCP adapter behavior"
+  ],
   "tasks": []
 }

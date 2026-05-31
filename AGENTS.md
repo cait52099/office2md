@@ -446,6 +446,56 @@ The script must refuse to run if:
 - version goal file is missing
 - policy is unsafe
 
+### 7.7 Optimizer Loop Mode
+
+This project may use `mode: optimizer_loop` in `docs/agents/version_queue.json`.
+
+Purpose:
+
+- run one complete small-version improvement loop: `CHECK -> PLAN -> OPTIMIZE -> REVIEW -> COMMIT -> STOP`
+- improve ongoing office2md optimization and correction
+- improve user friendliness, efficiency, bug reduction, agent workflow usability, large-folder update workflow, JSON contract clarity, and source-file safety
+
+Default rules:
+
+- select at most one P1 task per loop
+- keep the task small and bounded
+- prefer low-risk docs, workflow, CLI help, validation, and UX improvements before deeper runtime changes
+- create exactly one final local commit only if validation passes and policy allows it
+- do not create tags
+- do not push
+- stop after the commit
+
+The optimizer loop must not:
+
+- run multiple loops in one invocation
+- perform broad refactors
+- modify source documents
+- modify Knowledge Packs without explicit permission
+- add AI/OCR/embedding/vector/cloud work
+- add unrestricted SQL or shell access
+- change protected behaviors unless explicitly scoped and tested
+
+Protected behaviors include:
+
+- conversion behavior
+- build-library behavior
+- search ranking
+- search aliases
+- token fallback
+- runner process-control behavior
+- GUI behavior
+- Agent Gateway behavior
+- MCP adapter behavior
+
+When using Codex App, run:
+
+```text
+Read scripts/codex_app_run_version_prompt.md and execute it.
+```
+
+When Codex CLI is available, the optimizer loop may be run through the version runner script if the policy is safe.
+
 ---
 
 ## 8. Automated Runner Policy
