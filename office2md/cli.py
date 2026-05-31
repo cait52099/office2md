@@ -662,6 +662,10 @@ def update_library_command(
         for unsafe in result.get("unsafe_reuse_packs", []):
             console.print(f"[red]unsafe_reuse:[/red] {unsafe.get('source_path')}")
             console.print(f"reason: {unsafe.get('reason')}")
+            if unsafe.get("recommended_action"):
+                console.print(f"recommended_action: {unsafe.get('recommended_action')}")
+        for item in result.get("recovery_guidance", []):
+            console.print(f"recovery_guidance: {item.get('category')}: {item.get('recommended_action')}")
         raise typer.Exit(1)
 
 

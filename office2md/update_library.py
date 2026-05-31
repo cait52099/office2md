@@ -71,6 +71,7 @@ def update_library(
     result["unsupported_sources"] = [_source_summary(item) for item in changes if item.get("status") == "unsupported"]
     result["review_summary"] = _build_review_summary(plan, result)
     result["large_folder_warnings"] = _large_folder_warnings(result["review_summary"])
+    result["recovery_guidance"] = _recovery_guidance(result)
     result["next_steps"] = _next_steps(result["review_summary"], dry_run=dry_run)
     if review_report_path:
         _write_review_report(review_report_path, result)
@@ -114,6 +115,7 @@ def update_library(
         rebuild_output_index(output_root, profile=convert_options.profile)
         result["status"] = "failed"
         _refresh_execution_review_fields(result)
+        result["recovery_guidance"] = _recovery_guidance(result)
         result["warnings"].append("one or more conversions failed; failed manifests were written and library rebuild was not run")
         result["next_steps"] = _failure_next_steps(result)
         result["written_files"].update({
@@ -129,6 +131,7 @@ def update_library(
     if unsafe_reuse_packs:
         result["status"] = "failed"
         _refresh_execution_review_fields(result)
+        result["recovery_guidance"] = _recovery_guidance(result)
         result["warnings"].append("one or more planned reuse candidates were unsafe; library rebuild was not run")
         result["next_steps"] = _unsafe_reuse_next_steps(result)
         result["written_files"]["update_result"] = str((update_result_path or library_dir / "update_result.json").expanduser().resolve())
@@ -223,6 +226,7 @@ def _base_update_result(
         "review_summary": {},
         "large_folder_warnings": [],
         "next_steps": [],
+        "recovery_guidance": [],
         "warnings": list(plan.get("warnings", [])),
         "limitations": [
             "update-library is explicit and never runs automatically",
@@ -284,12 +288,16 @@ def _next_steps(summary: dict[str, Any], *, dry_run: bool) -> list[str]:
     if summary.get("status") == "current":
         return ["No update required; agents may answer from the current built library."]
     steps = ["Review change counts and unsupported/deleted/stale entries."]
+    if summary.get("stale_total"):
+        steps.append("Treat stale sources as review-only until the missing or stale Knowledge Pack evidence is repaired or intentionally regenerated.")
     if dry_run and summary.get("convert_total"):
         steps.append("Run update-library without --dry-run to convert new/modified files and rebuild the library.")
     elif dry_run:
         steps.append("Resolve review items or refresh source_registry/library_state as needed.")
     else:
         steps.append("Run library-status and agent search/open-chunk checks against the rebuilt library.")
+    if summary.get("stale_total"):
+        steps.append("Do not delete source files or evidence automatically; rerun conversion for affected sources or update registry/output references only after human review.")
     return steps
 
 
@@ -317,12 +325,54 @@ def _failure_next_steps(result: dict[str, Any]) -> list[str]:
 def _unsafe_reuse_next_steps(result: dict[str, Any]) -> list[str]:
     steps = [
         "Inspect unsafe_reuse_packs before relying on this update result.",
-        "Regenerate or remove failed, unreadable, or incomplete Knowledge Packs before rerunning update-library.",
+        "Use recovery_guidance to decide whether each item is review-only, needs reconversion, or needs path/registry repair.",
+        "Regenerate or intentionally quarantine failed, unreadable, or incomplete Knowledge Packs before rerunning update-library.",
         "Run scan-changes and update-library again after reuse candidates are repaired or reconverted.",
     ]
     if result.get("unsafe_reuse_packs"):
         steps.insert(1, "The library was not rebuilt because reuse safety could not be proven.")
     return steps
+
+
+def _recovery_guidance(result: dict[str, Any]) -> list[dict[str, Any]]:
+    guidance: list[dict[str, Any]] = []
+    for item in result.get("unsafe_reuse_packs", []) or []:
+        guidance.append(
+            {
+                "category": "unsafe_reuse",
+                "source_file": item.get("source_file"),
+                "source_path": item.get("source_path"),
+                "manifest_path": item.get("manifest_path"),
+                "reason": item.get("reason"),
+                "review_mode": "manual_review_required",
+                "recommended_action": _unsafe_reuse_recommended_action(str(item.get("reason") or "")),
+                "automatic_action": "none",
+            }
+        )
+    for item in result.get("stale_sources", []) or []:
+        guidance.append(
+            {
+                "category": "stale_source",
+                "source_file": item.get("source_file"),
+                "source_path": item.get("source_path"),
+                "reason": "; ".join(str(reason) for reason in item.get("reasons", []) or []),
+                "review_mode": "review_only_until_confirmed",
+                "recommended_action": "Inspect the stale registry/source relationship; reconvert the source or repair the registry/output reference only after human review.",
+                "automatic_action": "none",
+            }
+        )
+    return guidance
+
+
+def _unsafe_reuse_recommended_action(reason: str) -> str:
+    normalized = reason.lower()
+    if "failed" in normalized:
+        return "Inspect the failed manifest errors, fix the source or converter issue, then rerun conversion for that source before update-library."
+    if "missing" in normalized or "does not exist" in normalized:
+        return "Locate or regenerate the missing Knowledge Pack evidence; if it is intentionally gone, refresh the registry before rerunning update-library."
+    if "unreadable" in normalized or "not an object" in normalized:
+        return "Repair or regenerate the manifest so it is valid JSON with status success before reuse."
+    return "Regenerate the Knowledge Pack or repair its manifest before rerunning update-library."
 
 
 def _write_review_report(path: Path, result: dict[str, Any]) -> None:
@@ -351,6 +401,10 @@ def _write_review_report(path: Path, result: dict[str, Any]) -> None:
     if result.get("next_steps"):
         lines.extend(["", "## Next Steps", ""])
         lines.extend(f"{index}. {item}" for index, item in enumerate(result["next_steps"], start=1))
+    if result.get("recovery_guidance"):
+        lines.extend(["", "## Recovery Guidance", ""])
+        for item in result["recovery_guidance"]:
+            lines.append(f"- {item.get('category')}: {item.get('source_file') or item.get('source_path') or 'unknown'} - {item.get('recommended_action')}")
     target.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
@@ -431,6 +485,7 @@ def _unsafe_reuse_record(change: dict[str, Any], pack_path: Path | None, manifes
         "knowledge_pack_path": None if pack_path is None else str(pack_path),
         "manifest_path": None if manifest_path is None else str(manifest_path),
         "reason": reason,
+        "recommended_action": _unsafe_reuse_recommended_action(reason),
     }
 
 

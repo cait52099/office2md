@@ -563,8 +563,11 @@ def test_update_library_does_not_reuse_failed_manifest(tmp_path):
     assert unsafe["source_file"] == "doc.txt"
     assert unsafe["change_status"] == "unchanged"
     assert "status is failed" in unsafe["reason"]
+    assert "failed manifest errors" in unsafe["recommended_action"]
     assert result["review_summary"]["unsafe_reuse_total"] == 1
     assert any("not rebuilt" in step for step in result["next_steps"])
+    assert any(item["category"] == "unsafe_reuse" and item["automatic_action"] == "none" for item in result["recovery_guidance"])
+    assert any("recovery_guidance" in step for step in result["next_steps"])
     assert not (library / "library.db").exists()
 
 
@@ -597,7 +600,40 @@ def test_update_library_does_not_reuse_incomplete_manifest(tmp_path):
     assert result["status"] == "failed"
     assert result["reused_packs"] == []
     assert result["unsafe_reuse_packs"][0]["reason"] == "Knowledge Pack manifest status is missing"
+    assert "missing Knowledge Pack evidence" in result["unsafe_reuse_packs"][0]["recommended_action"]
     assert result["review_summary"]["unsafe_reuse_total"] == 1
+    assert result["recovery_guidance"][0]["category"] == "unsafe_reuse"
+    assert "automatic_action" in result["recovery_guidance"][0]
+
+
+def test_update_library_stale_missing_manifest_guidance_is_review_only(tmp_path):
+    source = tmp_path / "source"
+    library = tmp_path / "library"
+    source.mkdir()
+    library.mkdir()
+    doc = source / "doc.txt"
+    doc.write_text("unchanged evidence", encoding="utf-8")
+    record = _source_record(doc, source)
+    record["manifest_path"] = str(tmp_path / "missing-pack" / "manifest.json")
+    _write_registry(library, _registry(library, [record]))
+
+    result = update_library(
+        source,
+        tmp_path / "output",
+        library,
+        convert_file=_fake_convert_one,
+        dry_run=True,
+        options=ConvertOptions(engine="markitdown"),
+    )
+
+    assert result["status"] == "dry_run"
+    assert result["review_summary"]["stale_total"] == 1
+    assert result["stale_sources"][0]["reasons"] == ["registered Knowledge Pack manifest is missing"]
+    assert any("review-only" in step for step in result["next_steps"])
+    assert any("source files or evidence automatically" in step for step in result["next_steps"])
+    assert result["recovery_guidance"][0]["category"] == "stale_source"
+    assert result["recovery_guidance"][0]["review_mode"] == "review_only_until_confirmed"
+    assert "reconvert" in result["recovery_guidance"][0]["recommended_action"]
 
 
 def test_update_library_cli_help(tmp_path):
