@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="/Volumes/seagate 2t/offic2md"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
 QUEUE_JSON="$PROJECT_ROOT/docs/agents/agent_queue.json"
 
 cd "$PROJECT_ROOT"

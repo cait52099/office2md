@@ -27,10 +27,16 @@ Obsidian, VS Code, Foam, MkDocs, or other tools may be useful human-facing front
 
 ## 2. Default Local Paths
 
-Default local project root may be:
+Default local workspace root may be:
 
 ```text
 /Volumes/seagate 2t/offic2md
+```
+
+Default local repository root may be:
+
+```text
+/Volumes/seagate 2t/offic2md/repo
 ```
 
 Default Obsidian project journal may be:
@@ -186,14 +192,14 @@ The Final Release Agent must not add new features.
 
 The preferred workflow is file-driven and repeatable.
 
-Use `docs/agents/agent_queue.md` and `docs/agents/tasks/` to coordinate planning, execution, review, and release.
+Use `docs/agents/agent_queue.json` and `docs/agents/tasks/` to coordinate planning, execution, review, and release.
 
 Typical flow:
 
 ```text
 Planning Agent
 → writes next task file in docs/agents/tasks/
-→ updates docs/agents/agent_queue.md
+→ updates docs/agents/agent_queue.json
 → Execution Agent runs exactly one task file
 → writes report to Obsidian vault and docs/agents/reports/ if requested
 → Review / Checkpoint Agent reviews result

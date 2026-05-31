@@ -1,6 +1,6 @@
 {
   "schema": "office2md.agent_queue.v1",
-  "project_root": "/Volumes/seagate 2t/offic2md",
+  "project_root": "/Volumes/seagate 2t/offic2md/repo",
   "obsidian_vault": "/Volumes/seagate 2t/offic2md/office2md-vault",
   "auto_policy": {
     "auto_execute_ready_tasks": true,
@@ -23,6 +23,21 @@
       "allow_push": false,
       "created_from": "0001_whole_project_review",
       "report_path": "office2md-vault/30_Codex_Reports/2026-05-31 Task 0002 Restore macOS Validation Baseline.md",
+      "completed_at": "2026-05-31",
+      "result": "validation_passed"
+    },
+    {
+      "id": "0004",
+      "title": "Harden Codex App Task Workflow",
+      "file": "docs/agents/tasks/0004_harden_codex_app_task_workflow.md",
+      "role": "execution",
+      "status": "completed",
+      "allow_code_changes": true,
+      "allow_commit": false,
+      "allow_tag": false,
+      "allow_push": false,
+      "created_from": "2026-05-31 v0.5.1 Next Optimization Plan",
+      "report_path": "office2md-vault/30_Codex_Reports/2026-05-31 Task 0004 Harden Codex App Task Workflow.md",
       "completed_at": "2026-05-31",
       "result": "validation_passed"
     }

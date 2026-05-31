@@ -4,10 +4,6 @@ Then run the first ready task from:
 
 docs/agents/agent_queue.json
 
-For the current queue, this should be:
-
-docs/agents/tasks/0002_restore_macos_validation_baseline.md
-
 Important:
 - Follow AGENTS.md.
 - Follow the task file exactly.
@@ -18,11 +14,14 @@ Important:
 - Stop after this task.
 - Write the requested report to the Obsidian vault.
 - At the end, update docs/agents/agent_queue.json:
-  - mark task 0002 as completed if validation passes
-  - mark task 0002 as blocked if validation fails
+  - mark the task you ran as completed if validation passes
+  - mark the task you ran as blocked if validation fails
   - add a concise next task only if clearly necessary
 
 Project root:
+/Volumes/seagate 2t/offic2md/repo
+
+Workspace root:
 /Volumes/seagate 2t/offic2md
 
 Obsidian vault:

@@ -1,5 +1,29 @@
 # office2md Release Readiness Checklist
 
+v0.5.1-rc2 Codex App task workflow checkpoint evidence:
+
+- [x] `.venv/bin/python -m pytest` reports 214 passed, 5 warnings.
+- [x] `.venv/bin/python -m ruff check .` reports all checks passed.
+- [x] `.venv/bin/python -m compileall office2md/gui` succeeds.
+- [x] `.venv/bin/python -m office2md.cli --help` succeeds.
+- [x] `.venv/bin/python -m json.tool docs/agents/agent_queue.json` succeeds.
+- [x] `bash -n scripts/agent_run_next.sh` succeeds.
+- [x] `docs/agents/agent_queue.json` uses `/Volumes/seagate 2t/offic2md/repo` as the repository root.
+- [x] `scripts/agent_run_next.sh` derives its default repository root from the script location and preserves `PROJECT_ROOT` override support.
+- [x] `scripts/codex_app_run_next_prompt.md` selects the first ready queue task instead of hardcoding task `0002`.
+- [x] `docs/agents/execution_agent.md` documents the one-task Execution Agent workflow.
+- [x] Task 0004 is marked completed in `docs/agents/agent_queue.json`.
+- [x] Repo commit scope excludes `/Volumes/seagate 2t/offic2md/AGENTS.md`.
+- [x] Conversion behavior is unchanged.
+- [x] Build-library behavior is unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] GUI behavior is unchanged.
+- [x] Agent Gateway / MCP behavior is unchanged.
+- [x] Source files are unchanged.
+- [x] No OfficeCLI main-pipeline integration is included.
+- [x] No AI, OCR, embedding, vector, cloud, unrestricted SQL, shell execution, or write-back work is included.
+
 v0.5.1-rc1 macOS validation baseline checkpoint evidence:
 
 - [x] `.venv/bin/python -m pytest` reports 214 passed, 5 warnings.
