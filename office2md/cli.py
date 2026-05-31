@@ -644,6 +644,13 @@ def update_library_command(
     table.add_row("conversion_failures", str(len(result.get("conversion_failures", []))))
     table.add_row("reused_packs", str(len(result["reused_packs"])))
     table.add_row("unsafe_reuse_packs", str(len(result.get("unsafe_reuse_packs", []))))
+    decision_summary = result.get("decision_summary") or {}
+    blocked = decision_summary.get("blocked") or {}
+    review_only = decision_summary.get("review_only") or {}
+    skipped = decision_summary.get("skipped") or {}
+    table.add_row("blocked_decisions", str(sum(int(value or 0) for value in blocked.values())))
+    table.add_row("review_only_decisions", str(sum(int(value or 0) for value in review_only.values())))
+    table.add_row("skipped_decisions", str(sum(int(value or 0) for value in skipped.values())))
     table.add_row("missing_sources", str(len(result["missing_sources"])))
     console.print(table)
     for warning in result.get("warnings", []):

@@ -400,8 +400,13 @@ def test_update_library_dry_run_does_not_modify_outputs(tmp_path):
     assert result["planned"]["convert"] == 1
     assert result["review_summary"]["status"] == "stale"
     assert result["review_summary"]["convert_total"] == 1
+    assert result["decision_summary"]["status"] == "dry_run"
+    assert result["decision_summary"]["planned"]["convert"] == 1
     assert result["next_steps"]
     assert (tmp_path / "review" / "update_review.md").exists()
+    report_text = (tmp_path / "review" / "update_review.md").read_text(encoding="utf-8")
+    assert "## Decision Summary" in report_text
+    assert "- planned.convert: 1" in report_text
     assert sorted(path.relative_to(output_root).as_posix() for path in output_root.rglob("*")) == before_output
     assert sorted(path.relative_to(library).as_posix() for path in library.rglob("*")) == before_library
     assert not (library / "update_result.json").exists()
@@ -444,6 +449,9 @@ def test_update_library_updates_new_modified_reuses_unchanged_and_records_delete
     assert result["planned"]["convert"] == 2
     assert len(result["converted"]) == 2
     assert len(result["reused_packs"]) == 2
+    assert result["decision_summary"]["completed"]["converted"] == 2
+    assert result["decision_summary"]["completed"]["reused"] == 2
+    assert result["decision_summary"]["review_only"]["missing"] == 1
     assert result["missing_sources"][0]["source_file"].endswith("deleted.txt")
     assert (library / "library.db").exists()
     assert default_source_registry_path(library).exists()
@@ -494,6 +502,8 @@ def test_update_library_conversion_failure_writes_failed_manifest_and_stops_befo
     assert (output_root / "_index.json").exists()
     assert result["review_summary"]["converted_total"] == 0
     assert result["review_summary"]["conversion_failure_total"] == 1
+    assert result["decision_summary"]["blocked"]["conversion_failed"] == 1
+    assert result["decision_summary"]["completed"]["converted"] == 0
     assert any("not rebuilt" in step for step in result["next_steps"])
     assert search_library(library / "library.db", "newonly") == []
     assert search_library(library / "library.db", "oldonly")
@@ -565,6 +575,8 @@ def test_update_library_does_not_reuse_failed_manifest(tmp_path):
     assert "status is failed" in unsafe["reason"]
     assert "failed manifest errors" in unsafe["recommended_action"]
     assert result["review_summary"]["unsafe_reuse_total"] == 1
+    assert result["decision_summary"]["blocked"]["unsafe_reuse"] == 1
+    assert result["decision_summary"]["completed"]["reused"] == 0
     assert any("not rebuilt" in step for step in result["next_steps"])
     assert any(item["category"] == "unsafe_reuse" and item["automatic_action"] == "none" for item in result["recovery_guidance"])
     assert any("recovery_guidance" in step for step in result["next_steps"])
@@ -628,6 +640,7 @@ def test_update_library_stale_missing_manifest_guidance_is_review_only(tmp_path)
 
     assert result["status"] == "dry_run"
     assert result["review_summary"]["stale_total"] == 1
+    assert result["decision_summary"]["review_only"]["stale"] == 1
     assert result["stale_sources"][0]["reasons"] == ["registered Knowledge Pack manifest is missing"]
     assert any("review-only" in step for step in result["next_steps"])
     assert any("source files or evidence automatically" in step for step in result["next_steps"])

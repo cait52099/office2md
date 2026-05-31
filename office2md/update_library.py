@@ -72,14 +72,13 @@ def update_library(
     result["review_summary"] = _build_review_summary(plan, result)
     result["large_folder_warnings"] = _large_folder_warnings(result["review_summary"])
     result["recovery_guidance"] = _recovery_guidance(result)
+    _refresh_decision_summary(result)
     result["next_steps"] = _next_steps(result["review_summary"], dry_run=dry_run)
-    if review_report_path:
-        _write_review_report(review_report_path, result)
-        result["written_files"]["review_report"] = str(review_report_path.expanduser().resolve())
-
     if dry_run:
         result["warnings"].append("dry-run: conversion output, library files, registry, state, and update_result.json were not written")
         result["status"] = "dry_run"
+        _refresh_decision_summary(result)
+        _write_review_report_if_requested(review_report_path, result)
         return result
 
     output_root.mkdir(parents=True, exist_ok=True)
@@ -116,12 +115,14 @@ def update_library(
         result["status"] = "failed"
         _refresh_execution_review_fields(result)
         result["recovery_guidance"] = _recovery_guidance(result)
+        _refresh_decision_summary(result)
         result["warnings"].append("one or more conversions failed; failed manifests were written and library rebuild was not run")
         result["next_steps"] = _failure_next_steps(result)
         result["written_files"].update({
             "output_index": str(output_root / "_index.json"),
             "update_result": str((update_result_path or library_dir / "update_result.json").expanduser().resolve()),
         })
+        _write_review_report_if_requested(review_report_path, result)
         _write_update_result(update_result_path or library_dir / "update_result.json", result)
         return result
 
@@ -132,9 +133,11 @@ def update_library(
         result["status"] = "failed"
         _refresh_execution_review_fields(result)
         result["recovery_guidance"] = _recovery_guidance(result)
+        _refresh_decision_summary(result)
         result["warnings"].append("one or more planned reuse candidates were unsafe; library rebuild was not run")
         result["next_steps"] = _unsafe_reuse_next_steps(result)
         result["written_files"]["update_result"] = str((update_result_path or library_dir / "update_result.json").expanduser().resolve())
+        _write_review_report_if_requested(review_report_path, result)
         _write_update_result(update_result_path or library_dir / "update_result.json", result)
         return result
 
@@ -161,6 +164,8 @@ def update_library(
     if any(item.get("status") == "moved_or_renamed_candidate" for item in changes):
         result["warnings"].append("moved/renamed candidates reused existing packs and require human review")
 
+    _refresh_decision_summary(result)
+    _write_review_report_if_requested(review_report_path, result)
     _write_update_result(update_result_path or library_dir / "update_result.json", result)
     return result
 
@@ -213,6 +218,7 @@ def _base_update_result(
             "include_hidden": bool(plan.get("options", {}).get("include_hidden", False)),
         },
         "planned": {},
+        "decision_summary": {},
         "converted": [],
         "conversion_failures": [],
         "reused_packs": [],
@@ -262,6 +268,34 @@ def _build_review_summary(plan: dict[str, Any], result: dict[str, Any]) -> dict[
         "large_folder": total >= 500,
         "high_pending_changes": pending_total >= 100,
         "guidance": _review_guidance(status, convert_total, pending_total),
+    }
+
+
+def _refresh_decision_summary(result: dict[str, Any]) -> None:
+    planned = result.get("planned", {}) if isinstance(result.get("planned"), dict) else {}
+    result["decision_summary"] = {
+        "status": result.get("status"),
+        "planned": {
+            "convert": int(planned.get("convert", 0) or 0),
+            "reuse": int(planned.get("reuse", 0) or 0),
+            "unsupported": int(planned.get("unsupported", 0) or 0),
+        },
+        "completed": {
+            "converted": len(result.get("converted", []) or []),
+            "reused": len(result.get("reused_packs", []) or []),
+        },
+        "blocked": {
+            "conversion_failed": len(result.get("conversion_failures", []) or []),
+            "unsafe_reuse": len(result.get("unsafe_reuse_packs", []) or []),
+        },
+        "review_only": {
+            "stale": len(result.get("stale_sources", []) or []),
+            "missing": len(result.get("missing_sources", []) or []),
+            "moved_or_renamed": int((result.get("review_summary") or {}).get("moved_or_renamed_candidate_total", 0) or 0),
+        },
+        "skipped": {
+            "unsupported": len(result.get("unsupported_sources", []) or []),
+        },
     }
 
 
@@ -394,6 +428,13 @@ def _write_review_report(path: Path, result: dict[str, Any]) -> None:
     ]
     for key in ["new", "modified", "unchanged", "deleted_missing", "moved_or_renamed_candidate", "unsupported", "stale", "total"]:
         lines.append(f"- {key}: {counts.get(key, 0)}")
+    if result.get("decision_summary"):
+        lines.extend(["", "## Decision Summary", ""])
+        decision_summary = result["decision_summary"]
+        for group in ["planned", "completed", "blocked", "review_only", "skipped"]:
+            values = decision_summary.get(group) or {}
+            for key, value in values.items():
+                lines.append(f"- {group}.{key}: {value}")
     lines.extend(["", "## Guidance", "", str(summary.get("guidance") or "")])
     if result.get("large_folder_warnings"):
         lines.extend(["", "## Warnings", ""])
@@ -406,6 +447,13 @@ def _write_review_report(path: Path, result: dict[str, Any]) -> None:
         for item in result["recovery_guidance"]:
             lines.append(f"- {item.get('category')}: {item.get('source_file') or item.get('source_path') or 'unknown'} - {item.get('recommended_action')}")
     target.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+
+
+def _write_review_report_if_requested(path: Path | None, result: dict[str, Any]) -> None:
+    if not path:
+        return
+    _write_review_report(path, result)
+    result["written_files"]["review_report"] = str(path.expanduser().resolve())
 
 
 def _write_failure_manifest(source_path: Path, output_root: Path, options: ConvertOptions, exc: Exception) -> Path:
