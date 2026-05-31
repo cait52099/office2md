@@ -86,6 +86,23 @@ def test_batch_convert_continues_when_one_file_fails(tmp_path, monkeypatch):
     assert failed_manifest["errors"] == ["planned failure"]
 
 
+def test_convert_file_failure_writes_manifest_and_exits_nonzero(tmp_path, monkeypatch):
+    source = tmp_path / "bad.txt"
+    source.write_text("# Bad\n\nBody text.", encoding="utf-8")
+    output = tmp_path / "out"
+    monkeypatch.setattr(cli, "get_converter", lambda engine: FakeConverter("markitdown", error=RuntimeError("single failure")))
+    runner = CliRunner()
+
+    result = runner.invoke(cli.app, ["convert-file", str(source), str(output), "--engine", "markitdown"])
+
+    assert result.exit_code == 1
+    assert "failed:" in result.output
+    manifest = json.loads((output / "bad" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["status"] == "failed"
+    assert manifest["errors"] == ["single failure"]
+    assert (output / "_index.json").exists()
+
+
 def test_skip_existing_reuses_successful_same_checksum_output(tmp_path, monkeypatch):
     source = tmp_path / "repeat.txt"
     source.write_text("# Repeat\n\nBody", encoding="utf-8")

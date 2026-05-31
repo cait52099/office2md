@@ -1451,7 +1451,14 @@ def convert_file_command(
         ai_command=ai_command,
         ai_timeout=ai_timeout,
     )
-    out_dir, status = convert_one(input_file, output, options)
+    try:
+        out_dir, status = convert_one(input_file, output, options)
+    except Exception as exc:
+        failed_dir = write_failure_manifest(input_file, output, options, exc)
+        rebuild_output_index(output, profile=options.profile)
+        console.print(f"failed: {input_file} -> {failed_dir}")
+        console.print(f"error: {exc}")
+        raise typer.Exit(1) from exc
     rebuild_output_index(output, profile=options.profile)
     console.print(f"{status}: {input_file} -> {out_dir}")
 
