@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any
 
@@ -92,8 +93,9 @@ def kb_review(catalog_path: Path, library_id: str) -> dict[str, Any]:
     library_path = Path(str(library["library_path"]))
     source_root = library.get("source_root")
     status = library_status(library_path)
+    latest_update_result, latest_update_warnings = _latest_update_result_packet(library_path)
     review = None
-    warnings = list(status.get("warnings", []))
+    warnings = list(status.get("warnings", [])) + latest_update_warnings
     next_steps = []
     if source_root:
         source_path = Path(str(source_root))
@@ -123,6 +125,8 @@ def kb_review(catalog_path: Path, library_id: str) -> dict[str, Any]:
         "library_status": status,
         "review_summary": None if review is None else review.get("review_summary"),
         "change_counts": None if review is None else review.get("change_counts"),
+        "decision_summary": None if review is None else review.get("decision_summary"),
+        "latest_update_result": latest_update_result,
         "large_folder_warnings": [] if review is None else review.get("large_folder_warnings", []),
         "warnings": _dedupe(warnings + ([] if review is None else review.get("warnings", []))),
         "next_steps": _dedupe(next_steps),
@@ -131,6 +135,60 @@ def kb_review(catalog_path: Path, library_id: str) -> dict[str, Any]:
             "review uses source_root from the library catalog when available",
         ],
     }
+
+
+def _latest_update_result_packet(library_path: Path) -> tuple[dict[str, Any], list[str]]:
+    path = library_path / "update_result.json"
+    packet: dict[str, Any] = {
+        "path": str(path.expanduser().resolve()),
+        "exists": path.exists(),
+        "readable": False,
+        "schema_version": None,
+        "generated_at": None,
+        "status": None,
+        "dry_run": None,
+        "source_path": None,
+        "conversion_output": None,
+        "library_path": str(library_path),
+        "decision_summary": None,
+        "next_steps": [],
+        "warnings": [],
+        "recovery_guidance": [],
+    }
+    if not path.exists():
+        return packet, []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        warning = f"latest update_result.json could not be read: {exc}"
+        packet["warnings"] = [warning]
+        return packet, [warning]
+    except json.JSONDecodeError as exc:
+        warning = f"latest update_result.json is not valid JSON: {exc}"
+        packet["warnings"] = [warning]
+        return packet, [warning]
+    if not isinstance(data, dict):
+        warning = "latest update_result.json is not a JSON object"
+        packet["warnings"] = [warning]
+        return packet, [warning]
+
+    packet.update(
+        {
+            "readable": True,
+            "schema_version": data.get("schema_version"),
+            "generated_at": data.get("generated_at"),
+            "status": data.get("status"),
+            "dry_run": data.get("dry_run"),
+            "source_path": data.get("source_path"),
+            "conversion_output": data.get("conversion_output"),
+            "library_path": data.get("library_path") or str(library_path),
+            "decision_summary": data.get("decision_summary") if isinstance(data.get("decision_summary"), dict) else None,
+            "next_steps": data.get("next_steps", []) if isinstance(data.get("next_steps"), list) else [],
+            "warnings": data.get("warnings", []) if isinstance(data.get("warnings"), list) else [],
+            "recovery_guidance": data.get("recovery_guidance", []) if isinstance(data.get("recovery_guidance"), list) else [],
+        }
+    )
+    return packet, []
 
 
 def _select_libraries(catalog: dict[str, Any], library_ids: list[str] | None) -> list[dict[str, Any]]:

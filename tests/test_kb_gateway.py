@@ -78,7 +78,54 @@ def test_kb_review_does_not_run_update(tmp_path):
 
     assert payload["schema_version"] == "office2md.kb_review.v1"
     assert payload["review_summary"]["status"] == "stale"
+    assert payload["decision_summary"]["status"] == "dry_run"
+    assert payload["decision_summary"]["planned"]["convert"] == 1
+    assert payload["latest_update_result"]["exists"] is False
     assert not (lib_a / "update_result.json").exists()
+
+
+def test_kb_review_reads_latest_update_result_without_modifying_it(tmp_path):
+    catalog, lib_a, source_a = _catalog_with_two_libraries(tmp_path)
+    (source_a / "a.txt").write_text("changed pump evidence", encoding="utf-8")
+    update_result = lib_a / "update_result.json"
+    latest_payload = {
+        "schema_version": "office2md.update_result.v1",
+        "generated_at": "2026-06-01T00:00:00Z",
+        "status": "failed",
+        "dry_run": False,
+        "source_path": str(source_a),
+        "conversion_output": str(lib_a),
+        "library_path": str(lib_a),
+        "decision_summary": {
+            "status": "failed",
+            "planned": {"convert": 1, "reuse": 0, "unsupported": 0},
+            "completed": {"converted": 0, "reused": 0},
+            "blocked": {"conversion_failed": 1, "unsafe_reuse": 0},
+            "review_only": {"stale": 0, "missing": 0, "moved_or_renamed": 0},
+            "skipped": {"unsupported": 0},
+        },
+        "next_steps": ["Review failed conversions before reuse."],
+        "warnings": ["one conversion failed"],
+        "recovery_guidance": ["Fix the failed source and rerun update-library."],
+    }
+    update_result.write_text(json.dumps(latest_payload), encoding="utf-8")
+    before_text = update_result.read_text(encoding="utf-8")
+    before_mtime = update_result.stat().st_mtime_ns
+
+    payload = kb_review(catalog, "lib-a")
+
+    latest = payload["latest_update_result"]
+    assert latest["exists"] is True
+    assert latest["readable"] is True
+    assert latest["schema_version"] == "office2md.update_result.v1"
+    assert latest["status"] == "failed"
+    assert latest["source_path"] == str(source_a)
+    assert latest["library_path"] == str(lib_a)
+    assert latest["decision_summary"]["blocked"]["conversion_failed"] == 1
+    assert latest["next_steps"] == ["Review failed conversions before reuse."]
+    assert payload["decision_summary"]["status"] == "dry_run"
+    assert update_result.read_text(encoding="utf-8") == before_text
+    assert update_result.stat().st_mtime_ns == before_mtime
 
 
 def test_existing_search_open_chunk_still_work(tmp_path):
