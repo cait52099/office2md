@@ -1,0 +1,30 @@
+{
+  "schema": "office2md.agent_queue.v1",
+  "project_root": "/Volumes/seagate 2t/offic2md",
+  "obsidian_vault": "/Volumes/seagate 2t/offic2md/office2md-vault",
+  "auto_policy": {
+    "auto_execute_ready_tasks": true,
+    "auto_commit": false,
+    "auto_tag": false,
+    "auto_push": false,
+    "stop_after_each_task": true,
+    "max_tasks_per_run": 1
+  },
+  "tasks": [
+    {
+      "id": "0002",
+      "title": "Restore macOS Validation Baseline",
+      "file": "docs/agents/tasks/0002_restore_macos_validation_baseline.md",
+      "role": "execution",
+      "status": "completed",
+      "allow_code_changes": true,
+      "allow_commit": false,
+      "allow_tag": false,
+      "allow_push": false,
+      "created_from": "0001_whole_project_review",
+      "report_path": "office2md-vault/30_Codex_Reports/2026-05-31 Task 0002 Restore macOS Validation Baseline.md",
+      "completed_at": "2026-05-31",
+      "result": "validation_passed"
+    }
+  ]
+}

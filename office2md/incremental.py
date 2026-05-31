@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -97,7 +98,7 @@ def build_change_plan(source_root: Path, library_path: Path, registry: dict[str,
     generated_at = utc_now_iso()
     current_supported, unsupported = _collect_source_files(source_root, include_hidden=include_hidden)
     registry_records = [item for item in registry.get("sources", []) if isinstance(item, dict)]
-    registry_by_path = {str(item.get("normalized_source_path")): item for item in registry_records if item.get("normalized_source_path")}
+    registry_by_path = {_normalize_path_key(str(item.get("normalized_source_path"))): item for item in registry_records if item.get("normalized_source_path")}
     registry_by_hash: dict[str, list[dict[str, Any]]] = {}
     for item in registry_records:
         checksum = item.get("sha256")
@@ -110,14 +111,18 @@ def build_change_plan(source_root: Path, library_path: Path, registry: dict[str,
         current = _current_source_record(path, source_root)
         previous = registry_by_path.get(current["normalized_source_path"])
         if previous:
-            seen_registry_paths.add(current["normalized_source_path"])
+            seen_registry_paths.add(_normalize_path_key(current["normalized_source_path"]))
             status, reasons = _classify_existing_file(current, previous)
             changes.append(_change_record(status, path, current, previous, reasons))
             continue
-        candidates = [item for item in registry_by_hash.get(current["sha256"], []) if item.get("normalized_source_path") not in seen_registry_paths]
+        candidates = [
+            item
+            for item in registry_by_hash.get(current["sha256"], [])
+            if _normalize_path_key(str(item.get("normalized_source_path") or "")) not in seen_registry_paths
+        ]
         if candidates:
             previous = candidates[0]
-            seen_registry_paths.add(str(previous.get("normalized_source_path")))
+            seen_registry_paths.add(_normalize_path_key(str(previous.get("normalized_source_path") or "")))
             changes.append(
                 _change_record(
                     "moved_or_renamed_candidate",
@@ -130,9 +135,9 @@ def build_change_plan(source_root: Path, library_path: Path, registry: dict[str,
         else:
             changes.append(_change_record("new", path, current, None, ["not present in source registry"]))
 
-    current_paths = {item["normalized_source_path"] for item in (_current_source_record(path, source_root) for path in current_supported)}
+    current_paths = {_normalize_path_key(item["normalized_source_path"]) for item in (_current_source_record(path, source_root) for path in current_supported)}
     for previous in registry_records:
-        normalized = str(previous.get("normalized_source_path") or "")
+        normalized = _normalize_path_key(str(previous.get("normalized_source_path") or ""))
         if normalized and normalized not in current_paths and normalized not in seen_registry_paths:
             changes.append(
                 {
@@ -535,7 +540,14 @@ def _state_path(library_path: Path, state_path: Path | None) -> Path:
 
 
 def _normalize_source_path(path: Path) -> str:
-    return os.path.normcase(str(path.expanduser().resolve()))
+    return _normalize_path_key(str(path.expanduser().resolve()))
+
+
+def _normalize_path_key(value: str) -> str:
+    normalized = os.path.normcase(value)
+    if sys.platform == "darwin":
+        return normalized.casefold()
+    return normalized
 
 
 def _safe_relative_path(path: Path, root: Path) -> str:

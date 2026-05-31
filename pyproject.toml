@@ -41,6 +41,7 @@ marker = [
 dev = [
   "pytest",
   "ruff",
+  "pyvis",
 ]
 
 [project.scripts]

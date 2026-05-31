@@ -23,6 +23,7 @@ from office2md.incremental import (
     scan_changes,
     write_library_state,
     write_source_registry,
+    _normalize_path_key,
 )
 from office2md.library import build_library, open_chunk, search_library
 from office2md.models import ConvertOptions
@@ -164,6 +165,12 @@ def test_scan_changes_classifies_new_modified_unchanged_deleted_and_unsupported(
     assert plan["counts"]["new"] == 1
     assert plan["counts"]["deleted_missing"] == 1
     assert plan["counts"]["unsupported"] == 1
+
+
+def test_macos_path_key_normalization_is_case_insensitive(monkeypatch):
+    monkeypatch.setattr("office2md.incremental.sys.platform", "darwin")
+
+    assert _normalize_path_key("/private/var/Folders/Example/Source.TXT") == _normalize_path_key("/private/var/folders/example/source.txt")
 
 
 def test_scan_changes_detects_moved_or_renamed_candidate(tmp_path):

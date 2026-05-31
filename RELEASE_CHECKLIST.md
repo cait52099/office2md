@@ -1,5 +1,32 @@
 # office2md Release Readiness Checklist
 
+v0.5.1-rc1 macOS validation baseline checkpoint evidence:
+
+- [x] `.venv/bin/python -m pytest` reports 214 passed, 5 warnings.
+- [x] `.venv/bin/python -m ruff check .` reports all checks passed.
+- [x] `.venv/bin/python -m compileall office2md/gui` succeeds.
+- [x] `.venv/bin/python -m office2md.cli --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli scan-changes --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli update-library --help` succeeds.
+- [x] `.venv/bin/python -m office2md.cli library-status --help` succeeds.
+- [x] Focused `tests/test_incremental.py` run reports 23 passed.
+- [x] Focused temp smoke confirms macOS path-case normalization classifies matching source records as unchanged.
+- [x] Focused temp smoke confirms `scan-changes` JSON export parses.
+- [x] Focused temp smoke confirms dry-run export does not write `change_plan.json`.
+- [x] Focused temp smoke confirms source checksum remains unchanged.
+- [x] Focused temp smoke confirms moved/renamed files classify as `moved_or_renamed_candidate`.
+- [x] `pyvis` is included in the dev extra for the full validation baseline.
+- [x] Project agent workflow files are included for repeatable execution/review coordination.
+- [x] Conversion behavior is unchanged.
+- [x] Build-library behavior is unchanged.
+- [x] Search/ranking/aliases/token fallback behavior is unchanged.
+- [x] Runner process-control behavior is unchanged.
+- [x] GUI behavior is unchanged.
+- [x] Agent Gateway / MCP behavior is unchanged.
+- [x] Source files are unchanged by smoke testing.
+- [x] No OfficeCLI main-pipeline integration is included.
+- [x] No AI, OCR, embedding, vector, cloud, unrestricted SQL, shell execution, or write-back work is included.
+
 v0.4.1-rc2 GUI Workspace path guidance checkpoint evidence:
 
 - [x] `python -m pytest` reports 141 passed.
