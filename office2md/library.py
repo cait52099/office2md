@@ -1154,6 +1154,13 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
             CREATE VIRTUAL TABLE chunks_fts USING fts5(chunk_id UNINDEXED, doc_id UNINDEXED, title, text, heading_path, locator, entities);
             """
         )
+        # Precompute a (doc_id, entity_id) membership index for entity mentions.
+        # The previous in-line `any(...)` over rows["entity_mentions"] made the
+        # documents FTS insert O(n_documents * n_entities * n_entity_mentions)
+        # and caused build-library to hang on real-sized inputs.
+        mentions_by_doc_entity = {
+            (m["doc_id"], m["entity_id"]) for m in rows["entity_mentions"]
+        }
         for doc in rows["documents"]:
             conn.execute(
                 "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1172,7 +1179,11 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
                     doc["output_dir"],
                 ),
             )
-            entity_text = " ".join(entity["entity_text"] for entity in rows["entities"] if any(m["doc_id"] == doc["doc_id"] and m["entity_id"] == entity["entity_id"] for m in rows["entity_mentions"]))
+            entity_text = " ".join(
+                entity["entity_text"]
+                for entity in rows["entities"]
+                if (doc["doc_id"], entity["entity_id"]) in mentions_by_doc_entity
+            )
             conn.execute(
                 "INSERT INTO documents_fts VALUES (?, ?, ?, ?, ?, ?)",
                 (doc["doc_id"], doc["title"], doc["source_file"], doc["document_kind"], " ".join(doc["tags"]), entity_text),

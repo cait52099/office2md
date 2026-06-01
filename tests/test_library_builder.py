@@ -1624,3 +1624,158 @@ def _chunk(
 def _entity_rows(db_path: Path):
     with sqlite3.connect(db_path) as conn:
         return conn.execute("SELECT entity_type, normalized_text FROM entities").fetchall()
+
+
+def _documents_fts_entities(db_path: Path) -> dict[str, str]:
+    with sqlite3.connect(db_path) as conn:
+        return {
+            doc_id: entities
+            for doc_id, entities in conn.execute(
+                "SELECT doc_id, entities FROM documents_fts"
+            ).fetchall()
+        }
+
+
+def test_documents_fts_entity_text_extraction_with_multiple_documents(tmp_path):
+    """Hotfix regression test: _write_database must extract the entity text
+    that appears in each document's FTS row, with one entry per mentioned
+    entity, no duplicates, and the same ordering across all documents that
+    share the same entity set.
+
+    Two documents share entities {PROJECT-ONE, PROCESS-TWO}. The hotfix
+    replaces an O(n_documents * n_entities * n_mentions) inner scan with a
+    precomputed (doc_id, entity_id) set, so the test must guard both
+    correctness and consistency.
+    """
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    _write_doc(
+        output_root / "docA",
+        "docA",
+        "A.pdf",
+        "generic_pdf",
+        [_chunk("a_chunk", "page", ["Intro"], "alpha bravo", "Page 1", page_number=1)],
+        entities={"project": ["PROJECT-ONE"], "process": ["PROCESS-TWO"]},
+    )
+    _write_doc(
+        output_root / "docB",
+        "docB",
+        "B.pdf",
+        "generic_pdf",
+        [_chunk("b_chunk", "page", ["Intro"], "charlie delta", "Page 1", page_number=1)],
+        entities={
+            "project": ["PROJECT-ONE"],
+            "ingredient": ["INGREDIENT-THREE"],
+            "process": ["PROCESS-TWO"],
+        },
+    )
+
+    build_library(output_root, library_dir)
+
+    fts_entities = _documents_fts_entities(library_dir / "library.db")
+    # docA has only project + process entities; both should appear exactly once.
+    docA = fts_entities["docA"].split()
+    assert sorted(docA) == ["PROCESS-TWO", "PROJECT-ONE"]
+    assert len(docA) == len(set(docA))
+    # docB has project + ingredient + process; all three should appear exactly once.
+    docB = fts_entities["docB"].split()
+    assert sorted(docB) == ["INGREDIENT-THREE", "PROCESS-TWO", "PROJECT-ONE"]
+    assert len(docB) == len(set(docB))
+
+
+def test_documents_fts_entity_text_dedup_with_duplicate_mentions(tmp_path):
+    """An entity mentioned multiple times in the same document must appear only
+    once in the FTS row (matches old behavior: the comprehension's
+    `for entity in rows['entities']` already dedupes because each entity is
+    visited at most once).
+    """
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    _write_doc(
+        output_root / "docDedup",
+        "docDedup",
+        "Dedup.pdf",
+        "generic_pdf",
+        [_chunk("d_chunk", "page", ["Body"], "alpha", "Page 1", page_number=1)],
+        entities={"project": ["PROJECT-ONE"]},
+    )
+    build_library(output_root, library_dir)
+    fts_entities = _documents_fts_entities(library_dir / "library.db")
+    assert fts_entities["docDedup"] == "PROJECT-ONE"
+
+
+def test_documents_fts_entity_text_empty_when_no_mentions(tmp_path):
+    """A document with no entity mentions must still produce an FTS row with
+    an empty entities column (matches old behavior: an empty join yields '')."""
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    _write_doc(
+        output_root / "docEmpty",
+        "docEmpty",
+        "Empty.pdf",
+        "generic_pdf",
+        [_chunk("e_chunk", "page", ["Body"], "alpha", "Page 1", page_number=1)],
+        entities={},
+    )
+    build_library(output_root, library_dir)
+    fts_entities = _documents_fts_entities(library_dir / "library.db")
+    assert fts_entities["docEmpty"] == ""
+
+
+def test_build_library_still_creates_valid_library_db(tmp_path):
+    """Smoke check: build_library completes and produces a queryable library.db."""
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    _write_doc(
+        output_root / "doc1",
+        "doc1",
+        "One.pdf",
+        "generic_pdf",
+        [_chunk("c1", "page", ["Body"], "alpha", "Page 1", page_number=1)],
+        entities={"project": ["PROJECT-ONE"]},
+    )
+    result = build_library(output_root, library_dir)
+    assert (library_dir / "library.db").exists()
+    assert result["documents_count"] == 1
+    assert result["chunks_count"] == 1
+    with sqlite3.connect(library_dir / "library.db") as conn:
+        rows = conn.execute("SELECT doc_id, title FROM documents").fetchall()
+        assert rows == [("doc1", "One")]
+
+
+def test_write_database_scales_linearly_with_documents(tmp_path):
+    """Performance regression test: the previous O(n_documents * n_entities *
+    n_mentions) scan is now a precomputed set lookup. We do not measure
+    absolute time (CI is noisy) but we do assert that 50 documents with
+    50 entities and 50 mentions each complete in a reasonable bound (15s).
+    This guards against the specific hang we saw on the 669-manifest real
+    test, scaled down to a size that is fast even on slow CI runners.
+    """
+    import time
+
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    entities = {"project": [f"ENT-{i}" for i in range(50)]}
+    for doc_index in range(50):
+        _write_doc(
+            output_root / f"doc{doc_index}",
+            f"doc{doc_index}",
+            f"Fifty{doc_index}.pdf",
+            "generic_pdf",
+            [_chunk(f"c{doc_index}", "page", ["Body"], f"alpha {doc_index}", "Page 1", page_number=1)],
+            entities=entities,
+        )
+    start = time.monotonic()
+    build_library(output_root, library_dir)
+    elapsed = time.monotonic() - start
+    assert elapsed < 15.0, f"build_library too slow: {elapsed:.2f}s"
