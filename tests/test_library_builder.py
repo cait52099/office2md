@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+import office2md.library as library_module
 from office2md.cli import (
     _locate_document_export_json_payload,
     _open_chunk_json_payload,
@@ -1747,6 +1748,9 @@ def test_build_library_still_creates_valid_library_db(tmp_path):
     assert result["library_db"] == str(library_dir / "library.db")
     assert result["library_index"] == str(library_dir / "library_index.json")
     assert result["library_graph"] == str(library_dir / "library_graph.json")
+    assert result["artifact_status"]["library_db"]["status"] == "written"
+    assert result["artifact_status"]["library_index"]["status"] == "written"
+    assert result["artifact_status"]["library_graph"]["status"] == "written"
     assert result["written_files"]["library_db"] == str(library_dir / "library.db")
     assert result["written_files"]["library_index"] == str(library_dir / "library_index.json")
     assert result["written_files"]["library_graph"] == str(library_dir / "library_graph.json")
@@ -1757,6 +1761,37 @@ def test_build_library_still_creates_valid_library_db(tmp_path):
     with sqlite3.connect(library_dir / "library.db") as conn:
         rows = conn.execute("SELECT doc_id, title FROM documents").fetchall()
         assert rows == [("doc1", "One")]
+
+
+def test_build_library_reports_missing_companion_artifact(tmp_path, monkeypatch):
+    output_root = tmp_path / "out"
+    output_root.mkdir()
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    _write_doc(
+        output_root / "doc1",
+        "doc1",
+        "One.pdf",
+        "generic_pdf",
+        [_chunk("c1", "page", ["Body"], "alpha", "Page 1", page_number=1)],
+        entities={"project": ["PROJECT-ONE"]},
+    )
+    original_write_json = library_module._write_json
+
+    def skip_graph_write(path, data):
+        if Path(path).name == "library_graph.json":
+            return
+        original_write_json(path, data)
+
+    monkeypatch.setattr(library_module, "_write_json", skip_graph_write)
+
+    result = build_library(output_root, library_dir)
+
+    assert result["artifact_status"]["library_db"]["status"] == "written"
+    assert result["artifact_status"]["library_index"]["status"] == "written"
+    assert result["artifact_status"]["library_graph"]["status"] == "missing"
+    assert result["artifact_status"]["library_graph"]["exists"] is False
+    assert any("library_graph" in warning and "missing" in warning for warning in result["warnings"])
 
 
 def test_write_database_scales_linearly_with_documents(tmp_path):

@@ -28,6 +28,12 @@ def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
     index_path = output_dir / "library_index.json"
     graph_path = output_dir / "library_graph.json"
     manifest_path = output_dir / "library_manifest.json"
+    artifact_paths = {
+        "library_db": db_path,
+        "library_index": index_path,
+        "library_graph": graph_path,
+        "library_manifest": manifest_path,
+    }
     if db_path.exists():
         db_path.unlink()
     rows = _normalize_records(docs, input_root)
@@ -40,6 +46,8 @@ def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
     _write_json(manifest_path, manifest)
     _write_markdown_portal(output_dir, rows, index, warnings)
     _write_interop_exports(output_dir / "exports", rows)
+    artifact_status = _build_artifact_status(artifact_paths)
+    warnings.extend(_artifact_warnings(artifact_status))
     return {
         "library_db": str(db_path),
         "library_index": str(index_path),
@@ -54,9 +62,33 @@ def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
             "library_graph": str(graph_path),
             "library_manifest": str(manifest_path),
         },
+        "artifact_status": artifact_status,
         "warnings": warnings,
         "output_dir": str(output_dir),
     }
+
+
+def _build_artifact_status(paths: Dict[str, Path]) -> Dict[str, Dict[str, Any]]:
+    status = {}
+    for name, path in paths.items():
+        exists = path.exists()
+        is_file = path.is_file()
+        status[name] = {
+            "path": str(path),
+            "exists": exists,
+            "is_file": is_file,
+            "size_bytes": path.stat().st_size if is_file else None,
+            "status": "written" if is_file else ("not_file" if exists else "missing"),
+        }
+    return status
+
+
+def _artifact_warnings(artifact_status: Dict[str, Dict[str, Any]]) -> List[str]:
+    warnings = []
+    for name, status in artifact_status.items():
+        if status.get("status") != "written":
+            warnings.append(f"build-library artifact {status.get('status')}: {name} at {status.get('path')}")
+    return warnings
 
 
 def load_document_outputs(input_root: Path) -> tuple[List[Dict], List[str]]:

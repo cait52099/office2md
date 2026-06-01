@@ -4,7 +4,7 @@
   "repo_root": "/Volumes/seagate 2t/offic2md/repo",
   "obsidian_vault": "/Volumes/seagate 2t/offic2md/office2md-vault",
   "active_version": {
-    "version": "v0.5.12",
+    "version": "v0.5.13",
     "status": "committed",
     "mode": "optimizer_loop",
     "goal_file": "docs/agents/tasks/VERSION_GOAL_OPTIMIZER_LOOP.md",
