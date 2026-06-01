@@ -1,6 +1,6 @@
 [project]
 name = "office2md"
-version = "0.5.1"
+version = "0.5.11"
 description = "Convert Office, PDF, and text documents into structured, knowledge-base-ready Markdown"
 readme = "README.md"
 requires-python = ">=3.10"

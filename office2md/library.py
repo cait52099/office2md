@@ -25,6 +25,9 @@ def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     docs, warnings = load_document_outputs(input_root)
     db_path = output_dir / "library.db"
+    index_path = output_dir / "library_index.json"
+    graph_path = output_dir / "library_graph.json"
+    manifest_path = output_dir / "library_manifest.json"
     if db_path.exists():
         db_path.unlink()
     rows = _normalize_records(docs, input_root)
@@ -32,17 +35,25 @@ def build_library(input_output_root: Path, library_output_dir: Path) -> Dict:
     index = _build_index(rows, warnings)
     graph = _build_graph(rows)
     manifest = _build_library_manifest(input_root, rows, warnings)
-    _write_json(output_dir / "library_index.json", index)
-    _write_json(output_dir / "library_graph.json", graph)
-    _write_json(output_dir / "library_manifest.json", manifest)
+    _write_json(index_path, index)
+    _write_json(graph_path, graph)
+    _write_json(manifest_path, manifest)
     _write_markdown_portal(output_dir, rows, index, warnings)
     _write_interop_exports(output_dir / "exports", rows)
     return {
         "library_db": str(db_path),
+        "library_index": str(index_path),
+        "library_graph": str(graph_path),
         "documents_count": len(rows["documents"]),
         "chunks_count": len(rows["chunks"]),
         "entities_count": len(rows["entities"]),
-        "library_manifest": str(output_dir / "library_manifest.json"),
+        "library_manifest": str(manifest_path),
+        "written_files": {
+            "library_db": str(db_path),
+            "library_index": str(index_path),
+            "library_graph": str(graph_path),
+            "library_manifest": str(manifest_path),
+        },
         "warnings": warnings,
         "output_dir": str(output_dir),
     }
@@ -1154,6 +1165,13 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
             CREATE VIRTUAL TABLE chunks_fts USING fts5(chunk_id UNINDEXED, doc_id UNINDEXED, title, text, heading_path, locator, entities);
             """
         )
+        # Precompute a (doc_id, entity_id) membership index for entity mentions.
+        # The previous in-line `any(...)` over rows["entity_mentions"] made the
+        # documents FTS insert O(n_documents * n_entities * n_entity_mentions)
+        # and caused build-library to hang on real-sized inputs.
+        mentions_by_doc_entity = {
+            (m["doc_id"], m["entity_id"]) for m in rows["entity_mentions"]
+        }
         for doc in rows["documents"]:
             conn.execute(
                 "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1172,7 +1190,11 @@ def _write_database(db_path: Path, rows: Dict[str, List[Dict]]) -> None:
                     doc["output_dir"],
                 ),
             )
-            entity_text = " ".join(entity["entity_text"] for entity in rows["entities"] if any(m["doc_id"] == doc["doc_id"] and m["entity_id"] == entity["entity_id"] for m in rows["entity_mentions"]))
+            entity_text = " ".join(
+                entity["entity_text"]
+                for entity in rows["entities"]
+                if (doc["doc_id"], entity["entity_id"]) in mentions_by_doc_entity
+            )
             conn.execute(
                 "INSERT INTO documents_fts VALUES (?, ?, ?, ?, ?, ?)",
                 (doc["doc_id"], doc["title"], doc["source_file"], doc["document_kind"], " ".join(doc["tags"]), entity_text),

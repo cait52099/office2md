@@ -458,6 +458,8 @@ def build_library_command(input_output_root: Path, library_output_dir: Path) -> 
     table.add_column("Metric")
     table.add_column("Value")
     table.add_row("library_db", result["library_db"])
+    table.add_row("library_index", result["library_index"])
+    table.add_row("library_graph", result["library_graph"])
     table.add_row("documents_count", str(result["documents_count"]))
     table.add_row("chunks_count", str(result["chunks_count"]))
     table.add_row("entities_count", str(result["entities_count"]))

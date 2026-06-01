@@ -1,5 +1,38 @@
 # office2md Release Readiness Checklist
 
+v0.5.11 final release evidence (build-library performance hotfix):
+
+- [x] `pyproject.toml` version is updated to `0.5.11`.
+- [x] `office2md.__version__` is updated to `0.5.11`.
+- [x] `python -m pytest` passes (226 passed).
+- [x] `python -m ruff check .` passes (all checks passed).
+- [x] `python -m compileall office2md/gui` succeeds.
+- [x] `python -m office2md.cli --help` succeeds.
+- [x] `python -m office2md.cli build-library --help` succeeds.
+- [x] `python -m office2md.cli search-library --help` succeeds.
+- [x] `python -m office2md.cli library-report --help` succeeds.
+- [x] `python -m office2md.cli update-library --help` succeeds.
+- [x] Hotfix is contained to a single O(n_documents × n_entities × n_entity_mentions) nested scan inside `_write_database` (`office2md/library.py`).
+- [x] Hotfix precomputes a `(doc_id, entity_id)` set once before the documents loop and reduces the hot path to near-linear lookup.
+- [x] Output semantics are preserved: each entity text appears at most once per document in the FTS row, and the documents FTS5 row is byte-compatible with the pre-fix output.
+- [x] 5 new focused tests added to `tests/test_library_builder.py` covering multi-document entity extraction, dedup, empty-entities, end-to-end build, and a 50×50×50 performance regression test.
+- [x] Real 669-manifest smoke completed in 84.3 seconds, producing a 100,724,736-byte `library.db` with 669 documents, 14,801 chunks, and 384 entities.
+- [x] Rebuilt library verified end-to-end with `library-report` and `search-library` (`vacuum pump fault` returns 491 hits, `Symex` returns 419 FTS hits).
+- [x] Final library output written to a fresh `test_library_hotfix` folder; damaged old library output was not overwritten.
+- [x] Source folder `C:\Users\hcai\Desktop\test` and the 669 Knowledge Pack manifests were not modified.
+- [x] No new feature implementation is included.
+- [x] No conversion behavior changes are included.
+- [x] No build-library `--quiet` / `--log-file` / `--progress-json` flags are added in this release (defensive follow-up deferred).
+- [x] No search ranking, alias, or token fallback changes are included.
+- [x] No update-library behavior changes are included.
+- [x] No OfficeCLI integration changes are included.
+- [x] No MCP changes are included.
+- [x] No AI, OCR, embedding, vector, cloud, or unrestricted SQL work is included.
+- [x] No shell execution features are added to the office2md runtime.
+- [x] No source file modification is included.
+- [x] No Knowledge Pack manifest modification is included.
+- [x] No push was performed.
+
 v0.5.1 final release evidence:
 
 - [x] `v0.5.1-rc1` tag is present.
