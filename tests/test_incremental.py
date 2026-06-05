@@ -146,11 +146,13 @@ def test_scan_changes_classifies_new_modified_unchanged_deleted_and_unsupported(
     modified = source / "modified.txt"
     new_file = source / "new.txt"
     unsupported = source / "notes.tmp"
+    legacy_doc = source / "legacy.doc"
     deleted = source / "deleted.txt"
     unchanged.write_text("same", encoding="utf-8")
     modified.write_text("before", encoding="utf-8")
     new_file.write_text("new", encoding="utf-8")
     unsupported.write_text("unsupported", encoding="utf-8")
+    legacy_doc.write_text("legacy", encoding="utf-8")
     deleted.write_text("gone", encoding="utf-8")
 
     registry = _registry(library, [_source_record(unchanged, source), _source_record(modified, source), _source_record(deleted, source)])
@@ -162,7 +164,7 @@ def test_scan_changes_classifies_new_modified_unchanged_deleted_and_unsupported(
     assert plan["schema_version"] == CHANGE_PLAN_SCHEMA_VERSION
     assert plan["counts"]["unchanged"] == 1
     assert plan["counts"]["modified"] == 1
-    assert plan["counts"]["new"] == 1
+    assert plan["counts"]["new"] == 2
     assert plan["counts"]["deleted_missing"] == 1
     assert plan["counts"]["unsupported"] == 1
 
@@ -461,6 +463,46 @@ def test_update_library_updates_new_modified_reuses_unchanged_and_records_delete
     opened = open_chunk(library, search_results[0]["chunk_id"], context=0)
     assert search_results[0]["source_file"].endswith("new.txt")
     assert "gearbox" in opened["target_chunk"]["text"]
+
+
+def test_update_library_records_legacy_doc_failure_without_stopping_other_conversions(tmp_path):
+    source = tmp_path / "source"
+    output_root = tmp_path / "output"
+    library = tmp_path / "library"
+    source.mkdir()
+    ok = source / "ok.txt"
+    legacy = source / "legacy.doc"
+    ok.write_text("supported evidence", encoding="utf-8")
+    legacy.write_text("legacy office input", encoding="utf-8")
+    converted_sources = []
+
+    def tracking_convert(source_path: Path, output_root: Path, options: ConvertOptions):
+        converted_sources.append(source_path.name)
+        if source_path.suffix.lower() == ".doc":
+            raise RuntimeError("legacy Office preprocessing failed")
+        return _fake_convert_one(source_path, output_root, options)
+
+    result = update_library(
+        source,
+        output_root,
+        library,
+        convert_file=tracking_convert,
+        dry_run=False,
+        options=ConvertOptions(engine="markitdown"),
+    )
+
+    failure = result["conversion_failures"][0]
+    manifest = json.loads(Path(failure["manifest_path"]).read_text(encoding="utf-8"))
+
+    assert result["status"] == "failed"
+    assert result["planned"]["convert"] == 2
+    assert result["planned"]["unsupported"] == 0
+    assert converted_sources == ["legacy.doc", "ok.txt"]
+    assert result["converted"][0]["source_path"].endswith("ok.txt")
+    assert failure["source_file"] == "legacy.doc"
+    assert "legacy Office preprocessing failed" in failure["error"]
+    assert manifest["status"] == "failed"
+    assert not (library / "library.db").exists()
 
 
 def test_update_library_conversion_failure_writes_failed_manifest_and_stops_before_rebuild(tmp_path):

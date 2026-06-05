@@ -1,9 +1,11 @@
 import json
+import subprocess
 from pathlib import Path
 
 from typer.testing import CliRunner
 
 from office2md import cli
+from office2md.converters.libreoffice_converter import convert_legacy_office
 from office2md.models import ConvertOptions, ConvertResult
 
 
@@ -101,6 +103,42 @@ def test_convert_file_failure_writes_manifest_and_exits_nonzero(tmp_path, monkey
     assert manifest["status"] == "failed"
     assert manifest["errors"] == ["single failure"]
     assert (output / "_index.json").exists()
+
+
+def test_legacy_office_preprocess_failure_uses_failure_manifest(tmp_path, monkeypatch):
+    source = tmp_path / "legacy.doc"
+    source.write_bytes(b"legacy office bytes")
+    output = tmp_path / "out"
+    monkeypatch.setattr(cli, "convert_legacy_office", lambda path, temp_dir: (_ for _ in ()).throw(RuntimeError("soffice unavailable")))
+    monkeypatch.setattr(cli, "get_converter", lambda engine: (_ for _ in ()).throw(AssertionError("converter should not receive raw legacy file")))
+    runner = CliRunner()
+
+    result = runner.invoke(cli.app, ["convert-file", str(source), str(output), "--engine", "markitdown"])
+
+    assert result.exit_code == 1
+    assert "legacy Office preprocessing failed" in result.output
+    manifest = json.loads((output / "legacy" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["status"] == "failed"
+    assert "legacy Office preprocessing failed" in manifest["errors"][0]
+    assert "Convert the source to docx/pptx/xlsx" in manifest["errors"][0]
+
+
+def test_legacy_office_preprocess_timeout_has_clear_error(tmp_path, monkeypatch):
+    source = tmp_path / "legacy.doc"
+    source.write_bytes(b"legacy office bytes")
+    monkeypatch.setattr("office2md.converters.libreoffice_converter.shutil.which", lambda name: "/usr/bin/soffice")
+
+    def timeout_run(*args, **kwargs):
+        raise subprocess.TimeoutExpired(cmd=args[0], timeout=kwargs["timeout"])
+
+    monkeypatch.setattr("office2md.converters.libreoffice_converter.subprocess.run", timeout_run)
+
+    try:
+        convert_legacy_office(source, tmp_path / "temp", timeout_seconds=2)
+    except RuntimeError as exc:
+        assert "timed out after 2 seconds" in str(exc)
+    else:
+        raise AssertionError("expected legacy conversion timeout")
 
 
 def test_skip_existing_reuses_successful_same_checksum_output(tmp_path, monkeypatch):

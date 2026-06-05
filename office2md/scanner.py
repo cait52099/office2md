@@ -37,4 +37,3 @@ def scan_input(input_path: Path, recursive: bool = True) -> List[Path]:
     iterator = path.rglob("*") if recursive else path.iterdir()
     files = [item.resolve() for item in iterator if is_supported_file(item)]
     return sorted(files, key=lambda p: str(p).lower())
-

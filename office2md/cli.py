@@ -1593,7 +1593,10 @@ def convert_one(source_path: Path, output_root: Path, options: ConvertOptions):
                 converted_source = convert_legacy_office(source, Path(temp_name))
                 warnings.append(f"preprocessed legacy office file to {converted_source.suffix}")
             except Exception as exc:
-                warnings.append(f"legacy office preprocessing failed: {exc}")
+                raise RuntimeError(
+                    f"legacy Office preprocessing failed for {source.name}: {exc}. "
+                    "Convert the source to docx/pptx/xlsx or handle it manually."
+                ) from exc
 
         selected_engine = choose_engine(converted_source, options)
         console.print(f"  engine: {selected_engine}")

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from office2md.detector import sha256_file
+from office2md.detector import is_legacy_office, sha256_file
 from office2md.scanner import is_supported_file
 from office2md.utils import utc_now_iso
 
@@ -162,7 +162,7 @@ def build_change_plan(source_root: Path, library_path: Path, registry: dict[str,
                 "extension": path.suffix.lower(),
                 "previous": None,
                 "current": _file_metadata(path, source_root, compute_hash=False),
-                "reasons": ["unsupported extension or temporary Office file"],
+                "reasons": [_unsupported_source_reason(path)],
             }
         )
 
@@ -367,6 +367,14 @@ def _has_hidden_part(path: Path, root: Path) -> bool:
     except ValueError:
         parts = path.parts
     return any(part.startswith(".") for part in parts)
+
+
+def _unsupported_source_reason(path: Path) -> str:
+    if is_legacy_office(path):
+        return "legacy Office files are not converted automatically; convert to docx/pptx/xlsx or handle manually"
+    if path.name.startswith("~$"):
+        return "temporary Office lock file"
+    return "unsupported extension or temporary Office file"
 
 
 def _current_source_record(path: Path, root: Path) -> dict[str, Any]:
